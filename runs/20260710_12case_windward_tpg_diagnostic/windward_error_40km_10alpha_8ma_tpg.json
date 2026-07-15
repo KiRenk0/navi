@@ -1,0 +1,33 @@
+{
+  "case": {
+    "case_id": "ma8_a10_h40km_tpg",
+    "mach": 8.0,
+    "alpha_deg": 10.0,
+    "h_m": 40000.0
+  },
+  "thermo_model": "tpg",
+  "error_type": "signed_relpct",
+  "inputs": {
+    "lf_npz": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\ma8_a10_h40km_tpg\\fields.npz",
+    "fluent_csv": "D:\\ref\\reference-enthalpy_03_12_26-main\\fluent_export\\adiabatic_wall_csv\\40km_10alpha_8ma.csv"
+  },
+  "metric": "signed relative error (%) = (Taw_LF - Tw_Fluent)/Tw_Fluent*100",
+  "mapping": "LF (x_w_m, span_w_m) -> Fluent (x-coordinate, y-coordinate), KD-tree NN; Fluent windward subset by z sign",
+  "stats": {
+    "mean_signed_rel_err_pct": -1.220938785781777,
+    "mean_abs_rel_err_pct": 1.220938785781777,
+    "p95_abs_rel_err_pct": 2.150863332355221,
+    "max_abs_rel_err_pct": 5.746890225271432,
+    "over_fraction": 0.0,
+    "n_valid": 3240,
+    "Taw_lf_mean_K": 2594.8858820386904,
+    "fluent_windward_Tw_mean_K": 2627.05012201605,
+    "nn_median_dist_m": 0.011688816884910387,
+    "nn_p95_dist_m": 0.03132788209377506,
+    "nn_max_dist_m": 0.041216384292073104,
+    "windward_z_sign": "neg",
+    "fluent_windward_faces": 10682
+  },
+  "output_png": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260710_12case_windward_tpg_diagnostic\\windward_error_40km_10alpha_8ma_tpg.png",
+  "note": "diagnostic visualization only; windward-only (no leeward temperature error); does NOT replace P2R2 corrected comparison canon; NOT validation complete"
+}

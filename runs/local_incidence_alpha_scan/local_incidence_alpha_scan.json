@@ -1,0 +1,2566 @@
+{
+  "metadata": {
+    "diagnostic_only": true,
+    "formal_solver_routing_unchanged": true,
+    "source": "independent formal CLI run ma6_a5_h30km (temp dir, auto-cleaned)",
+    "alphas_deg": [
+      3.0,
+      5.0,
+      8.0,
+      10.0
+    ],
+    "epsilons": [
+      0.03,
+      0.05,
+      0.08
+    ],
+    "classification": "s=-dot((cos(alpha),0,sin(alpha)),n_out); W:s>eps, L:s<-eps, NT:otherwise",
+    "area_weighting": "structured projected (x,span) quad area times mean(1/abs(n_z)), distributed equally to four corners; separate real STL/analytic normals for upper and lower",
+    "clean_mask": "upper leeward AND raw STL source in {accepted,rejected-but-used} AND x/c>0.05 AND x/c<0.95 AND y/b<0.95 AND abs(n_z)>=0.8",
+    "region_bounds": {
+      "nose_xc_max": 0.05,
+      "trailing_edge_xc_min": 0.95,
+      "tip_yb_min": 0.95,
+      "chine_side_abs_nz_min": 0.8
+    },
+    "connectivity": "4-neighbor on 41x81 structured point grid",
+    "effective_alpha_formula": "atan(tan(alpha)/cos(72deg))"
+  },
+  "sheet_geometry": {
+    "upper": {
+      "valid_cells": 3200,
+      "rejected_or_cross_outline_cells": 0,
+      "surface_area_m2": 2.4863033176344445
+    },
+    "lower": {
+      "valid_cells": 3200,
+      "rejected_or_cross_outline_cells": 0,
+      "surface_area_m2": 2.1657938497439737
+    }
+  },
+  "alphas": {
+    "3": {
+      "geometric_alpha_deg": 3.0,
+      "alpha_e_deg": 9.625498390870545,
+      "difference_deg": 6.625498390870545,
+      "epsilons": {
+        "0.03": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 2702,
+                "percent_of_valid": 81.36103583258055
+              },
+              "near_tangent": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "leeward": {
+                "points": 158,
+                "percent_of_valid": 4.757603131586872
+              }
+            },
+            "area_m2": {
+              "windward": 2.2968556537444247,
+              "near_tangent": 0.15413281083203073,
+              "leeward": 0.03531485305798843
+            },
+            "area_fraction": {
+              "windward": 0.9238034786237317,
+              "near_tangent": 0.061992762403051474,
+              "leeward": 0.014203758973216593
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3321,
+                "percent_of_valid": 100.0
+              },
+              "near_tangent": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1657938497439737,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 1.0,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 158,
+            "area_m2": 0.03531485305798843,
+            "connected_components_4_neighbor": 2,
+            "largest_component_points": 157,
+            "largest_component_area_m2": 0.034547180903279164,
+            "largest_component_fraction_of_leeward_area": 0.9782620600615635,
+            "largest_component_xc_range": [
+              0.1,
+              1.0
+            ],
+            "largest_component_yb_range": [
+              0.75,
+              0.9500000000000001
+            ],
+            "nose": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            },
+            "trailing_edge": {
+              "points": 5,
+              "area_m2": 0.00043339783490642576
+            },
+            "tip": {
+              "points": 23,
+              "area_m2": 0.0021949348376442356
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 158,
+              "area_m2": 0.03531485305798843
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 134,
+            "area_m2": 0.03235224606563493,
+            "connected_components_4_neighbor": 1,
+            "largest_component_points": 134,
+            "largest_component_area_m2": 0.03235224606563493,
+            "largest_component_fraction_of_leeward_area": 1.0,
+            "largest_component_xc_range": [
+              0.1,
+              0.9125000000000001
+            ],
+            "largest_component_yb_range": [
+              0.75,
+              0.925
+            ],
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 134,
+              "area_m2": 0.03235224606563493
+            }
+          }
+        },
+        "0.05": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 2519,
+                "percent_of_valid": 75.85064739536284
+              },
+              "near_tangent": {
+                "points": 801,
+                "percent_of_valid": 24.119241192411923
+              },
+              "leeward": {
+                "points": 1,
+                "percent_of_valid": 0.030111412225233364
+              }
+            },
+            "area_m2": {
+              "windward": 2.2032703801006623,
+              "near_tangent": 0.28226526537907226,
+              "leeward": 0.0007676721547092667
+            },
+            "area_fraction": {
+              "windward": 0.8861631501167486,
+              "near_tangent": 0.11352808942379132,
+              "leeward": 0.0003087604594598123
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3242,
+                "percent_of_valid": 97.62119843420656
+              },
+              "near_tangent": {
+                "points": 79,
+                "percent_of_valid": 2.378801565793436
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1182021315579105,
+              "near_tangent": 0.04759171818606322,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 0.9780257395265531,
+              "near_tangent": 0.02197426047344682,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 1,
+            "area_m2": 0.0007676721547092667,
+            "connected_components_4_neighbor": 1,
+            "largest_component_points": 1,
+            "largest_component_area_m2": 0.0007676721547092667,
+            "largest_component_fraction_of_leeward_area": 1.0,
+            "largest_component_xc_range": [
+              0.0125,
+              0.0125
+            ],
+            "largest_component_yb_range": [
+              0.675,
+              0.675
+            ],
+            "nose": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 0,
+            "area_m2": 0.0,
+            "connected_components_4_neighbor": 0,
+            "largest_component_points": 0,
+            "largest_component_area_m2": 0.0,
+            "largest_component_fraction_of_leeward_area": 0.0,
+            "largest_component_xc_range": null,
+            "largest_component_yb_range": null,
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 0,
+              "area_m2": 0.0
+            }
+          }
+        },
+        "0.08": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 2022,
+                "percent_of_valid": 60.88527551942186
+              },
+              "near_tangent": {
+                "points": 1298,
+                "percent_of_valid": 39.08461306835291
+              },
+              "leeward": {
+                "points": 1,
+                "percent_of_valid": 0.030111412225233364
+              }
+            },
+            "area_m2": {
+              "windward": 1.8838009922108947,
+              "near_tangent": 0.6017346532688399,
+              "leeward": 0.0007676721547092667
+            },
+            "area_fraction": {
+              "windward": 0.757671430854707,
+              "near_tangent": 0.24201980868583292,
+              "leeward": 0.0003087604594598123
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 2117,
+                "percent_of_valid": 63.74585968081903
+              },
+              "near_tangent": {
+                "points": 1204,
+                "percent_of_valid": 36.25414031918097
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 1.5596336209606314,
+              "near_tangent": 0.6061602287833426,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 0.7201209945004698,
+              "near_tangent": 0.2798790054995304,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 1,
+            "area_m2": 0.0007676721547092667,
+            "connected_components_4_neighbor": 1,
+            "largest_component_points": 1,
+            "largest_component_area_m2": 0.0007676721547092667,
+            "largest_component_fraction_of_leeward_area": 1.0,
+            "largest_component_xc_range": [
+              0.0125,
+              0.0125
+            ],
+            "largest_component_yb_range": [
+              0.675,
+              0.675
+            ],
+            "nose": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 0,
+            "area_m2": 0.0,
+            "connected_components_4_neighbor": 0,
+            "largest_component_points": 0,
+            "largest_component_area_m2": 0.0,
+            "largest_component_fraction_of_leeward_area": 0.0,
+            "largest_component_xc_range": null,
+            "largest_component_yb_range": null,
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 0,
+              "area_m2": 0.0
+            }
+          }
+        }
+      },
+      "alpha_e_classification_counts": {
+        "0.03": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 234,
+              "percent_of_valid": 7.046070460704607
+            },
+            "near_tangent": {
+              "points": 2067,
+              "percent_of_valid": 62.24028906955736
+            },
+            "leeward": {
+              "points": 1020,
+              "percent_of_valid": 30.71364046973803
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        },
+        "0.05": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 142,
+              "percent_of_valid": 4.275820535983137
+            },
+            "near_tangent": {
+              "points": 2378,
+              "percent_of_valid": 71.60493827160494
+            },
+            "leeward": {
+              "points": 801,
+              "percent_of_valid": 24.119241192411923
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        },
+        "0.08": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 77,
+              "percent_of_valid": 2.318578741342969
+            },
+            "near_tangent": {
+              "points": 2681,
+              "percent_of_valid": 80.72869617585064
+            },
+            "leeward": {
+              "points": 563,
+              "percent_of_valid": 16.952725082806385
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        }
+      }
+    },
+    "5": {
+      "geometric_alpha_deg": 5.0,
+      "alpha_e_deg": 15.80783941625638,
+      "difference_deg": 10.80783941625638,
+      "epsilons": {
+        "0.03": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 2412,
+                "percent_of_valid": 72.62872628726288
+              },
+              "near_tangent": {
+                "points": 511,
+                "percent_of_valid": 15.386931647094249
+              },
+              "leeward": {
+                "points": 398,
+                "percent_of_valid": 11.98434206564288
+              }
+            },
+            "area_m2": {
+              "windward": 2.139351291645077,
+              "near_tangent": 0.238744728880099,
+              "leeward": 0.10820729710926791
+            },
+            "area_fraction": {
+              "windward": 0.8604546663600684,
+              "near_tangent": 0.09602397550884864,
+              "leeward": 0.04352135813108277
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3321,
+                "percent_of_valid": 100.0
+              },
+              "near_tangent": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1657938497439737,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 1.0,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 398,
+            "area_m2": 0.10820729710926791,
+            "connected_components_4_neighbor": 2,
+            "largest_component_points": 397,
+            "largest_component_area_m2": 0.10743962495455864,
+            "largest_component_fraction_of_leeward_area": 0.99290554172207,
+            "largest_component_xc_range": [
+              0.07500000000000001,
+              1.0
+            ],
+            "largest_component_yb_range": [
+              0.7000000000000001,
+              0.9500000000000001
+            ],
+            "nose": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            },
+            "trailing_edge": {
+              "points": 15,
+              "area_m2": 0.0019489870591161164
+            },
+            "tip": {
+              "points": 34,
+              "area_m2": 0.0033068353847131573
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 242,
+              "area_m2": 0.06142232210702331
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 353,
+            "area_m2": 0.10261720034563579,
+            "connected_components_4_neighbor": 1,
+            "largest_component_points": 353,
+            "largest_component_area_m2": 0.10261720034563579,
+            "largest_component_fraction_of_leeward_area": 1.0,
+            "largest_component_xc_range": [
+              0.07500000000000001,
+              0.9375
+            ],
+            "largest_component_yb_range": [
+              0.7000000000000001,
+              0.925
+            ],
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 213,
+              "area_m2": 0.057816369881337135
+            }
+          }
+        },
+        "0.05": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 2085,
+                "percent_of_valid": 62.782294489611566
+              },
+              "near_tangent": {
+                "points": 980,
+                "percent_of_valid": 29.509183980728697
+              },
+              "leeward": {
+                "points": 256,
+                "percent_of_valid": 7.708521529659741
+              }
+            },
+            "area_m2": {
+              "windward": 1.9343535517436412,
+              "near_tangent": 0.4888835730899277,
+              "leeward": 0.0630661928008753
+            },
+            "area_fraction": {
+              "windward": 0.7780038493388862,
+              "near_tangent": 0.19663070455742646,
+              "leeward": 0.02536544610368725
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3321,
+                "percent_of_valid": 100.0
+              },
+              "near_tangent": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1657938497439737,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 1.0,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 256,
+            "area_m2": 0.0630661928008753,
+            "connected_components_4_neighbor": 2,
+            "largest_component_points": 255,
+            "largest_component_area_m2": 0.06229852064616604,
+            "largest_component_fraction_of_leeward_area": 0.9878275170798227,
+            "largest_component_xc_range": [
+              0.1,
+              1.0
+            ],
+            "largest_component_yb_range": [
+              0.7250000000000001,
+              0.9500000000000001
+            ],
+            "nose": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            },
+            "trailing_edge": {
+              "points": 10,
+              "area_m2": 0.0010767430682390893
+            },
+            "tip": {
+              "points": 23,
+              "area_m2": 0.0021949348376442356
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 234,
+              "area_m2": 0.05788505245369245
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 227,
+            "area_m2": 0.059460240575189144,
+            "connected_components_4_neighbor": 1,
+            "largest_component_points": 227,
+            "largest_component_area_m2": 0.05946024057518913,
+            "largest_component_fraction_of_leeward_area": 0.9999999999999998,
+            "largest_component_xc_range": [
+              0.1,
+              0.9375
+            ],
+            "largest_component_yb_range": [
+              0.7250000000000001,
+              0.925
+            ],
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 205,
+              "area_m2": 0.05427910022800628
+            }
+          }
+        },
+        "0.08": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 898,
+                "percent_of_valid": 27.04004817825956
+              },
+              "near_tangent": {
+                "points": 2379,
+                "percent_of_valid": 71.63504968383018
+              },
+              "leeward": {
+                "points": 44,
+                "percent_of_valid": 1.324902137910268
+              }
+            },
+            "area_m2": {
+              "windward": 0.9376740596384949,
+              "near_tangent": 1.5392561669087415,
+              "leeward": 0.009373091087208147
+            },
+            "area_fraction": {
+              "windward": 0.3771358277117334,
+              "near_tangent": 0.6190942818566656,
+              "leeward": 0.0037698904316010935
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3267,
+                "percent_of_valid": 98.3739837398374
+              },
+              "near_tangent": {
+                "points": 54,
+                "percent_of_valid": 1.6260162601626016
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1340759749479528,
+              "near_tangent": 0.03171787479602075,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 0.985355081325136,
+              "near_tangent": 0.014644918674863831,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 44,
+            "area_m2": 0.009373091087208147,
+            "connected_components_4_neighbor": 9,
+            "largest_component_points": 9,
+            "largest_component_area_m2": 0.0012839632681710426,
+            "largest_component_fraction_of_leeward_area": 0.136983974254056,
+            "largest_component_xc_range": [
+              0.5750000000000001,
+              0.675
+            ],
+            "largest_component_yb_range": [
+              0.925,
+              0.925
+            ],
+            "nose": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            },
+            "trailing_edge": {
+              "points": 5,
+              "area_m2": 0.00043339783490642576
+            },
+            "tip": {
+              "points": 11,
+              "area_m2": 0.0010130178271493314
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 44,
+              "area_m2": 0.009373091087208147
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 32,
+            "area_m2": 0.007592401105349549,
+            "connected_components_4_neighbor": 7,
+            "largest_component_points": 9,
+            "largest_component_area_m2": 0.0012839632681710426,
+            "largest_component_fraction_of_leeward_area": 0.16911162231225793,
+            "largest_component_xc_range": [
+              0.5750000000000001,
+              0.675
+            ],
+            "largest_component_yb_range": [
+              0.925,
+              0.925
+            ],
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 32,
+              "area_m2": 0.007592401105349549
+            }
+          }
+        }
+      },
+      "alpha_e_classification_counts": {
+        "0.03": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 46,
+              "percent_of_valid": 1.3851249623607347
+            },
+            "near_tangent": {
+              "points": 113,
+              "percent_of_valid": 3.40258958145137
+            },
+            "leeward": {
+              "points": 3162,
+              "percent_of_valid": 95.2122854561879
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        },
+        "0.05": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 30,
+              "percent_of_valid": 0.9033423667570009
+            },
+            "near_tangent": {
+              "points": 170,
+              "percent_of_valid": 5.118940078289672
+            },
+            "leeward": {
+              "points": 3121,
+              "percent_of_valid": 93.97771755495333
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        },
+        "0.08": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 17,
+              "percent_of_valid": 0.5118940078289672
+            },
+            "near_tangent": {
+              "points": 714,
+              "percent_of_valid": 21.499548328816623
+            },
+            "leeward": {
+              "points": 2590,
+              "percent_of_valid": 77.98855766335441
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        }
+      }
+    },
+    "8": {
+      "geometric_alpha_deg": 8.0,
+      "alpha_e_deg": 24.456026182369506,
+      "difference_deg": 16.456026182369506,
+      "epsilons": {
+        "0.03": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 1330,
+                "percent_of_valid": 40.04817825956037
+              },
+              "near_tangent": {
+                "points": 1235,
+                "percent_of_valid": 37.1875940981632
+              },
+              "leeward": {
+                "points": 756,
+                "percent_of_valid": 22.764227642276424
+              }
+            },
+            "area_m2": {
+              "windward": 1.2393116238139243,
+              "near_tangent": 0.9878259476165623,
+              "leeward": 0.2591657462039575
+            },
+            "area_fraction": {
+              "windward": 0.4984555243215653,
+              "near_tangent": 0.3973070946775771,
+              "leeward": 0.10423738100085746
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3321,
+                "percent_of_valid": 100.0
+              },
+              "near_tangent": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1657938497439737,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 1.0,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 756,
+            "area_m2": 0.2591657462039575,
+            "connected_components_4_neighbor": 2,
+            "largest_component_points": 755,
+            "largest_component_area_m2": 0.2583980740492482,
+            "largest_component_fraction_of_leeward_area": 0.9970379104262291,
+            "largest_component_xc_range": [
+              0.05,
+              1.0
+            ],
+            "largest_component_yb_range": [
+              0.6000000000000001,
+              0.9750000000000001
+            ],
+            "nose": {
+              "points": 2,
+              "area_m2": 0.001355598275142642
+            },
+            "trailing_edge": {
+              "points": 40,
+              "area_m2": 0.008204550903282423
+            },
+            "tip": {
+              "points": 56,
+              "area_m2": 0.005068958635594565
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 242,
+              "area_m2": 0.06142232210702331
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 668,
+            "area_m2": 0.2451961398393463,
+            "connected_components_4_neighbor": 1,
+            "largest_component_points": 668,
+            "largest_component_area_m2": 0.2451961398393463,
+            "largest_component_fraction_of_leeward_area": 1.0,
+            "largest_component_xc_range": [
+              0.0625,
+              0.9375
+            ],
+            "largest_component_yb_range": [
+              0.6000000000000001,
+              0.925
+            ],
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 213,
+              "area_m2": 0.057816369881337135
+            }
+          }
+        },
+        "0.05": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 268,
+                "percent_of_valid": 8.069858476362542
+              },
+              "near_tangent": {
+                "points": 2442,
+                "percent_of_valid": 73.53206865401987
+              },
+              "leeward": {
+                "points": 611,
+                "percent_of_valid": 18.398072869617586
+              }
+            },
+            "area_m2": {
+              "windward": 0.2724386621575365,
+              "near_tangent": 2.026374349690674,
+              "leeward": 0.187490305786234
+            },
+            "area_fraction": {
+              "windward": 0.1095757948055767,
+              "near_tangent": 0.8150149401797996,
+              "leeward": 0.07540926501462372
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3321,
+                "percent_of_valid": 100.0
+              },
+              "near_tangent": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1657938497439737,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 1.0,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 611,
+            "area_m2": 0.187490305786234,
+            "connected_components_4_neighbor": 2,
+            "largest_component_points": 610,
+            "largest_component_area_m2": 0.18672263363152472,
+            "largest_component_fraction_of_leeward_area": 0.9959055368143432,
+            "largest_component_xc_range": [
+              0.0625,
+              1.0
+            ],
+            "largest_component_yb_range": [
+              0.65,
+              0.9750000000000001
+            ],
+            "nose": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            },
+            "trailing_edge": {
+              "points": 30,
+              "area_m2": 0.004670889429278104
+            },
+            "tip": {
+              "points": 55,
+              "area_m2": 0.004962612794238884
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 242,
+              "area_m2": 0.06142232210702331
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 535,
+            "area_m2": 0.17774863285741618,
+            "connected_components_4_neighbor": 1,
+            "largest_component_points": 535,
+            "largest_component_area_m2": 0.17774863285741618,
+            "largest_component_fraction_of_leeward_area": 1.0,
+            "largest_component_xc_range": [
+              0.0625,
+              0.9375
+            ],
+            "largest_component_yb_range": [
+              0.65,
+              0.925
+            ],
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 213,
+              "area_m2": 0.057816369881337135
+            }
+          }
+        },
+        "0.08": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 118,
+                "percent_of_valid": 3.553146642577537
+              },
+              "near_tangent": {
+                "points": 2805,
+                "percent_of_valid": 84.46251129177958
+              },
+              "leeward": {
+                "points": 398,
+                "percent_of_valid": 11.98434206564288
+              }
+            },
+            "area_m2": {
+              "windward": 0.14114207711735005,
+              "near_tangent": 2.2369539434078263,
+              "leeward": 0.10820729710926791
+            },
+            "area_fraction": {
+              "windward": 0.0567678432942114,
+              "near_tangent": 0.8997107985747057,
+              "leeward": 0.04352135813108277
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3321,
+                "percent_of_valid": 100.0
+              },
+              "near_tangent": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1657938497439737,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 1.0,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 398,
+            "area_m2": 0.10820729710926791,
+            "connected_components_4_neighbor": 2,
+            "largest_component_points": 397,
+            "largest_component_area_m2": 0.10743962495455864,
+            "largest_component_fraction_of_leeward_area": 0.99290554172207,
+            "largest_component_xc_range": [
+              0.07500000000000001,
+              1.0
+            ],
+            "largest_component_yb_range": [
+              0.7000000000000001,
+              0.9500000000000001
+            ],
+            "nose": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            },
+            "trailing_edge": {
+              "points": 15,
+              "area_m2": 0.0019489870591161164
+            },
+            "tip": {
+              "points": 34,
+              "area_m2": 0.0033068353847131573
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 242,
+              "area_m2": 0.06142232210702331
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 353,
+            "area_m2": 0.10261720034563579,
+            "connected_components_4_neighbor": 1,
+            "largest_component_points": 353,
+            "largest_component_area_m2": 0.10261720034563579,
+            "largest_component_fraction_of_leeward_area": 1.0,
+            "largest_component_xc_range": [
+              0.07500000000000001,
+              0.9375
+            ],
+            "largest_component_yb_range": [
+              0.7000000000000001,
+              0.925
+            ],
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 213,
+              "area_m2": 0.057816369881337135
+            }
+          }
+        }
+      },
+      "alpha_e_classification_counts": {
+        "0.03": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3,
+              "percent_of_valid": 0.09033423667570009
+            },
+            "near_tangent": {
+              "points": 17,
+              "percent_of_valid": 0.5118940078289672
+            },
+            "leeward": {
+              "points": 3301,
+              "percent_of_valid": 99.39777175549533
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        },
+        "0.05": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "near_tangent": {
+              "points": 30,
+              "percent_of_valid": 0.9033423667570009
+            },
+            "leeward": {
+              "points": 3291,
+              "percent_of_valid": 99.096657633243
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        },
+        "0.08": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "near_tangent": {
+              "points": 55,
+              "percent_of_valid": 1.656127672387835
+            },
+            "leeward": {
+              "points": 3266,
+              "percent_of_valid": 98.34387232761216
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        }
+      }
+    },
+    "10": {
+      "geometric_alpha_deg": 10.0,
+      "alpha_e_deg": 29.70934417819333,
+      "difference_deg": 19.70934417819333,
+      "epsilons": {
+        "0.03": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 209,
+                "percent_of_valid": 6.293285155073773
+              },
+              "near_tangent": {
+                "points": 2029,
+                "percent_of_valid": 61.096055404998495
+              },
+              "leeward": {
+                "points": 1083,
+                "percent_of_valid": 32.61065943992773
+              }
+            },
+            "area_m2": {
+              "windward": 0.20907330236997823,
+              "near_tangent": 1.8388255418272583,
+              "leeward": 0.43840447343720756
+            },
+            "area_fraction": {
+              "windward": 0.08409002268029706,
+              "near_tangent": 0.7395821454225388,
+              "leeward": 0.17632783189716403
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3321,
+                "percent_of_valid": 100.0
+              },
+              "near_tangent": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1657938497439737,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 1.0,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 1083,
+            "area_m2": 0.43840447343720756,
+            "connected_components_4_neighbor": 2,
+            "largest_component_points": 1082,
+            "largest_component_area_m2": 0.43763680128249827,
+            "largest_component_fraction_of_leeward_area": 0.9982489408725906,
+            "largest_component_xc_range": [
+              0.05,
+              1.0
+            ],
+            "largest_component_yb_range": [
+              0.525,
+              0.9750000000000001
+            ],
+            "nose": {
+              "points": 6,
+              "area_m2": 0.0036778905190122664
+            },
+            "trailing_edge": {
+              "points": 55,
+              "area_m2": 0.015107844482840948
+            },
+            "tip": {
+              "points": 86,
+              "area_m2": 0.007331768455887436
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 242,
+              "area_m2": 0.06142232210702331
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 895,
+            "area_m2": 0.380591138277396,
+            "connected_components_4_neighbor": 2,
+            "largest_component_points": 894,
+            "largest_component_area_m2": 0.3802262010512689,
+            "largest_component_fraction_of_leeward_area": 0.9990411305219065,
+            "largest_component_xc_range": [
+              0.0625,
+              0.9375
+            ],
+            "largest_component_yb_range": [
+              0.525,
+              0.925
+            ],
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 213,
+              "area_m2": 0.057816369881337135
+            }
+          }
+        },
+        "0.05": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 132,
+                "percent_of_valid": 3.974706413730804
+              },
+              "near_tangent": {
+                "points": 2341,
+                "percent_of_valid": 70.4908160192713
+              },
+              "leeward": {
+                "points": 848,
+                "percent_of_valid": 25.534477566997893
+              }
+            },
+            "area_m2": {
+              "windward": 0.15137523029682315,
+              "near_tangent": 2.0254331284604383,
+              "leeward": 0.3094949588771829
+            },
+            "area_fraction": {
+              "windward": 0.060883653745371184,
+              "near_tangent": 0.8146363776675107,
+              "leeward": 0.124479968587118
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3321,
+                "percent_of_valid": 100.0
+              },
+              "near_tangent": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1657938497439737,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 1.0,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 848,
+            "area_m2": 0.3094949588771829,
+            "connected_components_4_neighbor": 2,
+            "largest_component_points": 847,
+            "largest_component_area_m2": 0.3087272867224736,
+            "largest_component_fraction_of_leeward_area": 0.9975195972254465,
+            "largest_component_xc_range": [
+              0.05,
+              1.0
+            ],
+            "largest_component_yb_range": [
+              0.6000000000000001,
+              0.9750000000000001
+            ],
+            "nose": {
+              "points": 3,
+              "area_m2": 0.0019188054674379972
+            },
+            "trailing_edge": {
+              "points": 45,
+              "area_m2": 0.01030044872597218
+            },
+            "tip": {
+              "points": 56,
+              "area_m2": 0.005068958635594565
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 242,
+              "area_m2": 0.06142232210702331
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 754,
+            "area_m2": 0.29286624749758666,
+            "connected_components_4_neighbor": 1,
+            "largest_component_points": 754,
+            "largest_component_area_m2": 0.29286624749758666,
+            "largest_component_fraction_of_leeward_area": 1.0,
+            "largest_component_xc_range": [
+              0.0625,
+              0.9375
+            ],
+            "largest_component_yb_range": [
+              0.6000000000000001,
+              0.925
+            ],
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 213,
+              "area_m2": 0.057816369881337135
+            }
+          }
+        },
+        "0.08": {
+          "upper": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2694,
+                "percent_of_valid": 81.12014453477867
+              },
+              "stl_rejected_but_used": {
+                "points": 461,
+                "percent_of_valid": 13.881361035832581
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 70,
+                "percent_of_valid": 2.1077988557663354
+              },
+              "near_tangent": {
+                "points": 2622,
+                "percent_of_valid": 78.95212285456188
+              },
+              "leeward": {
+                "points": 629,
+                "percent_of_valid": 18.940078289671785
+              }
+            },
+            "area_m2": {
+              "windward": 0.08626245167141361,
+              "near_tangent": 2.2053189270093654,
+              "leeward": 0.19472193895366488
+            },
+            "area_fraction": {
+              "windward": 0.03469506357473983,
+              "near_tangent": 0.8869870829386909,
+              "leeward": 0.07831785348656901
+            }
+          },
+          "lower": {
+            "counts": {
+              "valid": 3321,
+              "stl_accepted": {
+                "points": 2927,
+                "percent_of_valid": 88.13610358325805
+              },
+              "stl_rejected_but_used": {
+                "points": 228,
+                "percent_of_valid": 6.865401987353207
+              },
+              "analytic_fallback": {
+                "points": 166,
+                "percent_of_valid": 4.998494429388738
+              },
+              "windward": {
+                "points": 3321,
+                "percent_of_valid": 100.0
+              },
+              "near_tangent": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              },
+              "leeward": {
+                "points": 0,
+                "percent_of_valid": 0.0
+              }
+            },
+            "area_m2": {
+              "windward": 2.1657938497439737,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            },
+            "area_fraction": {
+              "windward": 1.0,
+              "near_tangent": 0.0,
+              "leeward": 0.0
+            }
+          },
+          "upper_leeward_connectivity": {
+            "points": 629,
+            "area_m2": 0.19472193895366488,
+            "connected_components_4_neighbor": 2,
+            "largest_component_points": 628,
+            "largest_component_area_m2": 0.1939542667989556,
+            "largest_component_fraction_of_leeward_area": 0.9960575980352582,
+            "largest_component_xc_range": [
+              0.0625,
+              1.0
+            ],
+            "largest_component_yb_range": [
+              0.65,
+              0.9750000000000001
+            ],
+            "nose": {
+              "points": 1,
+              "area_m2": 0.0007676721547092667
+            },
+            "trailing_edge": {
+              "points": 30,
+              "area_m2": 0.004670889429278104
+            },
+            "tip": {
+              "points": 56,
+              "area_m2": 0.005068958635594565
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 242,
+              "area_m2": 0.06142232210702331
+            }
+          },
+          "clean_upper_leeward": {
+            "points": 552,
+            "area_m2": 0.1848739201834914,
+            "connected_components_4_neighbor": 1,
+            "largest_component_points": 552,
+            "largest_component_area_m2": 0.18487392018349139,
+            "largest_component_fraction_of_leeward_area": 0.9999999999999999,
+            "largest_component_xc_range": [
+              0.0625,
+              0.9375
+            ],
+            "largest_component_yb_range": [
+              0.65,
+              0.925
+            ],
+            "nose": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "trailing_edge": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "tip": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "analytic_fallback": {
+              "points": 0,
+              "area_m2": 0.0
+            },
+            "stl_rejected_but_used": {
+              "points": 213,
+              "area_m2": 0.057816369881337135
+            }
+          }
+        }
+      },
+      "alpha_e_classification_counts": {
+        "0.03": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "near_tangent": {
+              "points": 4,
+              "percent_of_valid": 0.12044564890093346
+            },
+            "leeward": {
+              "points": 3317,
+              "percent_of_valid": 99.87955435109906
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        },
+        "0.05": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "near_tangent": {
+              "points": 5,
+              "percent_of_valid": 0.15055706112616682
+            },
+            "leeward": {
+              "points": 3316,
+              "percent_of_valid": 99.84944293887384
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        },
+        "0.08": {
+          "upper": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2694,
+              "percent_of_valid": 81.12014453477867
+            },
+            "stl_rejected_but_used": {
+              "points": 461,
+              "percent_of_valid": 13.881361035832581
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "near_tangent": {
+              "points": 19,
+              "percent_of_valid": 0.5721168322794339
+            },
+            "leeward": {
+              "points": 3302,
+              "percent_of_valid": 99.42788316772057
+            }
+          },
+          "lower": {
+            "valid": 3321,
+            "stl_accepted": {
+              "points": 2927,
+              "percent_of_valid": 88.13610358325805
+            },
+            "stl_rejected_but_used": {
+              "points": 228,
+              "percent_of_valid": 6.865401987353207
+            },
+            "analytic_fallback": {
+              "points": 166,
+              "percent_of_valid": 4.998494429388738
+            },
+            "windward": {
+              "points": 3321,
+              "percent_of_valid": 100.0
+            },
+            "near_tangent": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            },
+            "leeward": {
+              "points": 0,
+              "percent_of_valid": 0.0
+            }
+          }
+        }
+      }
+    }
+  },
+  "figures": [
+    "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\local_incidence_alpha_scan\\epsilon_comparison_summary.png"
+  ]
+}

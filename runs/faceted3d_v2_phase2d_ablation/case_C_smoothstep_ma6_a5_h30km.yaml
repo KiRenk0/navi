@@ -1,0 +1,47 @@
+case_spec:
+  atmosphere:
+    altitude_type: geometric
+    model: isa1976
+  fixed:
+    h_m: 30000
+  gas:
+    R_J_per_kgK: 287.0
+    gamma: 1.4
+    model: perfect_gas
+  lf_qw_model:
+    cp_J_per_kgK: 1005
+    h0_model: constant_cp
+    pr: 0.72
+    stagnation:
+      rn_unit: cm
+      sweep_exponent_n: 1.0
+    transition:
+      enable: true
+      weighting: smoothstep
+    type: reference_enthalpy
+  theta_bounds:
+    alpha:
+    - 5.0
+    - 5.0
+    mach:
+    - 6.0
+    - 6.0
+  theta_names:
+  - mach
+  - alpha
+  theta_sampling:
+    grid_size:
+    - 1
+    - 1
+    method: grid
+  theta_units:
+  - 1
+  - deg
+  viscosity:
+    S_K: 110.4
+    T_ref_K: 273.15
+    model: sutherland
+    mu_ref_Pa_s: 1.716e-05
+  wall:
+    model: fixed_temperature
+    temperature_K: 300.0

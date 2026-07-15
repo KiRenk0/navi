@@ -1,0 +1,548 @@
+{
+  "manifest_schema": "current-tpg-baseline-regression/v5",
+  "provenance": "CURRENT TPG-only post-2026-07-14 official regression baseline with local-incidence and sheet-specific leeward freestream-recovery diagnostics; historical 0630 snapshot is a separate contract",
+  "baseline_date": "2026-07-14",
+  "suite_type": "TPG official",
+  "case_id": "ma8_a5_h40km",
+  "case": {
+    "mach": 8.0,
+    "alpha_deg": 5.0,
+    "geometric_altitude_m": 40000.0
+  },
+  "freestream": {
+    "actual_T_inf_K": 250.3496461024211,
+    "actual_p_inf_Pa": 286.83264199835946,
+    "actual_rho_inf_kg_m3": 0.003992084217548882,
+    "source": "atmosphere"
+  },
+  "atmosphere": {
+    "model": "isa1976",
+    "altitude_semantics": "geometric altitude converted to geopotential altitude before 1976 layer evaluation",
+    "explicit_freestream_override": false
+  },
+  "thermo": {
+    "model": "tpg",
+    "Taw_recovery": "fixed fully turbulent Pr^(1/3)"
+  },
+  "pressure": {
+    "model": "newtonian_like",
+    "A": 0.38,
+    "n": 1.15
+  },
+  "grid": {
+    "ny": 41,
+    "nx": 81,
+    "n_valid": 3321,
+    "chord_min_m": 0.02
+  },
+  "endpoint_metadata": {
+    "row_index": 40,
+    "row_compared": true,
+    "yb_grid_last": 0.9965795880183579,
+    "physical_span_m": 1.0275004628958033,
+    "endpoint_chord_m": 0.020000000380881122,
+    "row_valid_count": 81
+  },
+  "local_incidence": {
+    "local_incidence_status": "frozen_diagnostic",
+    "local_incidence_formula": "-dot(u_hat, n_out)",
+    "alpha_basis": "geometric_alpha",
+    "epsilon": 0.05,
+    "upper_normal_orientation": "nz_positive",
+    "lower_normal_orientation": "nz_negative",
+    "raw_stl_normal_preferred": true,
+    "formal_alpha_sign_routing_unchanged": true,
+    "taw_tpg_l_implemented": false
+  },
+  "fields_schema": {
+    "Ma_e_leeward_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "Ma_e_leeward_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "Re_ns_l": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "St_l": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "T_e_leeward_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "T_e_leeward_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "T_e_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "T_r_lam_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "T_r_turb_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "Taw_tpg_leeward_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "Taw_tpg_leeward_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "Taw_tpg_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "Tw_l": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "Tw_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "V_e_leeward_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "V_e_leeward_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "cp0_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "cp_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "h_e_leeward_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "h_e_leeward_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "h_e_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "h_r_lam_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "h_r_turb_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "h_star_lam_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "h_star_turb_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "incidence_s_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "incidence_s_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "ma_e_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "mask_l": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "mask_leeward_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "bool"
+    },
+    "mask_leeward_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "bool"
+    },
+    "mask_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "mu_e_leeward_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "mu_e_leeward_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "mu_e_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "normal_source_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "int8"
+    },
+    "normal_source_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "int8"
+    },
+    "normal_x_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "normal_x_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "normal_y_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "normal_y_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "normal_z_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "normal_z_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "p_e_leeward_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "p_e_leeward_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "p_e_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "phi_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "q_l": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "q_lam_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "q_turb_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "q_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "re_edge": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "re_tri": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "re_x_over_re_tri": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "re_x_star": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "rho_e_leeward_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "rho_e_leeward_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "rho_e_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "span_l_m": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "span_w_m": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "surface_class_lower": {
+      "shape": [
+        3321
+      ],
+      "dtype": "int8"
+    },
+    "surface_class_upper": {
+      "shape": [
+        3321
+      ],
+      "dtype": "int8"
+    },
+    "v_e_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "w_tr": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "x_l_m": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "x_w_m": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "xc_grid": {
+      "shape": [
+        81
+      ],
+      "dtype": "float64"
+    },
+    "xc_l": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "xc_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "yb_grid": {
+      "shape": [
+        41
+      ],
+      "dtype": "float64"
+    },
+    "yb_l": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    },
+    "yb_w": {
+      "shape": [
+        3321
+      ],
+      "dtype": "float64"
+    }
+  },
+  "source_hashes_sha256": {
+    "scripts/run_case_rem.py": "ece6017618f9c3d1bbf4cfa3293094e99d53fcaf25b5b1668fec41fe96ec3397",
+    "specs/vehicles/htv2_faceted3d_0629.yaml": "877c1994fbaa7eef570a89b9fae36e8cda6ef1b6072e733b3a6a51578b7074cf",
+    "specs/cases/doc_ma6_alpha5_h30km_faceted3d.yaml": "3d483ed2d2ad5112549314cec604f01d848a109d6a43854a94da4e9fbea8b1d4",
+    "specs/sampling/engineering_full_wing_surface_grid_81x41.yaml": "39bed4302c18d67acb5b2b4184ea84a5201b1b877da093d515933cca4ede624f",
+    "new_spec/htv2_0628.stl": "2e0003e91e9dd8d81803762321d3231f87c8b5b1e37fb6b84e9e5101042641eb",
+    "new_spec/outline_xz_right_0629.csv": "4fbacb8610109eba4ae610266ecd41f0a7ead1e92653d5e5f8b346403f8f8648",
+    "src/ref_enthalpy_method/__init__.py": "1626f54a0706a23ddd7afb9d69761e0b6bbb891b54b025e54efb23d78b94078b",
+    "src/ref_enthalpy_method/aero/__init__.py": "afffdf9cedbfd1d0177f57d6bc5d9b1926b38cbf271a2f52442f7229d7d19904",
+    "src/ref_enthalpy_method/aero/adiabatic_wall_temp.py": "b8ca3ee9734620766d365bf456e061bce4d42a34d60060ec3df8a7e55096a47c",
+    "src/ref_enthalpy_method/aero/busemann.py": "fe0050e4e8f887a56abf5a8d98a2e12d1d45e6ecc03b90023c1d61c9d9b0268f",
+    "src/ref_enthalpy_method/aero/edge_conditions.py": "357471502f4347d376c9acbbfe7ab1b1743c026374b748fb9596ea501908b502",
+    "src/ref_enthalpy_method/aero/leeward_recovery.py": "efc9fa9e09cc25055659e1954f47d5628eabc342f7ca69d786e079d3bcabdc31",
+    "src/ref_enthalpy_method/aero/transition.py": "7c4c399b3c6b77622c725506057478bf60a9c02aa04e9d1b388f1f5b7718c235",
+    "src/ref_enthalpy_method/aero/windward_cache.py": "02f04721464bdfcce94c818814684b0a3ee607ad0ea913c4cfa63f4a2d1fc2de",
+    "src/ref_enthalpy_method/aero/windward_cache_faceted3d.py": "e0dfdba2b14bd72ddca08d6d094b294a8affeac5826f2b98c0ca9d9f6c17b75e",
+    "src/ref_enthalpy_method/atmosphere/__init__.py": "4b5bf7f50c5bf810799cabfa5b0d4827ae8a2ea4d3a4152e9ee2b0b5e0aaedf6",
+    "src/ref_enthalpy_method/atmosphere/isa1976.py": "4be2e868e492eb8d257b5c3edf3e94ae62aa65ece55f50bccb285a92a09e149d",
+    "src/ref_enthalpy_method/atmosphere/ussa1976.py": "858bf5745a130e5b9177de1064158c7fb3b9daf91e8eeacd731c2b86865d3487",
+    "src/ref_enthalpy_method/config/__init__.py": "9ac429311b7ec99f18a67630676508f599da2099df740d2956fadbded4b33c23",
+    "src/ref_enthalpy_method/config/lf_qw.py": "ab67ff6e5ca47e9dc1d107b67f1025f134a340afc836f26a2b5ef2ff98d3c7ae",
+    "src/ref_enthalpy_method/constants.py": "e82730591bbeb3df4be6566aa2e9198ce153e658d5ce9c2775b368a5832baf16",
+    "src/ref_enthalpy_method/gas/__init__.py": "b578ae31d709df3549a7c1415e899f0c258e6fbb462d7ddae94c012664b77b99",
+    "src/ref_enthalpy_method/gas/thermo.py": "31e80e4456c3a4a0d078d8b319cf536ef0baabb4c053f065cd1bf318cd6a3920",
+    "src/ref_enthalpy_method/gas/transport.py": "39dbd533a574c100cc0e0c9cc59899b20ad8495544eb030a4e438d0a35ac3227",
+    "src/ref_enthalpy_method/geometry/__init__.py": "ace7ea1cf5771346bf2a8342d9cc4ef013bf3c128f4260d504429f9b106d65de",
+    "src/ref_enthalpy_method/geometry/airfoil.py": "2514d7c546732d33ac1bd0b62f1089d72795dd1c58fa76cc8effd52e57bf44a7",
+    "src/ref_enthalpy_method/geometry/dat_airfoil.py": "a81bfb7762e65556ab68c80a31b0b48f29a4be041600c53d129edfdf0f66b8d4",
+    "src/ref_enthalpy_method/geometry/faceted3d.py": "98f715bc0dee30a75fff45f2dd0513841c179c0345e728a5981d42001595ef8a",
+    "src/ref_enthalpy_method/geometry/local_incidence.py": "ae5faa0910c4aa2c9d0d00a593fb859c916320df5683181abc9aae182c312d00",
+    "src/ref_enthalpy_method/geometry/stl_surface.py": "eee24ba4b461cb16577f79096e866b2ec91f4d1baab164664bf7b913c204e43f",
+    "src/ref_enthalpy_method/heatflux/__init__.py": "f0ff9931b63608662b7483d4a3e024df916727f8fcb9bc54a4d943bedf9bd801",
+    "src/ref_enthalpy_method/heatflux/leading_edge.py": "1207e22cd88aca94edff1c7308906b5df92fb612e95d6ba9532f65ee061c3666",
+    "src/ref_enthalpy_method/heatflux/leeward.py": "a26a476040cf663b94700658123f195bd6574bef99cfbf21e1ec398422eacb8e",
+    "src/ref_enthalpy_method/heatflux/windward.py": "2eb69af9479ac7628f9edf25f51a3f3faeac0e7b5c0eab14b81f293e25ee8ae9",
+    "src/ref_enthalpy_method/sampling/__init__.py": "5b20a39c5836fd13bb2522a3772362e3eac9bc5fb98cc0a4055c56fe5b238102",
+    "src/ref_enthalpy_method/sampling/grid.py": "3ca6ddd59a68ed99fdc6f29aa5afbf52d56bcad54c675bf20ccc825a78439241",
+    "src/ref_enthalpy_method/solver.py": "e88bcaad0fee7695b434941462fb85dd26c5a7b08f670279617f348ebd879964",
+    "src/ref_enthalpy_method/solver_faceted3d.py": "6cb6cf227ad38420bd8b94cc999c9f8ff2e58f072d650c8f6231363b0cb78e75",
+    "src/ref_enthalpy_method/specs/__init__.py": "dd0c8e3ddaa477266ef2579738aa211e2c8d879c3a29fb356e50bb8cec47b08f",
+    "src/ref_enthalpy_method/specs/loader.py": "b3b3b427eedf8427211327dbea08c0be9aaebfe724d6da85e8784ae93c63328a",
+    "src/ref_enthalpy_method/specs/models.py": "65c2e1b5b6eca98db80fbaa9240e8368929af22f98cede210da0df018aca5d1d",
+    "src/ref_enthalpy_method/thermal/__init__.py": "de4bfc3f49482345f1380a6c8de9b0962afa0788d50e35c1ff98fad298c6f94e",
+    "src/ref_enthalpy_method/thermal/leeward_equilibrium.py": "f02ecff63becee0f9b5f3bbcc898bcab6135932c95d0065a874aff5a184a3c50",
+    "src/ref_enthalpy_method/thermal/transient.py": "921297ae1ff17d2954ebbc86f5c129bde81df2fc4029f49ad72279eae1458719",
+    "src/ref_enthalpy_method/thermal/wall_temperature.py": "fbb5a02930251706e49ad50f2602e6799402095dc9379b0782ff4ef6c6120f00",
+    "src/ref_enthalpy_method/thermal/windward_equilibrium.py": "da6dc7b9a1f70337eee9d3e31cd53b9498e56c38e3a75181a93818865c1af73a",
+    "src/ref_enthalpy_method/types.py": "215eceb1eb9e3ef79362a00a8054853da91040d6864429e79384ad810ed0c113",
+    "src/ref_enthalpy_method/utils/__init__.py": "1276860eddb5b5c6855a9e24263eaafd23c70858b13c2fae1c62bf909f0d1262",
+    "src/ref_enthalpy_method/utils/warnings.py": "4ed84a574366e008dfedb5c694d24145a18ed65a7faf44b90073a98f3f05cdd2"
+  },
+  "artifact_hashes_sha256": {
+    "fields.npz": "31de7f4b5955bdb77f1fe8fa303712edd19eb377c953f450952a298ce26712b3",
+    "summary.json": "e168d276e358921ff7654fbca1ba1a98f0b38ab3890854f360a3450a767a8661"
+  },
+  "baseline_generator": "scripts/tools/current_baseline_regression_check.py --freeze",
+  "generator_cli_template": "C:\\Users\\Admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe E:\\Faceted3D_recovery_work_20260715\\scripts\\run_case_rem.py --vehicle E:\\Faceted3D_recovery_work_20260715\\specs\\vehicles\\htv2_faceted3d_0629.yaml --case E:\\Faceted3D_recovery_work_20260715\\specs\\cases\\doc_ma6_alpha5_h30km_faceted3d.yaml --sampling E:\\Faceted3D_recovery_work_20260715\\specs\\sampling\\engineering_full_wing_surface_grid_81x41.yaml --run_dir <run_dir> --mach 8.0 --alpha 5.0 --h_m 40000.0 --transition_weighting step --no_plots"
+}

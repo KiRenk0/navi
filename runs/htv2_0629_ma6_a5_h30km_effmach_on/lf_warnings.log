@@ -1,0 +1,35 @@
+REM Solver Warnings - 2026-07-02 02:35:46
+================================================================================
+02:35:46 | faceted3d runtime override active | use_effective_alpha=True | use_effective_mach=True | x_length_mode=streamline
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.000 | cp0 raw=0.750384, used=0.69294 | min Ma_e raw=0.985605, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.025 | cp0 raw=0.750384, used=0.546679 | min Ma_e raw=0.951502, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.050 | cp0 raw=0.750384, used=0.567039 | min Ma_e raw=0.955984, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.075 | cp0 raw=0.750384, used=0.466887 | min Ma_e raw=0.934973, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.100 | cp0 raw=0.750384, used=0.397313 | min Ma_e raw=0.922141, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.125 | cp0 raw=0.750384, used=0.338858 | min Ma_e raw=0.912721, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.150 | cp0 raw=0.750384, used=0.342557 | min Ma_e raw=0.913277, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.175 | cp0 raw=0.750384, used=0.400318 | min Ma_e raw=0.922661, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.200 | cp0 raw=0.750384, used=0.400508 | min Ma_e raw=0.922694, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.225 | cp0 raw=0.750384, used=0.392017 | min Ma_e raw=0.921233, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.250 | cp0 raw=0.750384, used=0.352365 | min Ma_e raw=0.914777, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.275 | cp0 raw=0.750384, used=0.383234 | min Ma_e raw=0.919751, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.300 | cp0 raw=0.750384, used=0.341286 | min Ma_e raw=0.913085, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.325 | cp0 raw=0.750384, used=0.400282 | min Ma_e raw=0.922655, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.350 | cp0 raw=0.750384, used=0.347478 | min Ma_e raw=0.914024, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.375 | cp0 raw=0.750384, used=0.414653 | min Ma_e raw=0.925185, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.400 | cp0 raw=0.750384, used=0.422297 | min Ma_e raw=0.92656, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.425 | cp0 raw=0.750384, used=0.309012 | min Ma_e raw=0.908454, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.450 | cp0 raw=0.750384, used=0.311154 | min Ma_e raw=0.908748, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.475 | cp0 raw=0.750384, used=0.345877 | min Ma_e raw=0.91378, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.500 | cp0 raw=0.750384, used=0.341605 | min Ma_e raw=0.913133, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.525 | cp0 raw=0.750384, used=0.30327 | min Ma_e raw=0.907679, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.550 | cp0 raw=0.750384, used=0.331366 | min Ma_e raw=0.911614, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.575 | cp0 raw=0.750384, used=0.497386 | min Ma_e raw=0.941083, used=1 | collapsed raw=0, used=0
+02:35:47 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.600 | cp0 raw=0.750384, used=0.425199 | min Ma_e raw=0.927088, used=1 | collapsed raw=0, used=0
+02:35:48 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.625 | cp0 raw=0.750384, used=0.393259 | min Ma_e raw=0.921445, used=1 | collapsed raw=0, used=0
+02:35:48 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.650 | cp0 raw=0.750384, used=0.398045 | min Ma_e raw=0.922267, used=1 | collapsed raw=0, used=0
+02:35:48 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.675 | cp0 raw=0.750384, used=0.395881 | min Ma_e raw=0.921894, used=1 | collapsed raw=0, used=0
+02:35:48 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.700 | cp0 raw=0.750384, used=0.421663 | min Ma_e raw=0.926445, used=1 | collapsed raw=0, used=0
+02:35:48 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.725 | cp0 raw=0.750384, used=0.575092 | min Ma_e raw=0.957783, used=1 | collapsed raw=0, used=0
+02:35:48 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.750 | cp0 raw=0.750384, used=0.48969 | min Ma_e raw=0.939516, used=1 | collapsed raw=0, used=0
+02:35:48 | cp0 regularized to keep windward edge supersonic | M=6.00, alpha=5.00, y/b=0.775 | cp0 raw=0.750384, used=0.181513 | min Ma_e raw=0.894986, used=1 | collapsed raw=0, used=0

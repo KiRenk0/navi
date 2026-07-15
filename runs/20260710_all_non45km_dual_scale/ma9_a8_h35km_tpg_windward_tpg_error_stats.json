@@ -1,0 +1,55 @@
+{
+  "case": {
+    "case_id": "ma9_a8_h35km_tpg",
+    "mach": 9.0,
+    "alpha_deg": 8.0,
+    "h_m": 35000.0
+  },
+  "thermo_model": "tpg",
+  "error_type": "signed_relpct",
+  "inputs": {
+    "lf_npz": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\ma9_a8_h35km_tpg\\fields.npz",
+    "fluent_csv": "D:\\ref\\reference-enthalpy_03_12_26-main\\fluent_export\\adiabatic_wall_csv\\35km_8alpha_9ma.csv"
+  },
+  "metric": "signed relative error (%) = (Taw_LF - Tw_Fluent)/Tw_Fluent*100",
+  "mapping": "LF (x_w_m, span_w_m) -> Fluent (x-coordinate, y-coordinate), KD-tree NN; Fluent windward subset by z sign",
+  "scales": {
+    "fixed": {
+      "vmin_pct": -10.0,
+      "vmax_pct": 10.0,
+      "output_png": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260710_all_non45km_dual_scale\\ma9_a8_h35km_tpg_windward_tpg_signed_rel_error_fixed_pm10.png"
+    },
+    "adaptive": {
+      "vmin_pct": -3.068790972269027,
+      "vmax_pct": 3.688332539012033,
+      "class": "cross_zero",
+      "output_png": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260710_all_non45km_dual_scale\\ma9_a8_h35km_tpg_windward_tpg_signed_rel_error_adaptive.png"
+    }
+  },
+  "stats": {
+    "mean_signed_rel_err_pct": 1.9508784683561229,
+    "mean_abs_rel_err_pct": 2.041698400724121,
+    "p95_abs_rel_err_pct": 2.732760145379102,
+    "max_abs_rel_err_pct": 3.688332539012033,
+    "over_fraction": 0.9688271604938271,
+    "n_valid": 3240,
+    "Taw_lf_mean_K": 3097.5427102823755,
+    "fluent_windward_Tw_mean_K": 3038.4538599484567,
+    "nn_median_dist_m": 0.011688816884910387,
+    "nn_p95_dist_m": 0.03132788209377506,
+    "nn_max_dist_m": 0.041216384292073104,
+    "windward_z_sign": "neg",
+    "fluent_windward_faces": 10682,
+    "signed_rel_error_min": -3.068790972269027,
+    "signed_rel_error_max": 3.688332539012033,
+    "under_fraction": 0.03117283950617284,
+    "zero_fraction": 0.0,
+    "fixed_scale_vmin": -10.0,
+    "fixed_scale_vmax": 10.0,
+    "adaptive_scale_vmin": -3.068790972269027,
+    "adaptive_scale_vmax": 3.688332539012033,
+    "adaptive_scale_class": "cross_zero"
+  },
+  "output_json": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260710_all_non45km_dual_scale\\ma9_a8_h35km_tpg_windward_tpg_error_stats.json",
+  "note": "diagnostic visualization only; windward-only (no leeward temperature error); does NOT replace P2R2 corrected comparison canon; NOT validation complete"
+}

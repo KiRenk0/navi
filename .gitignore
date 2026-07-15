@@ -1,0 +1,31 @@
+# Python 缓存与测试缓存
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# 虚拟环境与本机环境变量
+.venv/
+venv/
+env/
+.env
+.env.*
+
+# 构建与安装产物
+build/
+dist/
+*.egg-info/
+
+# 编辑器、代理与系统本机状态
+.vscode/*.log
+.claude/settings.local.json
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+
+# 项目本机生成的映射缓存
+_mapping_cache.npz

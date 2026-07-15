@@ -1,0 +1,230 @@
+[
+  {
+    "case_id": "ma6.5_a3_h30km",
+    "status": "success",
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma6.5_a3_h30km_windward_tpg_signed_rel_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma6.5_a3_h30km_windward_tpg_signed_rel_error_adaptive.png"
+    },
+    "case_info": {
+      "case_id": "ma6.5_a3_h30km",
+      "mach": 6.5,
+      "alpha_deg": 3.0,
+      "h_m": 30000.0
+    },
+    "n_valid": 3240,
+    "mean_signed_rel_err_pct": 3.1946241746453907,
+    "mean_abs_rel_err_pct": 3.245528032262761,
+    "p95_abs_rel_err_pct": 4.1114502968795765,
+    "overprediction_fraction": 0.9808641975308642
+  },
+  {
+    "case_id": "ma6_a5_h30km",
+    "status": "success",
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma6_a5_h30km_windward_tpg_signed_rel_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma6_a5_h30km_windward_tpg_signed_rel_error_adaptive.png"
+    },
+    "case_info": {
+      "case_id": "ma6_a5_h30km",
+      "mach": 6.0,
+      "alpha_deg": 5.0,
+      "h_m": 30000.0
+    },
+    "n_valid": 3240,
+    "mean_signed_rel_err_pct": 2.9463199661988524,
+    "mean_abs_rel_err_pct": 2.9812127145419804,
+    "p95_abs_rel_err_pct": 3.814188216192012,
+    "overprediction_fraction": 0.9728395061728395
+  },
+  {
+    "case_id": "ma8_a5_h30km",
+    "status": "success",
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma8_a5_h30km_windward_tpg_signed_rel_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma8_a5_h30km_windward_tpg_signed_rel_error_adaptive.png"
+    },
+    "case_info": {
+      "case_id": "ma8_a5_h30km",
+      "mach": 8.0,
+      "alpha_deg": 5.0,
+      "h_m": 30000.0
+    },
+    "n_valid": 3240,
+    "mean_signed_rel_err_pct": 3.6028879973639296,
+    "mean_abs_rel_err_pct": 3.623354026981993,
+    "p95_abs_rel_err_pct": 4.513784146408498,
+    "overprediction_fraction": 0.983641975308642
+  },
+  {
+    "case_id": "ma6.5_a8_h35km",
+    "status": "success",
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma6.5_a8_h35km_windward_tpg_signed_rel_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma6.5_a8_h35km_windward_tpg_signed_rel_error_adaptive.png"
+    },
+    "case_info": {
+      "case_id": "ma6.5_a8_h35km",
+      "mach": 6.5,
+      "alpha_deg": 8.0,
+      "h_m": 35000.0
+    },
+    "n_valid": 3240,
+    "mean_signed_rel_err_pct": 3.4388032363394263,
+    "mean_abs_rel_err_pct": 3.4412939066438084,
+    "p95_abs_rel_err_pct": 4.3768920306725745,
+    "overprediction_fraction": 0.9962962962962963
+  },
+  {
+    "case_id": "ma9_a8_h35km",
+    "status": "success",
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma9_a8_h35km_windward_tpg_signed_rel_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma9_a8_h35km_windward_tpg_signed_rel_error_adaptive.png"
+    },
+    "case_info": {
+      "case_id": "ma9_a8_h35km",
+      "mach": 9.0,
+      "alpha_deg": 8.0,
+      "h_m": 35000.0
+    },
+    "n_valid": 3240,
+    "mean_signed_rel_err_pct": 3.8828864741492235,
+    "mean_abs_rel_err_pct": 3.8956725743137985,
+    "p95_abs_rel_err_pct": 4.672177794499874,
+    "overprediction_fraction": 0.9888888888888889
+  },
+  {
+    "case_id": "ma6.5_a5_h40km",
+    "status": "success",
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma6.5_a5_h40km_windward_tpg_signed_rel_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma6.5_a5_h40km_windward_tpg_signed_rel_error_adaptive.png"
+    },
+    "case_info": {
+      "case_id": "ma6.5_a5_h40km",
+      "mach": 6.5,
+      "alpha_deg": 5.0,
+      "h_m": 40000.0
+    },
+    "n_valid": 3240,
+    "mean_signed_rel_err_pct": 3.876606229986501,
+    "mean_abs_rel_err_pct": 3.877760621353638,
+    "p95_abs_rel_err_pct": 4.784701514203069,
+    "overprediction_fraction": 0.9969135802469136
+  },
+  {
+    "case_id": "ma8_a5_h40km",
+    "status": "success",
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma8_a5_h40km_windward_tpg_signed_rel_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma8_a5_h40km_windward_tpg_signed_rel_error_adaptive.png"
+    },
+    "case_info": {
+      "case_id": "ma8_a5_h40km",
+      "mach": 8.0,
+      "alpha_deg": 5.0,
+      "h_m": 40000.0
+    },
+    "n_valid": 3240,
+    "mean_signed_rel_err_pct": 4.178071265428576,
+    "mean_abs_rel_err_pct": 4.179013514777588,
+    "p95_abs_rel_err_pct": 4.960471258826231,
+    "overprediction_fraction": 0.9993827160493827
+  },
+  {
+    "case_id": "ma9_a5_h40km",
+    "status": "success",
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma9_a5_h40km_windward_tpg_signed_rel_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma9_a5_h40km_windward_tpg_signed_rel_error_adaptive.png"
+    },
+    "case_info": {
+      "case_id": "ma9_a5_h40km",
+      "mach": 9.0,
+      "alpha_deg": 5.0,
+      "h_m": 40000.0
+    },
+    "n_valid": 3240,
+    "mean_signed_rel_err_pct": 4.654830040929633,
+    "mean_abs_rel_err_pct": 4.655462426816678,
+    "p95_abs_rel_err_pct": 5.69986497859763,
+    "overprediction_fraction": 0.9993827160493827
+  },
+  {
+    "case_id": "ma8_a10_h40km",
+    "status": "success",
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma8_a10_h40km_windward_tpg_signed_rel_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma8_a10_h40km_windward_tpg_signed_rel_error_adaptive.png"
+    },
+    "case_info": {
+      "case_id": "ma8_a10_h40km",
+      "mach": 8.0,
+      "alpha_deg": 10.0,
+      "h_m": 40000.0
+    },
+    "n_valid": 3240,
+    "mean_signed_rel_err_pct": 4.181571546411848,
+    "mean_abs_rel_err_pct": 4.182182791492002,
+    "p95_abs_rel_err_pct": 4.894365650455561,
+    "overprediction_fraction": 0.9993827160493827
+  },
+  {
+    "case_id": "ma8_a5_h45km",
+    "status": "success",
+    "case_info": {
+      "case_id": "ma8_a5_h45km",
+      "mach": 8.0,
+      "alpha_deg": 5.0,
+      "h_m": null
+    },
+    "n_valid": 3321,
+    "mean_signed_rel_err_pct": 4.831641200274948,
+    "mean_abs_rel_err_pct": 4.839184680468212,
+    "p95_abs_rel_err_pct": 5.935714778814404,
+    "overprediction_fraction": 0.9948810599217103,
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma8_a5_h45km__windward_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma8_a5_h45km__windward_error_adaptive.png"
+    }
+  },
+  {
+    "case_id": "ma9_a5_h45km",
+    "status": "success",
+    "case_info": {
+      "case_id": "ma9_a5_h45km",
+      "mach": 9.0,
+      "alpha_deg": 5.0,
+      "h_m": null
+    },
+    "n_valid": 3321,
+    "mean_signed_rel_err_pct": 5.236299224192565,
+    "mean_abs_rel_err_pct": 5.236704638264202,
+    "p95_abs_rel_err_pct": 6.285630386776458,
+    "overprediction_fraction": 0.9993977717554954,
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma9_a5_h45km__windward_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma9_a5_h45km__windward_error_adaptive.png"
+    }
+  },
+  {
+    "case_id": "ma8_a10_h45km",
+    "status": "success",
+    "case_info": {
+      "case_id": "ma8_a10_h45km",
+      "mach": 8.0,
+      "alpha_deg": 10.0,
+      "h_m": null
+    },
+    "n_valid": 3321,
+    "mean_signed_rel_err_pct": 1.8920946405516081,
+    "mean_abs_rel_err_pct": 2.990518662968389,
+    "p95_abs_rel_err_pct": 5.056628378839836,
+    "overprediction_fraction": 0.688647997591087,
+    "outputs": {
+      "fixed_pm10": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma8_a10_h45km__windward_error_fixed_pm10.png",
+      "adaptive": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\20260714_12case_windward_error_rerun\\ma8_a10_h45km__windward_error_adaptive.png"
+    }
+  }
+]

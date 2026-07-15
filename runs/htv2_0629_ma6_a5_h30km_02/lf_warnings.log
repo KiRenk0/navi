@@ -1,0 +1,16 @@
+REM Solver Warnings - 2026-07-02 00:46:16
+================================================================================
+00:46:18 | phi clamped at 1 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.4750]
+00:46:18 | phi clamped at 2 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.4375, 0.4875]
+00:46:18 | phi clamped at 9 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.4000, 0.4125, 0.4250, 0.4375, 0.4500, 0.4625]
+00:46:18 | phi clamped at 10 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.3625, 0.3750, 0.3875, 0.4000, 0.4125, 0.4250]
+00:46:18 | phi clamped at 9 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.3500, 0.3625, 0.3750, 0.3875, 0.4000, 0.4125]
+00:46:18 | phi clamped at 9 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.3375, 0.3500, 0.3625, 0.3750, 0.3875, 0.4000]
+00:46:18 | phi clamped at 10 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.2875, 0.3125, 0.3250, 0.3375, 0.3500, 0.3625]
+00:46:18 | phi clamped at 8 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.3000, 0.3125, 0.3250, 0.3375, 0.3500, 0.3625]
+00:46:18 | phi clamped at 8 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.2625, 0.2750, 0.2875, 0.3000, 0.3125, 0.3250]
+00:46:18 | phi clamped at 7 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.2500, 0.2625, 0.2750, 0.2875, 0.3000, 0.3125]
+00:46:18 | phi clamped at 5 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.2375, 0.2500, 0.2625, 0.2750, 0.2875]
+00:46:18 | phi clamped at 5 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.1875, 0.2125, 0.2250, 0.2375, 0.2500]
+00:46:18 | phi clamped at 3 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.1750, 0.1875, 0.2000]
+00:46:18 | phi clamped at 1 points | M=5.00, alpha=0.00, side=windward | first x/c: [0.1250]

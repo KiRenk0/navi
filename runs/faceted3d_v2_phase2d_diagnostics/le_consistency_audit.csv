@@ -1,0 +1,10 @@
+check_item,ma6_a5_h30km,ma8_a5_h30km,ma8_a10_h50km
+old_LE_windward_points,5264,5264,5264 (from Phase 1 conclusion table)
+"old_LE_q_ratio_v2_mean (Phase1 sandbox, windward)",0.37,0.60,0.37
+"old_p_e_v2/p_fluent_mean (Phase1 sandbox, windward)",~1.0,~1.0,~1.0
+"new_LE_diagnostic_points (solver grid, windward-only)",TBD,TBD,holdout NOT run
+new_LE_diagnostic_windward_only_q_ratio,TBD (need correct filter),TBD,holdout NOT run
+new_LE_diagnostic_original_all_side_q_ratio,1.20,1.76,holdout NOT run
+new_LE_diagnostic_original_p_e/p_wall (all sides),2.16,2.72,holdout NOT run
+root_cause,new LE diagnostic missing windward filter,same,same
+resolution,fix LE diagnostic to filter windward side only,,

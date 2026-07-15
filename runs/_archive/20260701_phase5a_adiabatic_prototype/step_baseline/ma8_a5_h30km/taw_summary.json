@@ -1,0 +1,64 @@
+{
+  "case": "ma8_a5_h30km",
+  "input_fields": [
+    "T_e_w",
+    "ma_e_w",
+    "w_tr",
+    "mask_w"
+  ],
+  "pr": 0.72,
+  "gamma_air": 1.4,
+  "valid_count": 3240,
+  "nan_count": 81,
+  "T_e": {
+    "min": 398.60370207862667,
+    "mean": 418.84751151988894,
+    "max": 446.5576940201496
+  },
+  "M_e": {
+    "min": 5.479132663600768,
+    "mean": 5.6874637998212965,
+    "max": 5.850989759429084
+  },
+  "Taw_lam": {
+    "min": 2714.3780975738127,
+    "mean": 2717.4444650955165,
+    "max": 2721.6417780511556
+  },
+  "Taw_turb": {
+    "min": 2844.7034624083644,
+    "mean": 2846.8031311059312,
+    "max": 2849.677204929265
+  },
+  "Taw": {
+    "min": 2714.3780975738127,
+    "mean": 2726.487853433572,
+    "max": 2847.6332576533537
+  },
+  "T0_edge": {
+    "min": 3127.769999999998,
+    "mean": 3127.769999999999,
+    "max": 3127.770000000001
+  },
+  "r_eff": {
+    "min": 0.848528137423857,
+    "mean": 0.8518737819604248,
+    "max": 0.896280949311433
+  },
+  "r_lam": 0.848528137423857,
+  "r_turb": 0.896280949311433,
+  "range_check": {
+    "taw_nan_mask_matches_valid": true,
+    "taw_ge_te": true,
+    "taw_le_t0_edge": true,
+    "taw_lam_ge_te": true,
+    "taw_lam_le_t0_edge": true,
+    "taw_turb_ge_te": true,
+    "taw_turb_le_t0_edge": true,
+    "r_eff_in_01": true,
+    "r_lam_is_sqrt_pr": true,
+    "r_turb_is_pr_cuberoot": true
+  },
+  "mask_consistency": true,
+  "final": "PASS"
+}

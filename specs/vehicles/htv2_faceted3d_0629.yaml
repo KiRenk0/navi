@@ -1,0 +1,56 @@
+vehicle_spec:
+  vehicle_id: htv2_faceted3d_0629
+
+  planform:
+    c_root_m: 3.6
+    c_tip_m: 3.6
+    b_half_m: 1.031027
+    sweep_le_deg: 72.0
+
+  leading_edge:
+    rn_m: 0.03
+
+  airfoil:
+    type: dat_file
+    path: "../airfoils/doublewedge_t0p034_interp_linear.dat"
+
+  surface:
+    emissivity: 0.8
+
+  faceted3d:
+    planform_half_angle_deg: 18.0
+    ridge_up_deg: 10.0
+    ridge_lo_deg: 3.0
+
+    sx_up: 0.17632698070846498
+    sy_up: -0.5426786456862612
+    sx_lo: -0.05240777928304121
+    sy_lo: 0.16129455951933025
+
+    edge_state:
+      use_effective_alpha: true
+      use_effective_mach: false
+
+    x_length_mode: streamline
+
+    cp_model: newtonian_like
+    cp_newtonian_A: 0.38
+    cp_newtonian_n: 1.15
+
+    chord_min_m: 0.02
+    rn_scale_with_chord: false
+    nose_cap_radius_m: 0.03
+    leading_edge_rn_root_mm: 30
+    leading_edge_rn_tip_mm: 45
+
+    planform:
+      outline_csv: "../../new_spec/outline_xz_right_0629.csv"
+      outline_x_col: "x_m"
+      outline_span_col: "z_m"
+      outline_span_sign: -1.0
+
+    surface:
+      stl: "../../new_spec/htv2_0628.stl"
+      unit: "mm"
+      span_sign: -1.0
+      right_half_only: true

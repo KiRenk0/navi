@@ -1,0 +1,91 @@
+2026-07-01 20:54:23,293 [INFO] ============================================================
+2026-07-01 20:54:23,293 [INFO] Phase 5-A-P1: Taw prototype start
+2026-07-01 20:54:23,293 [INFO] Sandbox: D:\ref\reference-enthalpy_03_12_26-main\runs\_sandbox\phase5a_adiabatic_prototype
+2026-07-01 20:54:23,293 [INFO] Baseline snapshot: D:\ref\reference-enthalpy_03_12_26-main\runs\0630_phase2d_c1_dn\baseline_snapshot
+2026-07-01 20:54:23,293 [INFO] 
+2026-07-01 20:54:23,293 [INFO] Preflight: frozen src MD5 check
+2026-07-01 20:54:23,295 [INFO]   All frozen src MD5 match ！ PASS
+2026-07-01 20:54:23,295 [INFO] Preflight: dhawan_narasimha in specs/
+2026-07-01 20:54:23,295 [INFO]   No dhawan_narasimha in specs/ ！ PASS
+2026-07-01 20:54:23,295 [INFO] Preflight: ma8_a10_h50km NOT touched
+2026-07-01 20:54:23,296 [INFO]   ma8_a10_h50km is holdout ！ not included in CASES list
+2026-07-01 20:54:23,296 [INFO]   Holdout integrity ！ PASS
+2026-07-01 20:54:23,296 [INFO] 
+2026-07-01 20:54:23,296 [INFO] Processing active cases: ['ma6_a5_h30km', 'ma8_a5_h30km']
+2026-07-01 20:54:23,296 [INFO] 
+2026-07-01 20:54:23,296 [INFO] ============================================================
+2026-07-01 20:54:23,296 [INFO] Processing case: ma6_a5_h30km
+2026-07-01 20:54:23,304 [INFO]   Total points: 3321, valid (mask_w): 3240
+2026-07-01 20:54:23,305 [INFO]   T_e range: [327.23, 361.42] K
+2026-07-01 20:54:23,305 [INFO]   M_e range: [4.5510, 4.8372]
+2026-07-01 20:54:23,305 [INFO]   w_tr range: [0.0000, 1.0000]
+2026-07-01 20:54:23,306 [INFO]   Taw_lam range: [1626.58, 1631.76] K
+2026-07-01 20:54:23,306 [INFO]   Taw_turb range: [1699.70, 1703.25] K
+2026-07-01 20:54:23,306 [INFO]   Taw range: [1626.58, 1701.78] K
+2026-07-01 20:54:23,306 [INFO]   T0_edge range: [1858.53, 1858.53] K
+2026-07-01 20:54:23,306 [INFO]   Check taw_nan_mask_matches_valid: PASS
+2026-07-01 20:54:23,306 [INFO]   Check taw_ge_te: PASS
+2026-07-01 20:54:23,306 [INFO]   Check taw_le_t0_edge: PASS
+2026-07-01 20:54:23,306 [INFO]   Check taw_lam_ge_te: PASS
+2026-07-01 20:54:23,306 [INFO]   Check taw_lam_le_t0_edge: PASS
+2026-07-01 20:54:23,306 [INFO]   Check taw_turb_ge_te: PASS
+2026-07-01 20:54:23,306 [INFO]   Check taw_turb_le_t0_edge: PASS
+2026-07-01 20:54:23,306 [INFO]   Check r_eff_in_01: PASS
+2026-07-01 20:54:23,306 [INFO]   Check r_lam_is_sqrt_pr: PASS
+2026-07-01 20:54:23,306 [INFO]   Check r_turb_is_pr_cuberoot: PASS
+2026-07-01 20:54:23,306 [INFO]   Overall range checks: PASS
+2026-07-01 20:54:23,308 [INFO]   Saved taw_fields.npz
+2026-07-01 20:54:23,309 [INFO]   Saved taw_summary.json
+2026-07-01 20:54:23,313 [INFO]   Saved region_taw_metrics.csv
+2026-07-01 20:54:23,313 [INFO] ============================================================
+2026-07-01 20:54:23,313 [INFO] Processing case: ma8_a5_h30km
+2026-07-01 20:54:23,314 [INFO]   Total points: 3321, valid (mask_w): 3240
+2026-07-01 20:54:23,315 [INFO]   T_e range: [398.60, 446.56] K
+2026-07-01 20:54:23,315 [INFO]   M_e range: [5.4791, 5.8510]
+2026-07-01 20:54:23,315 [INFO]   w_tr range: [0.0000, 1.0000]
+2026-07-01 20:54:23,315 [INFO]   Taw_lam range: [2714.38, 2721.64] K
+2026-07-01 20:54:23,315 [INFO]   Taw_turb range: [2844.70, 2849.68] K
+2026-07-01 20:54:23,315 [INFO]   Taw range: [2714.38, 2847.63] K
+2026-07-01 20:54:23,315 [INFO]   T0_edge range: [3127.77, 3127.77] K
+2026-07-01 20:54:23,315 [INFO]   Check taw_nan_mask_matches_valid: PASS
+2026-07-01 20:54:23,315 [INFO]   Check taw_ge_te: PASS
+2026-07-01 20:54:23,315 [INFO]   Check taw_le_t0_edge: PASS
+2026-07-01 20:54:23,315 [INFO]   Check taw_lam_ge_te: PASS
+2026-07-01 20:54:23,315 [INFO]   Check taw_lam_le_t0_edge: PASS
+2026-07-01 20:54:23,315 [INFO]   Check taw_turb_ge_te: PASS
+2026-07-01 20:54:23,315 [INFO]   Check taw_turb_le_t0_edge: PASS
+2026-07-01 20:54:23,315 [INFO]   Check r_eff_in_01: PASS
+2026-07-01 20:54:23,315 [INFO]   Check r_lam_is_sqrt_pr: PASS
+2026-07-01 20:54:23,315 [INFO]   Check r_turb_is_pr_cuberoot: PASS
+2026-07-01 20:54:23,315 [INFO]   Overall range checks: PASS
+2026-07-01 20:54:23,318 [INFO]   Saved taw_fields.npz
+2026-07-01 20:54:23,319 [INFO]   Saved taw_summary.json
+2026-07-01 20:54:23,320 [INFO]   Saved region_taw_metrics.csv
+2026-07-01 20:54:23,320 [INFO] 
+2026-07-01 20:54:23,320 [INFO] ============================================================
+2026-07-01 20:54:23,320 [INFO] Phase 5-A-P1 Taw prototype ！ OVERALL SUMMARY
+2026-07-01 20:54:23,320 [INFO] 
+2026-07-01 20:54:23,320 [INFO]   ma6_a5_h30km: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_nan_mask_matches_valid: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_ge_te: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_le_t0_edge: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_lam_ge_te: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_lam_le_t0_edge: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_turb_ge_te: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_turb_le_t0_edge: PASS
+2026-07-01 20:54:23,320 [INFO]     r_eff_in_01: PASS
+2026-07-01 20:54:23,320 [INFO]     r_lam_is_sqrt_pr: PASS
+2026-07-01 20:54:23,320 [INFO]     r_turb_is_pr_cuberoot: PASS
+2026-07-01 20:54:23,320 [INFO]   ma8_a5_h30km: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_nan_mask_matches_valid: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_ge_te: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_le_t0_edge: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_lam_ge_te: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_lam_le_t0_edge: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_turb_ge_te: PASS
+2026-07-01 20:54:23,320 [INFO]     taw_turb_le_t0_edge: PASS
+2026-07-01 20:54:23,320 [INFO]     r_eff_in_01: PASS
+2026-07-01 20:54:23,320 [INFO]     r_lam_is_sqrt_pr: PASS
+2026-07-01 20:54:23,320 [INFO]     r_turb_is_pr_cuberoot: PASS
+2026-07-01 20:54:23,320 [INFO] 
+2026-07-01 20:54:23,320 [INFO] OVERALL: PASS

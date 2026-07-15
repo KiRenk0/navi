@@ -1,0 +1,3 @@
+REM Solver Warnings - 2026-07-02 02:35:42
+================================================================================
+02:35:43 | faceted3d runtime override active | use_effective_alpha=True | use_effective_mach=False | x_length_mode=local

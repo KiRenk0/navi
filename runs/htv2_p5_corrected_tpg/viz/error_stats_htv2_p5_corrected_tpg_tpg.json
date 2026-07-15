@@ -1,0 +1,72 @@
+{
+  "case_id": "htv2_p5_corrected_tpg",
+  "thermo_model": "TPG",
+  "taw_field_used": "Taw_tpg_w",
+  "taw_source": "Taw_tpg_w (Route A-TPG default, enthalpy-based Taw)",
+  "p5r_note": "P5R CORRECTED RESULT. The original P5 run (2026-07-09) used a manually blended LF_Taw = w_tr * T_r_turb_w + (1-w_tr) * T_r_lam_w from a fields.npz that lacked Taw_tpg_w. That result (mean +9.6%, LF_Taw ~1717K) is INVALID and does NOT represent the P4+ TPG default baseline. This corrected result uses the proper Taw_tpg_w field.",
+  "status": "diagnostic visualization only ¡ª NOT validation complete",
+  "mapping_note": "KD-tree nearest-neighbor in (x,span) space ¡ª visualization only, not P2R2 canon",
+  "error_stats": {
+    "mean_signed_rel_error": 0.010941769843836156,
+    "p95_abs_rel_error": 0.04456133473709808,
+    "over_fraction": 0.6432941176470588,
+    "under_fraction": 0.35670588235294115,
+    "valid_mapped_count": 21250,
+    "color_limit": 0.1
+  },
+  "mapping_stats": {
+    "lf_n_finite": 3240,
+    "fluent_n_points": 21250,
+    "n_mapped": 21250,
+    "median_distance_m": 0.01395566231296665,
+    "p95_distance_m": 0.026132397835329158
+  },
+  "input_paths": {
+    "fluent_csv": "D:\\ref\\reference-enthalpy_03_12_26-main\\fluent_export\\adiabatic_wall_csv\\30km_5alpha_6ma.csv",
+    "lf_npz": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\htv2_p5_corrected_tpg\\fields.npz"
+  },
+  "outputs": {
+    "scatter_png": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\htv2_p5_corrected_tpg\\viz\\diag_scatter_htv2_p5_corrected_tpg_tpg_signed_rel_error.png"
+  },
+  "coordinate_mapping": {
+    "fluent_x_col": "x-coordinate",
+    "fluent_y_col": "y-coordinate",
+    "fluent_z_col": "z-coordinate",
+    "fluent_tw_col": "wall-temperature",
+    "lf_x_field": "x_w_m",
+    "lf_span_field": "span_w_m",
+    "note": "LF x_w_m -> Fluent x-coordinate, LF span_w_m -> Fluent y-coordinate. Fluent z-coordinate is vertical/thickness, NOT spanwise."
+  },
+  "taw_field_check": {
+    "Tw_w": {
+      "shape": [
+        3321
+      ],
+      "finite_count": 3240,
+      "total_count": 3321,
+      "mean": 300.0,
+      "min": 300.0,
+      "max": 300.0
+    },
+    "Tw_l": {
+      "shape": [
+        3321
+      ],
+      "finite_count": 3240,
+      "total_count": 3321,
+      "mean": 300.0,
+      "min": 300.0,
+      "max": 300.0
+    },
+    "Taw_tpg_w": {
+      "shape": [
+        3321
+      ],
+      "finite_count": 3240,
+      "total_count": 3321,
+      "mean": 1561.0667146051417,
+      "min": 1559.82334885181,
+      "max": 1562.7211639227098
+    }
+  }
+}

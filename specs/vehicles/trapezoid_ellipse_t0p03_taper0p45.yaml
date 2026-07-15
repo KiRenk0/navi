@@ -1,0 +1,19 @@
+vehicle_spec:
+  vehicle_id: trapezoid_ellipse_t0p03_taper0p45
+
+  planform:
+    b_half_m: 1.0
+    c_root_m: 2.0
+    c_tip_m: 0.9
+    taper_linear: true
+    sweep_le_deg: 28.81
+
+  leading_edge:
+    rn_m: 0.0
+
+  airfoil:
+    type: dat_file
+    path: "../airfoils/ellipse_t0p03_21pt.dat"
+
+  surface:
+    emissivity: 0.8

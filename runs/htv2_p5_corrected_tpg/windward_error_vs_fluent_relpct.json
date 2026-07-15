@@ -1,0 +1,29 @@
+{
+  "case": {
+    "mach": 6.0,
+    "alpha_deg": 5.0,
+    "h_m": 30000.0
+  },
+  "inputs": {
+    "lf_npz": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\htv2_p5_corrected_tpg\\fields.npz",
+    "fluent_csv": "D:\\ref\\reference-enthalpy_03_12_26-main\\fluent_export\\adiabatic_wall_csv\\30km_5alpha_6ma.csv"
+  },
+  "metric": "signed relative error (%) = (Taw_LF - Tw_Fluent)/Tw_Fluent*100",
+  "mapping": "LF (x_w_m, span_w_m) -> Fluent (x-coordinate, y-coordinate), KD-tree NN; Fluent windward subset by z sign",
+  "stats": {
+    "mean_signed_rel_err_pct": 3.003493543549956,
+    "mean_abs_rel_err_pct": 3.0354420091184844,
+    "p95_abs_rel_err_pct": 3.8718666516772866,
+    "max_abs_rel_err_pct": 4.82618307184254,
+    "over_fraction": 0.9740740740740741,
+    "n_valid": 3240,
+    "Taw_lf_mean_K": 1561.0667146051417,
+    "fluent_windward_Tw_mean_K": 1515.6638181129629,
+    "nn_median_dist_m": 0.011688816884910387,
+    "nn_p95_dist_m": 0.03132788209377506,
+    "windward_z_sign": "neg",
+    "fluent_windward_faces": 10682
+  },
+  "output_png": "D:\\ref\\reference-enthalpy_03_12_26-main\\runs\\htv2_p5_corrected_tpg\\windward_error_vs_fluent_relpct.png",
+  "note": "diagnostic visualization only; NOT validation complete"
+}

@@ -1,0 +1,10 @@
+case_id,line_type,model,corr_with_fluent
+ma6_a5_h30km,centerline,fluent,0.9999999999999998
+ma6_a5_h30km,centerline,v1,0.5252653512557611
+ma6_a5_h30km,centerline,v2,0.6220288276510325
+ma8_a5_h30km,centerline,fluent,1.0
+ma8_a5_h30km,centerline,v1,0.5479834027794488
+ma8_a5_h30km,centerline,v2,0.6472491976624929
+ma8_a10_h50km,centerline,fluent,1.0
+ma8_a10_h50km,centerline,v1,0.5681207497257819
+ma8_a10_h50km,centerline,v2,0.7255540772718068
