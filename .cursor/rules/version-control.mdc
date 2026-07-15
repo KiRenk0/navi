@@ -1,16 +1,138 @@
 ---
-description: 项目提交、推送与恢复标签约定
+description: Faceted3D repository identity, safe Git workflow, and verified task closeout
 alwaysApply: true
 ---
 
-# 版本管理约定
+# Authorized repository
 
-- 每次完成一组可独立验证的项目修改后，先检查变更范围，避免提交无关文件、缓存、凭据或密钥。
-- 运行与本次修改相关的验证；验证失败时不得把该版本标记为稳定恢复点。
-- 用户已授权：修改完成后创建 Git 提交，无需再次询问是否提交。
-- 提交消息使用简洁中文，说明修改目的，不使用含糊的“更新代码”。
-- 每次成功提交后创建带说明的恢复标签，格式为 `recovery-YYYYMMDD-HHmm-简短主题`。
-- 标签必须指向本次提交；同一分钟重名时追加 `-2`、`-3`。
-- 提交与标签创建成功后，推送当前分支及该标签到 `origin`。
-- 网络或认证失败时保留本地提交和标签，并明确告知用户尚未同步远端。
-- 不使用 `git reset --hard`、强制推送或覆盖历史；恢复操作先征得用户确认。
+- The only authorized active project root is:
+  E:\Faceted3D_recovery_work_20260715
+- Before any file write, run and report:
+  - git rev-parse --show-toplevel
+  - git branch --show-current
+  - git status --short
+  - git remote -v
+  - git rev-parse HEAD
+- The reported Git root must exactly equal the authorized root.
+- The repository must contain:
+  - scripts/run_case_rem.py
+  - scripts/tools/current_baseline_regression_check.py
+  - src/ref_enthalpy_method/solver_faceted3d.py
+  - src/ref_enthalpy_method/aero/leeward_recovery.py
+  - runs/current_baseline_snapshot/tpg/
+- If any identity check fails, stop without modifying files.
+- Never select a similarly named copy, historical backup, empty shell, TEMP directory,
+  Cursor Local History file, or recovery hold directory as the active repository.
+
+# Python import identity
+
+- Before running tests, CLI, or regression, force the project-local src directory
+  onto PYTHONPATH.
+- Print the resolved path of ref_enthalpy_method before validation.
+- It must resolve under:
+  E:\Faceted3D_recovery_work_20260715\src
+- If Python imports from D:\ref, another copy, site-packages, or an editable install
+  pointing elsewhere, stop immediately.
+
+# Working-tree safety
+
+- Do not start a write task when unrelated uncommitted changes already exist.
+- Report all pre-existing modified, deleted, renamed, and untracked files.
+- Do not overwrite, discard, stash, revert, or absorb pre-existing changes.
+- Work on a dedicated task branch unless the user explicitly authorizes direct work
+  on the current branch.
+- Stage only explicitly authorized paths.
+- Do not run `git add .`, `git add -A`, or `git add --renormalize .`.
+- Adding or changing `.gitattributes` must not cause unrelated tracked files to change.
+- Before every commit, show:
+  - git diff --name-status
+  - git diff --cached --name-status
+  - git diff --check
+
+# Destructive Git operations
+
+Never run without explicit user authorization:
+
+- git reset --hard
+- git clean -f, -fd, -fdx
+- git checkout -- <path>
+- git restore <path>
+- git restore --staged combined with content deletion
+- git rebase
+- git commit --amend
+- git push --force or --force-with-lease
+- branch or tag deletion
+- history rewriting
+- repository reinitialization
+- deletion or replacement of .git
+- restoration over the active workspace from a historical copy
+
+Never modify hashes or manifests merely to make regression pass.
+
+# Baseline and artifact protection
+
+- Treat the following as controlled assets:
+  - runs/current_baseline_snapshot/**
+  - baseline manifests
+  - fields.npz
+  - summary.json
+  - source_hashes_sha256
+- Do not regenerate, replace, normalize, or edit these assets unless the task is an
+  explicitly authorized baseline-promotion task.
+- Raw artifact hash and parsed semantic contract are different concepts.
+- Do not claim summary raw-hash validation unless the regression actually performs it.
+
+# Required validation
+
+For every task that writes tracked files, force `PYTHONPATH` to the authorized
+workspace `src` directory, print the resolved `ref_enthalpy_method` path, and run:
+
+1. python -B -m unittest discover -s tests -v
+2. python -B scripts/tools/current_baseline_regression_check.py
+
+Validation must report 30/30 tests PASS, schema v5, 72/72 fields, Groups 1–8
+PASS with zero drift, source hashes 49/49 PASS, and overall PASS.
+
+A task cannot be reported as complete unless the report gives:
+
+- resolved Git root
+- branch
+- pre-task commit
+- changed files
+- tests and exit codes
+- schema and field parity
+- Groups 1–8 status
+- source-hash status
+- post-task commit
+- remote push result
+
+# Commit and push policy
+
+- One accepted narrow task should produce one focused commit.
+- Do not combine unrelated cleanup, physics changes, documentation, baseline promotion,
+  and mapping work in one commit.
+- Temporary scripts and generated diagnostic assets must be deleted before commit.
+- Permanent tests and regression harnesses must not be deleted as “temporary code.”
+- After successful validation, commit the authorized changes and push the task branch
+  to the configured Gitee remote.
+- Use only a Gitee URL supplied by the user or already present in repository
+  configuration; never infer a URL from a username or another remote.
+- Before deleting or replacing a local milestone tag, verify that the same tag does
+  not exist on any remote. Never delete or overwrite a remote tag.
+- After pushing, verify the branch and annotated tag with `git ls-remote` and confirm
+  that both resolve to the accepted commit.
+- If push fails, do not claim the task is safely closed.
+- Do not merge into the protected/current baseline branch without explicit user approval.
+- Create an annotated tag for major accepted frozen milestones.
+
+# Current Faceted3D constraints
+
+- TPG-only remains active.
+- Schema remains current-tpg-baseline-regression/v5.
+- fields.npz remains 72 fields.
+- Groups 1–8 remain frozen.
+- Group 6 and Group 8 must not be changed without a separate explicit decision.
+- summary remains legacy 56-field provenance and must not be promoted in an
+  unrelated task.
+- Do not start Fluent mapping, pruning, or summary promotion unless explicitly authorized.
+- Do not run the 45 km or 50 km cases unless explicitly authorized.

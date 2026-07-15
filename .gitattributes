@@ -1,2 +1,23 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Stable text line endings
+*.py text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.mdc text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# Byte-sensitive / binary assets
+*.npz -text
+*.stl -text
+*.png -text
+*.jpg -text
+*.jpeg -text
+*.pdf -text
+
+# Exported numerical data: preserve bytes unless separately promoted
+*.csv -text
+
+# Frozen baseline artifacts
+runs/current_baseline_snapshot/** -text
