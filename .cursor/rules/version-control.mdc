@@ -33,12 +33,13 @@ alwaysApply: true
 ```powershell
 $env:PYTHONPATH = (Resolve-Path .\src)
 python -c "import pathlib, ref_enthalpy_method; print(pathlib.Path(ref_enthalpy_method.__file__).resolve())"
+```
 
 输出路径必须位于当前 Git 根目录的 src/ref_enthalpy_method。
 
 若 Python 导入到其他磁盘、旧副本、editable installation 或历史工作区，立即停止，不得继续验证。
 
-3. 修改范围
+## 3. 修改范围
 只修改用户明确授权的文件和职责范围。
 不使用 git add -A 或 git add . 盲目暂存全部变化。
 不把临时脚本、缓存、日志、凭据、环境文件或一次性诊断资产提交到仓库。
@@ -53,7 +54,7 @@ python -c "import pathlib, ref_enthalpy_method; print(pathlib.Path(ref_enthalpy_
 parsed semantic contract；
 raw artifact hash；
 provenance path。
-4. 分支、提交与推送
+## 4. 分支、提交与推送
 
 用户明确要求修改代码或文档时：
 
@@ -75,7 +76,7 @@ git diff --cached
 
 提交信息使用明确中文，说明实际修改目的，不使用“更新代码”等含糊描述。
 
-5. 恢复点与标签
+## 5. 恢复点与标签
 
 普通提交本身就是可恢复点，不为每个提交自动创建标签。
 
@@ -94,7 +95,7 @@ baseline-YYYYMMDD-简短主题
 
 标签必须指向已经验证通过并推送的提交。
 
-6. 禁止的 Git 操作
+## 6. 禁止的 Git 操作
 
 未经用户明确授权，禁止：
 
@@ -110,7 +111,7 @@ git push --force-with-lease
 
 出现冲突、异常 dirty state、remote 不一致或认证失败时，保留现场并停止。
 
-7. 行尾与冻结资产
+## 7. 行尾与冻结资产
 
 活动源码、配置和文档按 .gitattributes 使用 LF。
 
@@ -124,7 +125,7 @@ NPZ、STL 和其他二进制资产
 
 修改 .gitattributes 后，只允许在用户明确授权的独立任务中执行受控 renormalize，并在提交前检查完整 diff。
 
-8. 任务完成报告
+## 8. 任务完成报告
 
 每轮提交和推送后必须报告：
 
