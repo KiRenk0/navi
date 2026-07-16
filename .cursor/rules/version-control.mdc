@@ -1,138 +1,138 @@
 ---
-description: Faceted3D repository identity, safe Git workflow, and verified task closeout
+description: Git 仓库身份、工作区、提交、推送与恢复安全规则
 alwaysApply: true
 ---
 
-# Authorized repository
+# Git 与工作区安全规则
 
-- The only authorized active project root is:
-  E:\Faceted3D_recovery_work_20260715
-- Before any file write, run and report:
-  - git rev-parse --show-toplevel
-  - git branch --show-current
-  - git status --short
-  - git remote -v
-  - git rev-parse HEAD
-- The reported Git root must exactly equal the authorized root.
-- The repository must contain:
-  - scripts/run_case_rem.py
-  - scripts/tools/current_baseline_regression_check.py
-  - src/ref_enthalpy_method/solver_faceted3d.py
-  - src/ref_enthalpy_method/aero/leeward_recovery.py
-  - runs/current_baseline_snapshot/tpg/
-- If any identity check fails, stop without modifying files.
-- Never select a similarly named copy, historical backup, empty shell, TEMP directory,
-  Cursor Local History file, or recovery hold directory as the active repository.
+## 1. 写入前必须认证当前仓库
 
-# Python import identity
+任何修改、恢复、删除、提交或生成正式资产之前，必须执行并记录：
 
-- Before running tests, CLI, or regression, force the project-local src directory
-  onto PYTHONPATH.
-- Print the resolved path of ref_enthalpy_method before validation.
-- It must resolve under:
-  E:\Faceted3D_recovery_work_20260715\src
-- If Python imports from D:\ref, another copy, site-packages, or an editable install
-  pointing elsewhere, stop immediately.
+- `git rev-parse --show-toplevel`
+- `git remote get-url origin`
+- `git branch --show-current`
+- `git rev-parse HEAD`
+- `git status --short`
 
-# Working-tree safety
+只有同时满足以下条件才能继续：
 
-- Do not start a write task when unrelated uncommitted changes already exist.
-- Report all pre-existing modified, deleted, renamed, and untracked files.
-- Do not overwrite, discard, stash, revert, or absorb pre-existing changes.
-- Work on a dedicated task branch unless the user explicitly authorizes direct work
-  on the current branch.
-- Stage only explicitly authorized paths.
-- Do not run `git add .`, `git add -A`, or `git add --renormalize .`.
-- Adding or changing `.gitattributes` must not cause unrelated tracked files to change.
-- Before every commit, show:
-  - git diff --name-status
-  - git diff --cached --name-status
-  - git diff --check
+- Git 根目录就是当前打开的项目根目录；
+- `origin` 指向 `KiRenk0/navi`；
+- 当前目录包含正式入口、`src/`、`scripts/`、`tests/`、`specs/`；
+- 没有来源不明的未提交修改。
 
-# Destructive Git operations
+若任一条件不满足，立即停止并报告。不得自行选择同级“副本”、空壳目录、临时目录或最接近的历史版本。
 
-Never run without explicit user authorization:
+禁止为了继续任务而在未知目录执行 `git init`。
 
-- git reset --hard
-- git clean -f, -fd, -fdx
-- git checkout -- <path>
-- git restore <path>
-- git restore --staged combined with content deletion
-- git rebase
-- git commit --amend
-- git push --force or --force-with-lease
-- branch or tag deletion
-- history rewriting
-- repository reinitialization
-- deletion or replacement of .git
-- restoration over the active workspace from a historical copy
+## 2. 工作区与导入路径
 
-Never modify hashes or manifests merely to make regression pass.
+运行 Python 测试、CLI 或 regression 前，必须确认导入的是当前仓库：
 
-# Baseline and artifact protection
+```powershell
+$env:PYTHONPATH = (Resolve-Path .\src)
+python -c "import pathlib, ref_enthalpy_method; print(pathlib.Path(ref_enthalpy_method.__file__).resolve())"
 
-- Treat the following as controlled assets:
-  - runs/current_baseline_snapshot/**
-  - baseline manifests
-  - fields.npz
-  - summary.json
-  - source_hashes_sha256
-- Do not regenerate, replace, normalize, or edit these assets unless the task is an
-  explicitly authorized baseline-promotion task.
-- Raw artifact hash and parsed semantic contract are different concepts.
-- Do not claim summary raw-hash validation unless the regression actually performs it.
+输出路径必须位于当前 Git 根目录的 src/ref_enthalpy_method。
 
-# Required validation
+若 Python 导入到其他磁盘、旧副本、editable installation 或历史工作区，立即停止，不得继续验证。
 
-For every task that writes tracked files, force `PYTHONPATH` to the authorized
-workspace `src` directory, print the resolved `ref_enthalpy_method` path, and run:
+3. 修改范围
+只修改用户明确授权的文件和职责范围。
+不使用 git add -A 或 git add . 盲目暂存全部变化。
+不把临时脚本、缓存、日志、凭据、环境文件或一次性诊断资产提交到仓库。
+临时脚本用完必须删除。
+不把旧副本整体覆盖到当前仓库。
+不把 regression PASS 当成未执行 gate 的证明。
+不得未经单独授权执行 git add --renormalize . 或全仓库格式化。
 
-1. python -B -m unittest discover -s tests -v
-2. python -B scripts/tools/current_baseline_regression_check.py
+对于 baseline、manifest 和 summary，必须分别区分：
 
-Validation must report 30/30 tests PASS, schema v5, 72/72 fields, Groups 1–8
-PASS with zero drift, source hashes 49/49 PASS, and overall PASS.
+数值与字段合同；
+parsed semantic contract；
+raw artifact hash；
+provenance path。
+4. 分支、提交与推送
 
-A task cannot be reported as complete unless the report gives:
+用户明确要求修改代码或文档时：
 
-- resolved Git root
-- branch
-- pre-task commit
-- changed files
-- tests and exit codes
-- schema and field parity
-- Groups 1–8 status
-- source-hash status
-- post-task commit
-- remote push result
+优先从当前已认证 HEAD 创建独立任务分支；
+除非用户明确授权，不直接修改 main；
+修改完成后先运行相关 tests 和 regression；
+验证通过后可提交并推送任务分支，无需再次询问；
+合并到 main、打 tag、删除分支或改写历史仍需用户明确授权。
 
-# Commit and push policy
+提交前必须执行：
 
-- One accepted narrow task should produce one focused commit.
-- Do not combine unrelated cleanup, physics changes, documentation, baseline promotion,
-  and mapping work in one commit.
-- Temporary scripts and generated diagnostic assets must be deleted before commit.
-- Permanent tests and regression harnesses must not be deleted as “temporary code.”
-- After successful validation, commit the authorized changes and push the task branch
-  to the configured Gitee remote.
-- Use only a Gitee URL supplied by the user or already present in repository
-  configuration; never infer a URL from a username or another remote.
-- Before deleting or replacing a local milestone tag, verify that the same tag does
-  not exist on any remote. Never delete or overwrite a remote tag.
-- After pushing, verify the branch and annotated tag with `git ls-remote` and confirm
-  that both resolve to the accepted commit.
-- If push fails, do not claim the task is safely closed.
-- Do not merge into the protected/current baseline branch without explicit user approval.
-- Create an annotated tag for major accepted frozen milestones.
+git diff --check
+git status --short
+git diff --stat
+git diff --cached --stat
+git diff --cached
 
-# Current Faceted3D constraints
+只暂存本轮授权文件。
 
-- TPG-only remains active.
-- Schema remains current-tpg-baseline-regression/v5.
-- fields.npz remains 72 fields.
-- Groups 1–8 remain frozen.
-- Group 6 and Group 8 must not be changed without a separate explicit decision.
-- summary remains legacy 56-field provenance and must not be promoted in an
-  unrelated task.
-- Do not start Fluent mapping, pruning, or summary promotion unless explicitly authorized.
-- Do not run the 45 km or 50 km cases unless explicitly authorized.
+提交信息使用明确中文，说明实际修改目的，不使用“更新代码”等含糊描述。
+
+5. 恢复点与标签
+
+普通提交本身就是可恢复点，不为每个提交自动创建标签。
+
+只有在用户明确宣布：
+
+baseline freeze；
+schema promotion；
+release；
+重要物理合同冻结；
+
+时，才创建 annotated tag。
+
+标签格式：
+
+baseline-YYYYMMDD-简短主题
+
+标签必须指向已经验证通过并推送的提交。
+
+6. 禁止的 Git 操作
+
+未经用户明确授权，禁止：
+
+git reset --hard
+git clean -fd 或 git clean -fdx
+git push --force
+git push --force-with-lease
+覆盖、删除或重写远端历史
+删除远端分支或标签
+修改已经发布提交
+用 manifest 更新掩盖源码或数值漂移
+修改全局 Git 配置
+
+出现冲突、异常 dirty state、remote 不一致或认证失败时，保留现场并停止。
+
+7. 行尾与冻结资产
+
+活动源码、配置和文档按 .gitattributes 使用 LF。
+
+禁止对以下目录进行无差别行尾重写或全仓库格式化：
+
+runs/
+fluent_export/
+baseline artifacts
+原始 CFD 数据
+NPZ、STL 和其他二进制资产
+
+修改 .gitattributes 后，只允许在用户明确授权的独立任务中执行受控 renormalize，并在提交前检查完整 diff。
+
+8. 任务完成报告
+
+每轮提交和推送后必须报告：
+
+Git 根目录；
+branch；
+commit SHA；
+push 是否成功；
+修改文件清单；
+tests 和 regression 结果；
+是否仍有未提交文件；
+是否修改 baseline、manifest 或 artifact hash。

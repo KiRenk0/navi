@@ -1,23 +1,37 @@
-# Stable text line endings
+# Keep active source, configuration, and documentation byte-stable
+# across Windows and Unix worktrees.
+* text=auto
+
+/.gitattributes text eol=lf
+/.gitignore text eol=lf
+
 *.py text eol=lf
+*.pyi text eol=lf
 *.md text eol=lf
+*.mdc text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
 *.toml text eol=lf
-*.mdc text eol=lf
-.gitattributes text eol=lf
-.gitignore text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.txt text eol=lf
+*.sh text eol=lf
 
-# Byte-sensitive / binary assets
-*.npz -text
-*.stl -text
-*.png -text
-*.jpg -text
-*.jpeg -text
-*.pdf -text
-
-# Exported numerical data: preserve bytes unless separately promoted
+# Frozen runs, CFD exports, datasets, and binary artifacts must retain
+# their exact stored bytes. Do not normalize their line endings.
+runs/** -text
+fluent_export/** -text
 *.csv -text
 
-# Frozen baseline artifacts
-runs/current_baseline_snapshot/** -text
+*.npz binary
+*.npy binary
+*.stl binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.pptx binary
+*.zip binary
