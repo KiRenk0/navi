@@ -516,6 +516,7 @@
     "src/ref_enthalpy_method/geometry/__init__.py": "ace7ea1cf5771346bf2a8342d9cc4ef013bf3c128f4260d504429f9b106d65de",
     "src/ref_enthalpy_method/geometry/airfoil.py": "2514d7c546732d33ac1bd0b62f1089d72795dd1c58fa76cc8effd52e57bf44a7",
     "src/ref_enthalpy_method/geometry/dat_airfoil.py": "a81bfb7762e65556ab68c80a31b0b48f29a4be041600c53d129edfdf0f66b8d4",
+    "src/ref_enthalpy_method/geometry/exact_projection.py": "f5fb5b9929a999fadeebb3ae2433b656132595e3228532131122ed4994bc565b",
     "src/ref_enthalpy_method/geometry/faceted3d.py": "98f715bc0dee30a75fff45f2dd0513841c179c0345e728a5981d42001595ef8a",
     "src/ref_enthalpy_method/geometry/local_incidence.py": "160dbdbe7f504805c3244b809a34a0401c7cc2a06994986bebb79376e0b7a06e",
     "src/ref_enthalpy_method/geometry/stl_surface.py": "eee24ba4b461cb16577f79096e866b2ec91f4d1baab164664bf7b913c204e43f",
