@@ -201,21 +201,21 @@ St(x) = St_base · f(x/c)
 
 ---
 
-## 5. 最终建议
+## 5. 历史建议与当前裁决
 
-### 当前阶段（立即执行）
+以下路线排序是 2026-06-28 调研结论，保留为历史候选空间，不是当前执行顺序。当前正式阶段不进入 residual learning，也不修改 legacy 背风模型；先完成已裁决的 Fluent clean-leeward filtering / exact geometry mapping integration，并在 integration 完成前不计算温度误差。
 
-**推荐路线 A**：不修改背风面模型。当前 q_l=1,077 W/m² 对整体热载荷贡献极小（~0.3%），残差代理模型完全有能力吸收背风面的系统偏差。开发资源应优先用于迎风面多保真建模和 Fluent 验证。
+### 历史路线 A
 
-### Fluent 对比后（~1-2 周）
+当时建议保持 legacy 背风模型不变，并把残差学习视为远期候选。该建议没有进入当前主线；是否需要任何 provider 或 residual 升级，必须由 clean-leeward mapping 后的误差证据裁决。
 
-如果 Fluent 对比显示背风面有强烈空间变化且有明显物理模式（如翼尖膨胀峰、后缘再压缩峰），可考虑**路线 B**（经验 St 分布）作为低成本的快速改进。`f(x/c)` 可以从 Fluent 结果拟合，也可以使用文献中的层流 Blasius 形状函数。
+### 映射证据形成后
 
-### 中长期（~1-3 月）
+如果正式映射显示背风区域存在稳定、可重复的空间结构，可再评估经验 Stanton 分布或 local-expansion provider。不得在 mapping integration 前拟合修正函数。
 
-如果项目需要更高保真度的背风面预测，**路线 C**（基于局部外缘状态的参考焓模型）是最具成本效益的升级路径。它不需要外部 CFD，完全自包含，且物理框架与当前迎风面模型一致。Prandtl-Meyer 膨胀波关系 + outline 几何就可以为背风面提供可接受的外缘状态估计。
+### 中长期候选
 
-**路线 D 和 E** 不建议在当前项目阶段实施——它们的开发成本超过了本项目的范围，且与多保真代理模型"低保真快速预估+高保真残差修正"的核心方法论不完全一致。
+如项目确需更高保真度，可重新评估基于局部外缘状态的参考焓模型；表面流线/轴身类比和外部 Euler 外缘方案仍属于高成本候选，不是当前阶段入口。
 
 ### 绝对不做的事项（无论哪个路线）
 
@@ -251,12 +251,12 @@ St(x) = St_base · f(x/c)
 ### 可比性与当前限制
 
 - 新 `Taw_tpg_leeward_upper/lower` 在绝热恢复温度定义层面可以与 Fluent adiabatic Tw 对应。
-- 当前尚未冻结 Fluent clean-leeward filtering / mapping contract，也未进行 temperature-error calculation，因此仍不能报告 leeward error 或声明 leeward model validated。
-- raw leeward mask 属于正式物理字段合同；clean leeward subset 尚未冻结，不得将历史 clean counts 与 raw counts 混写。
+- Fluent clean-leeward filtering / exact geometry mapping 合同已经裁决，但尚未完成 integration，也未进行 temperature-error calculation，因此仍不能报告 leeward error 或声明 leeward model validated。
+- raw leeward mask 属于正式物理字段合同；clean leeward subset 只属于后续 mapping/filtering 合同，不得与 raw counts 混写。
 
 ### 后续裁决
 
-下一阶段只冻结 Fluent clean-leeward filtering / mapping contract。在映射与误差证据形成之前，不升级 provider；后续是否采用 local-expansion provider，必须由映射后的误差分布裁决，而不是由 freestream provider 的空间常数性预先裁决。
+下一阶段只集成已裁决的 Fluent clean-leeward filtering / exact geometry mapping 合同：Fluent face center 以 exact point-to-triangle 投影到当前 STL，projection distance hard gate 为 `0.005 m`；Fluent clean 独立构造；LF clean 到 clean Fluent 在 `(x, span)` 做最近邻并要求 `d_xy<=0.04 m`；duplicates 允许且记录，mutual NN 仅作 flag。integration 完成前不计算温度误差，也不升级 provider；后续是否采用 local-expansion provider，必须由映射后的误差分布裁决。
 
 ### Classification 相关性
 

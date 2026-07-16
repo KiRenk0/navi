@@ -163,7 +163,7 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - Route A-TPG Taw 删除伪转捩死逻辑（hard-coded `re_measure=1e7`/`re_tri=1e6`/`transition_weight`）；改为显式 `r_aw = Pr^(1/3)` fully turbulent recovery
 - 大气模型统一：`isa1976.py` 新增几何高度→位势高度内部换算，成为唯一正式实现；`ussa1976.py` 改为薄 alias
 - 正式高度参数域冻结为 20–40 km；30/35/40 km 采用标准 USSA 1976 大气口径（几何输入、内部位势换算）
-- 45 km 全部原始 CSV / runs / fields / summary / PNG / JSON 从项目中彻底删除（不归档）；仅在 `faceted3d_current_status_zh.md` §13.2 保留唯一 off-standard 验证表
+- 45 km 全部原始 CSV / runs / fields / summary / PNG / JSON 从项目中彻底删除（不归档）；不属于当前正式参数域
 - 50 km 降级为 formal 域外的 reserved legacy stress/reference case
 - canonical docs 一致性收口：`current_model_decisions_zh.md` 补齐正式域/大气/Taw 口径；`README_INDEX.md`、`faceted3d_official_cli_run_guide_zh.md`、`functional_baseline_contract.md`、`faceted3d_file_index_zh.md` 同步更新
 - 无模型公式修改，无 pressure/DN/residual/holdout 变化
@@ -195,10 +195,20 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 
 ---
 
+## 2026-07-17: Canonical docs 最终收口
+
+- 完成正式 Git 工作区与 source-identity 合同收口；GitHub `main` 成为当前 source of truth，活动文本使用 LF，冻结原始资产不做无差别 normalization
+- 两个 baseline manifest 对 `new_spec/htv2_0628.stl`、`new_spec/outline_xz_right_0629.csv`、`src/ref_enthalpy_method/geometry/local_incidence.py` 完成 LF source identity promotion；parsed geometry、numeric arrays 与 AST/executable semantics 不变，无物理或数值漂移，source hashes 仍为 49/49
+- Git safety/line-ending 规则完成；30/30 tests PASS，schema v5、72/72 fields、Groups 1–8、Group 8 semantic QA、endpoint/metadata、49/49 source hashes 与 current regression overall 全部 PASS，Groups 1–8 `max_abs_diff=0`
+- baseline summary 仍是 legacy provenance；summary v5 parsed-semantic promotion 尚未执行，summary raw hash 不进入 current regression overall gate
+- Fluent clean-leeward exact geometry mapping 合同已裁决但 integration 尚未启动；本阶段未计算背风温度误差
+
+---
+
 ## 2026-07-15: Leeward Freestream-Recovery TPG Taw Diagnostic 正式收口
 
 - sheet-specific diagnostic 已冻结：upper/lower 各自使用 raw `surface_class_<sheet> == -1` mask，freestream edge-state 与 TPG enthalpy recovery，mask 外连续字段为 NaN；与 legacy fixed-wall q-chain 完全解耦
 - official CLI 已序列化 18 个 Group 8 字段；`fields.npz` 共 72 字段，current baseline schema 为 `current-tpg-baseline-regression/v5`
 - 两个 current baseline Groups 1–8 全部 PASS；Groups 1–7 所有既有字段 `max_abs_diff=0`
 - 三工况 shakeout PASS：Ma8/alpha10°/40km raw upper/lower=848/0、Taw=2699.7814815610645 K；Ma6.5/alpha8°/35km=611/0、1828.7434539198769 K；Ma9/alpha8°/35km=611/0、3126.4252493860427 K；同 alpha=8° 的 class/mask exact equal
-- 尚未进行 Fluent mapping、clean filtering 或 temperature-error calculation；下一阶段独立冻结 Fluent clean-leeward filtering / mapping contract
+- 尚未进行 Fluent mapping、clean filtering 或 temperature-error calculation；后续入口已更新为集成已裁决的 Fluent clean-leeward exact geometry mapping 合同

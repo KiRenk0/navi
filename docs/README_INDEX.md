@@ -1,6 +1,6 @@
 # Faceted3D v2 — 文档索引
 
-> 更新：2026-07-15
+> 更新：2026-07-17
 > 用途：新接手 DS/GPT 快速定位
 
 ## 当前主线一句话
@@ -49,6 +49,6 @@ scripts/run_case_rem.py
 - 当前 diagnostic comparison：`runs/fluent_freestream_v2/comparison_table.json`（9 工况 30–40 km）
 - local-incidence classification 与 sheet-specific leeward freestream-recovery TPG Taw diagnostic 已正式收口；alpha-sign routing 不变
 - current baseline schema v5，Groups 1–8，official CLI `fields.npz` 共 72 字段
-- 下一阶段：Fluent clean-leeward filtering / mapping contract
+- 下一阶段：集成已裁决的 Fluent clean-leeward filtering / exact geometry mapping contract；integration 完成前不计算背风温度误差
 - residual learning 尚未启动
 - 不做调参，不进 residual learning，不新增 closeout / manifest / audit / handoff md
