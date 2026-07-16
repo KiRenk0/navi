@@ -195,16 +195,6 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 
 ---
 
-## 2026-07-17: Canonical docs 最终收口
-
-- 完成正式 Git 工作区与 source-identity 合同收口；GitHub `main` 成为当前 source of truth，活动文本使用 LF，冻结原始资产不做无差别 normalization
-- 两个 baseline manifest 对 `new_spec/htv2_0628.stl`、`new_spec/outline_xz_right_0629.csv`、`src/ref_enthalpy_method/geometry/local_incidence.py` 完成 LF source identity promotion；parsed geometry、numeric arrays 与 AST/executable semantics 不变，无物理或数值漂移，source hashes 仍为 49/49
-- Git safety/line-ending 规则完成；30/30 tests PASS，schema v5、72/72 fields、Groups 1–8、Group 8 semantic QA、endpoint/metadata、49/49 source hashes 与 current regression overall 全部 PASS，Groups 1–8 `max_abs_diff=0`
-- baseline summary 仍是 legacy provenance；summary v5 parsed-semantic promotion 尚未执行，summary raw hash 不进入 current regression overall gate
-- Fluent clean-leeward exact geometry mapping 合同已裁决但 integration 尚未启动；本阶段未计算背风温度误差
-
----
-
 ## 2026-07-15: Leeward Freestream-Recovery TPG Taw Diagnostic 正式收口
 
 - sheet-specific diagnostic 已冻结：upper/lower 各自使用 raw `surface_class_<sheet> == -1` mask，freestream edge-state 与 TPG enthalpy recovery，mask 外连续字段为 NaN；与 legacy fixed-wall q-chain 完全解耦
@@ -212,3 +202,13 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 两个 current baseline Groups 1–8 全部 PASS；Groups 1–7 所有既有字段 `max_abs_diff=0`
 - 三工况 shakeout PASS：Ma8/alpha10°/40km raw upper/lower=848/0、Taw=2699.7814815610645 K；Ma6.5/alpha8°/35km=611/0、1828.7434539198769 K；Ma9/alpha8°/35km=611/0、3126.4252493860427 K；同 alpha=8° 的 class/mask exact equal
 - 尚未进行 Fluent mapping、clean filtering 或 temperature-error calculation；后续入口已更新为集成已裁决的 Fluent clean-leeward exact geometry mapping 合同
+
+---
+
+## 2026-07-17: Canonical docs 最终收口
+
+- 完成正式 Git 工作区与 source-identity 合同收口；GitHub `main` 成为当前 source of truth，活动文本使用 LF，冻结原始资产不做无差别 normalization
+- 两个 baseline manifest 对 `new_spec/htv2_0628.stl`、`new_spec/outline_xz_right_0629.csv`、`src/ref_enthalpy_method/geometry/local_incidence.py` 完成 LF source identity promotion；parsed geometry、numeric arrays 与 AST/executable semantics 不变，无物理或数值漂移，source hashes 仍为 49/49
+- Git safety/line-ending 规则完成；30/30 tests PASS，schema v5、72/72 fields、Groups 1–8、Group 8 semantic QA、endpoint/metadata、49/49 source hashes 与 current regression overall 全部 PASS，Groups 1–8 `max_abs_diff=0`
+- baseline summary 仍是 legacy provenance；summary v5 parsed-semantic promotion 尚未执行，summary raw hash 不进入 current regression overall gate
+- Fluent clean-leeward exact geometry mapping 合同已裁决但 integration 尚未启动；本阶段未计算背风温度误差

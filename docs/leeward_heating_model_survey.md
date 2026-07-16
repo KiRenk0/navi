@@ -220,7 +220,7 @@ St(x) = St_base · f(x/c)
 ### 绝对不做的事项（无论哪个路线）
 
 - 不要修改迎风面参考焓公式
-- 不要修改 Busemann Cp
+- 不要修改当前冻结的 `newtonian_like` pressure closure（`A=0.38`, `n=1.15`）
 - 不要修改 Kemp-Riddell 驻点公式
 - 不要删除或重写现有的 leeward.py（它提供了一个可接受的下界/均值）
 - 不要将背风面升级与迎风面升级耦合（两者应可独立验证）
