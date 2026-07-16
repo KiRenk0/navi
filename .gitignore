@@ -29,3 +29,5 @@ Thumbs.db
 
 # 项目本机生成的映射缓存
 _mapping_cache.npz
+
+runs/
