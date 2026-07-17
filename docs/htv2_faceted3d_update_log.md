@@ -222,3 +222,13 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - projected-point sheet、outward normal、incidence、共享 q-chain acceptance 与 projected planform 参数化合同已冻结；正式热流数值链未改变。
 - 84/84 tests PASS；55/55 source identity PASS；schema v5、72 fields、Groups 1–8 `max_abs_diff=0`，current regression overall PASS。
 - 尚未进入真实 21,250 点 semantics integration，也未构造 Fluent clean 或 LF clean。
+
+---
+
+## 2026-07-18: Phase 4A 后 Repository Hygiene 收口
+
+- 完成 tracked、untracked、ignored、近期阶段文件与 active reference 审计；删除 3 份已由 canonical docs 替代且无 code/test/config/CLI/manifest/docs active reference 的根目录旧文档：背风温度可比性临时诊断、旧 CLI 速查、旧流程说明。
+- 清理本地 11 个 `__pycache__` 目录、43 个 `.pyc`；现有 `.gitignore` 已覆盖该类产物，无需扩展。
+- 历史 archive/runs、`新翼型.md`、AI 辅助资料、三维调研、pressure sandbox 与历史源码快照存在历史证据、用户资料或替代关系疑义，保留待裁决。
+- 84/84 tests PASS；55/55 source identity PASS；schema v5、72 fields、Groups 1–8 `max_abs_diff=0`，current regression overall PASS。
+- 未修改正式源码、manifest、fields、summary、artifact hash、物理链或数值 baseline；下一阶段仍为 Phase 4B。

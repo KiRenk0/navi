@@ -1,6 +1,6 @@
 # Faceted3D 文件索引
 
-> 更新：2026-07-17（Phase 4A projected geometry semantics 收口）
+> 更新：2026-07-18（Phase 4A 后 repository hygiene 收口）
 
 ---
 
@@ -131,3 +131,7 @@ Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CL
 | `tests/test_fluent_surface_projection.py` | adapter ordering、输出与 gate 合同 |
 
 已删除 root `_analysis.py`、`_analysis2.py`：二者是包含旧绝对路径、固定 `k` centroid shortlist、cache 和 clean/temperature prototype 的历史实现，不是 active mapping implementation；内容仍可从 Git 历史恢复。
+
+## 13. Canonical 文档入口收口
+
+根目录旧诊断、旧 CLI 速查与旧流程说明已退出仓库；对应当前事实分别由 `docs/faceted3d_current_status_zh.md` / `docs/current_model_decisions_zh.md`、`docs/faceted3d_official_cli_run_guide_zh.md`、`README.md` / `docs/functional_baseline_contract.md` 单源维护。正式代码、CLI、baseline 与数据入口不变。
