@@ -84,11 +84,11 @@ class IncidenceAndAcceptanceTest(unittest.TestCase):
 
         nz_boundary = np.asarray([np.sqrt(1.0 - 0.45**2), 0.0, 0.45])
         nz_reject = np.asarray([np.sqrt(1.0 - 0.449**2), 0.0, 0.449])
-        candidates = np.asarray([tilted(0), tilted(19.9), tilted(20.1), nz_boundary, nz_reject])
-        references = np.asarray([tilted(0), tilted(0), tilted(0), nz_boundary, nz_boundary])
+        candidates = np.asarray([tilted(0), tilted(19.9), tilted(20.0), tilted(20.1), nz_boundary, nz_reject])
+        references = np.asarray([tilted(0), tilted(0), tilted(0), tilted(0), nz_boundary, nz_boundary])
         np.testing.assert_array_equal(
             qchain_stl_acceptance(candidate_normal_out=candidates, reference_normal_out=references),
-            [True, True, False, True, False],
+            [True, True, True, False, True, False],
         )
         upper_lower = qchain_stl_acceptance(
             candidate_normal_out=np.asarray([[0.0, 0.0, 1.0], [0.0, 0.0, -1.0]]),

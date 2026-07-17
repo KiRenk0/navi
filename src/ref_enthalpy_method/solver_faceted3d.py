@@ -39,7 +39,11 @@ from .geometry.local_incidence import (
     NORMAL_SOURCE_INVALID,
     diagnose_sheet_from_geometry,
 )
-from .geometry.qchain_surface import qchain_stl_acceptance_from_slopes
+from .geometry.qchain_surface import (
+    QCHAIN_MAX_NORMAL_ANGLE_DEG,
+    QCHAIN_MIN_ABS_NZ,
+    qchain_stl_acceptance_from_slopes,
+)
 from .geometry.stl_surface import AsciiStlMesh, SurfaceSlopeSampler
 from .heatflux.leading_edge import kemp_riddell_modified_qsph_baseline, leading_edge_heat_flux_baseline
 from .heatflux.leeward import (
@@ -163,8 +167,8 @@ def _reject_stl_surface_outliers(
     sy_arr: np.ndarray,
     ref_sx: float,
     ref_sy: float,
-    max_normal_angle_deg: float = 20.0,
-    min_abs_nz: float = 0.45,
+    max_normal_angle_deg: float = QCHAIN_MAX_NORMAL_ANGLE_DEG,
+    min_abs_nz: float = QCHAIN_MIN_ABS_NZ,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Reject STL samples that are inconsistent with the expected skin direction.
 

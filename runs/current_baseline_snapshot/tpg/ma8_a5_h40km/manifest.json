@@ -532,7 +532,7 @@
     "src/ref_enthalpy_method/sampling/__init__.py": "5b20a39c5836fd13bb2522a3772362e3eac9bc5fb98cc0a4055c56fe5b238102",
     "src/ref_enthalpy_method/sampling/grid.py": "3ca6ddd59a68ed99fdc6f29aa5afbf52d56bcad54c675bf20ccc825a78439241",
     "src/ref_enthalpy_method/solver.py": "e88bcaad0fee7695b434941462fb85dd26c5a7b08f670279617f348ebd879964",
-    "src/ref_enthalpy_method/solver_faceted3d.py": "4b2686ac4b391321f9d93341134e2ef3948946f7a185d9536d50b83f39cc481b",
+    "src/ref_enthalpy_method/solver_faceted3d.py": "5665073045de93d78c57928372306337774a7fb2554b0039205e2390be863dcc",
     "src/ref_enthalpy_method/specs/__init__.py": "dd0c8e3ddaa477266ef2579738aa211e2c8d879c3a29fb356e50bb8cec47b08f",
     "src/ref_enthalpy_method/specs/loader.py": "b3b3b427eedf8427211327dbea08c0be9aaebfe724d6da85e8784ae93c63328a",
     "src/ref_enthalpy_method/specs/models.py": "65c2e1b5b6eca98db80fbaa9240e8368929af22f98cede210da0df018aca5d1d",
