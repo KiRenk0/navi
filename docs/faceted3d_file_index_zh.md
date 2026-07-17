@@ -1,6 +1,6 @@
 # Faceted3D 文件索引
 
-> 更新：2026-07-15（leeward freestream-recovery diagnostic 收口）
+> 更新：2026-07-17（Fluent geometry exact-projection foundation 收口）
 
 ---
 
@@ -107,11 +107,16 @@ Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CL
 | `runs/local_incidence_alpha_scan/local_incidence_alpha_scan.json` | 正式扫描结果 |
 | `runs/local_incidence_alpha_scan/epsilon_comparison_summary.png` | 汇总图 |
 
-## 11. Leeward Freestream-Recovery 最终资产
+## 11. Fluent Geometry Exact-Projection 最终资产
 
 | 路径 | 说明 |
 |------|------|
-| `src/ref_enthalpy_method/aero/leeward_recovery.py` | upper/lower 可复用的纯 provider |
-| `tests/test_leeward_freestream_recovery.py` | provider 单元合同 |
-| `tests/test_faceted3d_leeward_recovery_integration.py` | solver 集成合同 |
-| `tests/test_faceted3d_leeward_recovery_serialization.py` | official CLI 序列化与 baseline v5 合同 |
+| `src/ref_enthalpy_method/geometry/exact_projection.py` | exhaustive exact point-to-triangle 投影真值；覆盖 interior/edge/vertex/degenerate 与 deterministic tie-break |
+| `src/ref_enthalpy_method/mapping/__init__.py` | mapping 包的正式公开入口 |
+| `src/ref_enthalpy_method/mapping/fluent_surface.py` | strict Fluent geometry parser、显式 `+0.030 m` x-origin 与 canonical coordinate identity |
+| `src/ref_enthalpy_method/mapping/fluent_projection.py` | canonical/source ordering 可逆的 exact projection adapter 与闭区间 5 mm gate |
+| `tests/test_exact_surface_projection.py` | exact kernel 与 tie-break 单元合同 |
+| `tests/test_fluent_surface_contract.py` | parser、坐标变换、identity 与重复坐标合同 |
+| `tests/test_fluent_surface_projection.py` | adapter ordering、输出与 gate 合同 |
+
+已删除 root `_analysis.py`、`_analysis2.py`：二者是包含旧绝对路径、固定 `k` centroid shortlist、cache 和 clean/temperature prototype 的历史实现，不是 active mapping implementation；内容仍可从 Git 历史恢复。

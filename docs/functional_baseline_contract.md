@@ -122,7 +122,7 @@
 - current regression snapshot：`runs/current_baseline_snapshot/tpg/<case_id>/`，每个 case 保存正式三件套引用副本、`fields.npz`、`summary.json` 与机器可读 `manifest.json`
 - `lf_warnings.log`：运行过程的数值/物理异常提示（NaN/Inf、phi clamp、过大热流等）
 
-## 2.3 Current regression contract（2026-07-15）
+### 2.3 Current regression contract（2026-07-17）
 
 - 唯一 current regression 命令：`python scripts/tools/current_baseline_regression_check.py`
 - baseline 仅含 TPG official cases：`ma6_a5_h30km`、`ma8_a5_h40km`；三工况 shakeout 不属于 current baseline case
@@ -146,7 +146,11 @@
 - endpoint metadata 必须确认 81×41、`n_valid=3321`、row 40 全 81 点有效，并与 snapshot 精确一致
 - **Local-incidence group（12 字段）：** `normal_x/y/z_upper/lower`、`incidence_s_upper/lower`、`surface_class_upper/lower`（int8, -2/-1/0/1）、`normal_source_upper/lower`（int8, 0/1/2/3）
 - **Semantic QA：** normal unit length <= 1e-12 error、upper `n_z>0` / lower `n_z<0`、surface class 与 `s/epsilon` 一致、source 编码合法；Group 8 验证 mask/class exact equal、dtype/shape、NaN domain、freestream state、TPG recovery 与 sheet isolation
-- source hashes、72-field schema parity、endpoint/manifest metadata 均为 mandatory PASS gate
+- source identity 共 53 项并全部 PASS；source hash promotion 只管理源码身份，不等于数值 baseline freeze
+- tests：74/74 PASS；current regression overall：PASS
+- 新增 `geometry/exact_projection.py` 与 `mapping/` 属于 additive infrastructure，不进入现有 `fields.npz`，不修改 Groups 1–8
+- 21,250 点 full exact projection QA 是独立 geometry/projection gate，不属于现有 72-field regression 数值组
+- `fields.npz`、summary、schema、artifact hashes 与 Groups 1–8 数值均未改变
 - **正式 routing：** alpha-sign 未切换；local-incidence 与 sheet-specific leeward recovery 均为 additive diagnostic；不存在 generic `Taw_tpg_l` 字段
 
 

@@ -205,10 +205,11 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 
 ---
 
-## 2026-07-17: Canonical docs 最终收口
+## 2026-07-17: Fluent Geometry Exact-Projection Foundation 正式收口
 
-- 完成正式 Git 工作区与 source-identity 合同收口；GitHub `main` 成为当前 source of truth，活动文本使用 LF，冻结原始资产不做无差别 normalization
-- 两个 baseline manifest 对 `new_spec/htv2_0628.stl`、`new_spec/outline_xz_right_0629.csv`、`src/ref_enthalpy_method/geometry/local_incidence.py` 完成 LF source identity promotion；parsed geometry、numeric arrays 与 AST/executable semantics 不变，无物理或数值漂移，source hashes 仍为 49/49
-- Git safety/line-ending 规则完成；30/30 tests PASS，schema v5、72/72 fields、Groups 1–8、Group 8 semantic QA、endpoint/metadata、49/49 source hashes 与 current regression overall 全部 PASS，Groups 1–8 `max_abs_diff=0`
-- baseline summary 仍是 legacy provenance；summary v5 parsed-semantic promotion 尚未执行，summary raw hash 不进入 current regression overall gate
-- Fluent clean-leeward exact geometry mapping 合同已裁决但 integration 尚未启动；本阶段未计算背风温度误差
+- exact point-to-triangle kernel 以 exhaustive all-triangle search 作为正式真值，覆盖 interior、edge、vertex、degenerate triangle 与 deterministic triangle-index tie-break；不使用固定 `k` centroid shortlist、近似 KD-tree、BVH 或 cache
+- strict Fluent geometry contract 只读取 `cellnumber` 与三坐标，冻结 Fluent → solver 为 `(x+0.030, y, z) m`；`+30 mm` 是调用方显式传入的 nominal nose-radius origin offset
+- canonical identity 基于变换后的 coordinate triple，不依赖 CSV row ordering 或非唯一 `cellnumber`；两个正式 Fluent case 的 canonical coordinate bytes 完全相同
+- exact projection adapter 保持 canonical/source ordering 显式可逆；21,250 个点对 6,341 个三角面全量投影，21,250/21,250 finite、valid triangle ID 且通过闭区间 5 mm gate，gate fail=0
+- 74/74 tests PASS；schema v5、72/72 fields、Groups 1–8 `max_abs_diff=0`、53 项 source identity 与 current regression overall 全部 PASS
+- 本阶段未进入 Fluent/LF clean、LF→Fluent mapping 或 temperature error，不构成 leeward model validation

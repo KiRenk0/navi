@@ -1,6 +1,6 @@
 # Faceted3D 当前工程状态
 
-> 更新：2026-07-17（canonical documentation closeout）
+> 更新：2026-07-17（Fluent geometry exact-projection foundation 收口）
 
 ---
 
@@ -31,21 +31,15 @@
 - Groups 1–8：全部 PASS，全部 `max_abs_diff=0`；
 - Group 8 semantic QA：PASS；
 - endpoint/metadata：PASS；
-- source hashes：49/49 PASS；
-- tests：30/30 PASS；
+- source identity：53/53 PASS；
+- tests：74/74 PASS；
 - overall：`CURRENT REGRESSION OVERALL: PASS`。
 
-唯一 current regression 命令为 `python scripts/tools/current_baseline_regression_check.py`。该 PASS 只证明 harness 实际执行的数值、字段、semantic QA、endpoint/metadata 与 49 项 source hash gate，不得扩大解释为未执行的 validation 或 artifact gate。
+唯一 current regression 命令为 `python scripts/tools/current_baseline_regression_check.py`。该 PASS 只证明 harness 实际执行的数值、字段、semantic QA、endpoint/metadata 与 53 项 source identity gate，不得扩大解释为未执行的 validation 或 artifact gate。
 
 ### 3.1 Source identity promotion
 
-两个 baseline manifest 中以下三项 source hash 已绑定 Git 仓库当前 LF 字节身份：
-
-- `new_spec/htv2_0628.stl`；
-- `new_spec/outline_xz_right_0629.csv`；
-- `src/ref_enthalpy_method/geometry/local_incidence.py`。
-
-该变化仅收口 CRLF/LF source identity：STL parsed geometry 完全一致，CSV parsed numeric arrays 完全一致，`local_incidence.py` AST/executable semantics 完全一致。没有物理模型或数值 baseline 漂移，manifest 仍为 49 项 source hash。
+source identity promotion 只收口源码身份，不等于数值 baseline freeze。当前 schema v5、72 fields、`fields.npz`、summary、artifact hashes 与 Groups 1–8 数值均未改变；新增 geometry/mapping 模块属于 additive infrastructure，不进入现有 72-field regression 数值组。
 
 ## 4. Group 8 能力与边界
 
@@ -70,19 +64,30 @@ Group 8 冻结了 18 个 sheet-specific leeward freestream-recovery 字段，upp
 
 因此当前 summary 只用于 legacy provenance。summary v5 parsed-semantic promotion 尚未执行；后续应冻结 parsed semantic contract，而不是跨环境 candidate raw hash。本轮未修改 summary、manifest 或 regression harness。
 
-## 6. 下一正式入口：Fluent clean-leeward mapping integration
+## 6. Fluent geometry exact-projection foundation
 
-下一阶段是 **Fluent clean-leeward filtering / exact geometry mapping contract integration**。已裁决合同如下：
+本阶段正式能力边界如下：
 
-1. Fluent face center 精确投影到当前 STL，以 exact point-to-triangle 为真值；禁止固定有限 `k` centroid candidates 作为正式真值。
-2. projection distance hard gate 为 `0.005 m`。
-3. LF clean 使用六条件：upper leeward、raw STL source 属于 accepted/rejected-but-used、`x/c>0.05`、`x/c<0.95`、`y/b<0.95`、`abs(n_z)>=0.8`。
-4. Fluent clean 独立构造，不从 LF clean 反推。
-5. 主映射为 LF clean → nearest clean Fluent in `(x, span)`，`d_xy <= 0.04 m`。
-6. duplicates allowed and recorded；mutual NN 只作 flag，不作为 gate。
-7. mapping integration 完成前暂不计算温度误差。
+- exact point-to-triangle kernel 对所有 STL 三角面穷举，覆盖 interior、edge、vertex 与 degenerate triangle，使用 deterministic triangle-index tie-break；不使用固定 `k` centroid shortlist、近似 KD-tree、BVH 或 cache。
+- strict Fluent geometry parser 只按名称读取 `cellnumber` 和三坐标。坐标合同为 `solver=(x+0.030, y, z) m`，其中 `0.030 m` 由调用方作为 nominal nose-radius origin offset 显式传入。
+- canonical geometry identity 基于变换后 `(x, span, up)` 稳定排序，不依赖 CSV row order 或非唯一 `cellnumber`；两个正式 Fluent case 的 canonical coordinate bytes 完全相同。
+- exact projection adapter 保持 canonical/source ordering 显式可逆，输出 projected point、triangle ID、distance、raw normal 与闭区间 gate mask `distance <= 0.005 m`。
+- 21,250 个共享 canonical Fluent 点对 6,341 个正式 STL 三角面完成全量 exact projection：finite 与 valid triangle ID 均为 21,250/21,250，5 mm gate fail=0，唯一投影 triangle ID 数为 4,362。
 
-该 mapping 合同已裁决但尚未集成；不得写成 mapping 或 CFD validation 已完成。
+该能力只完成 geometry/projection foundation，不代表 clean mapping 或 temperature validation 已完成。
+
+### 6.1 剩余任务顺序
+
+1. 投影三角面几何语义；
+2. upper/lower；
+3. surface class；
+4. normal-source accepted/rejected-but-used；
+5. 任意投影点的 `x/c`、`y/b`；
+6. 独立 Fluent clean；
+7. LF clean；
+8. LF clean → Fluent clean mapping；
+9. duplicate 和 mutual-nearest QA；
+10. 最后才是 leeward temperature error。
 
 ## 7. 当前禁止项
 
@@ -90,4 +95,4 @@ Group 8 冻结了 18 个 sheet-specific leeward freestream-recovery 字段，upp
 - 不扩展 45 km/50 km active domain；`ma8_a10_h50km` 仅为域外 reserved legacy stress/reference case。
 - 不做大规模 pruning，不重构 Group 6，不修改 pressure、TPG 或正式 windward routing。
 - 不调整冻结物理合同，不用 manifest 更新掩盖源码或数值漂移。
-- 在 mapping integration 完成前不计算或发布背风温度误差。
+- 在 Fluent/LF clean 与 LF→Fluent mapping 完成前不计算或发布背风温度误差。

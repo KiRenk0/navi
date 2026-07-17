@@ -232,7 +232,7 @@ St(x) = St_base · f(x/c)
 
 ---
 
-## 6. 当前实现边界（2026-07-15 收口）
+## 6. 当前实现边界（2026-07-17 收口）
 
 ### 两条独立物理链
 
@@ -251,12 +251,13 @@ St(x) = St_base · f(x/c)
 ### 可比性与当前限制
 
 - 新 `Taw_tpg_leeward_upper/lower` 在绝热恢复温度定义层面可以与 Fluent adiabatic Tw 对应。
-- Fluent clean-leeward filtering / exact geometry mapping 合同已经裁决，但尚未完成 integration，也未进行 temperature-error calculation，因此仍不能报告 leeward error 或声明 leeward model validated。
+- clean-leeward temperature comparison 的几何前置层已完成：Fluent geometry input、显式 `+0.030 m` 坐标合同、canonical identity、exact STL projection 与全量 21,250 点 5 mm gate 已通过。
+- Fluent clean、LF clean、LF clean → Fluent clean mapping 与 temperature-error calculation 尚未完成，因此仍不能报告 leeward error 或声明 leeward model validated。
 - raw leeward mask 属于正式物理字段合同；clean leeward subset 只属于后续 mapping/filtering 合同，不得与 raw counts 混写。
 
 ### 后续裁决
 
-下一阶段只集成已裁决的 Fluent clean-leeward filtering / exact geometry mapping 合同：Fluent face center 以 exact point-to-triangle 投影到当前 STL，projection distance hard gate 为 `0.005 m`；Fluent clean 独立构造；LF clean 到 clean Fluent 在 `(x, span)` 做最近邻并要求 `d_xy<=0.04 m`；duplicates 允许且记录，mutual NN 仅作 flag。integration 完成前不计算温度误差，也不升级 provider；后续是否采用 local-expansion provider，必须由映射后的误差分布裁决。
+下一阶段唯一入口是投影三角面的几何语义与可复用坐标参数化，随后才依次构造 Fluent/LF clean 和 LF→Fluent mapping。temperature error 必须最后执行；后续是否采用 local-expansion provider，只能由正式映射后的误差分布裁决。
 
 ### Classification 相关性
 
