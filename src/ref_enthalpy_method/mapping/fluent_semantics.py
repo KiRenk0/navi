@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass, fields
 from typing import Any
@@ -132,6 +133,28 @@ def _exact_equal(left: np.ndarray, right: np.ndarray) -> bool:
     )
 
 
+def _require_projection_array(
+    value: np.ndarray,
+    *,
+    name: str,
+    dtype: np.dtype | type,
+    shape: tuple[int, ...],
+) -> np.ndarray:
+    array = np.asarray(value)
+    expected_dtype = np.dtype(dtype)
+    if array.dtype != expected_dtype:
+        raise ValueError(f"projection {name} must have dtype {expected_dtype}, got {array.dtype}")
+    if array.shape != shape:
+        raise ValueError(f"projection {name} must have shape {shape}, got {array.shape}")
+    if not array.flags.c_contiguous:
+        raise ValueError(f"projection {name} must be C-contiguous")
+    if array.flags.writeable:
+        raise ValueError(f"projection {name} must be read-only")
+    if not array.flags.owndata:
+        raise ValueError(f"projection {name} must own its data")
+    return array
+
+
 def _validate_projection_identity(
     geometry: FluentSurfaceGeometry,
     projection: FluentSurfaceProjection,
@@ -146,15 +169,81 @@ def _validate_projection_identity(
         raise ValueError("triangles must contain only finite values")
 
     canonical_xyz = geometry.canonical_solver_xyz
-    if not _exact_equal(projection.solver_xyz, canonical_xyz):
+    count = canonical_xyz.shape[0]
+    canonical_index = _require_projection_array(
+        projection.canonical_index,
+        name="canonical_index",
+        dtype=np.int64,
+        shape=(count,),
+    )
+    solver_xyz = _require_projection_array(
+        projection.solver_xyz,
+        name="solver_xyz",
+        dtype=np.float64,
+        shape=(count, 3),
+    )
+    projected_xyz = _require_projection_array(
+        projection.projected_xyz,
+        name="projected_xyz",
+        dtype=np.float64,
+        shape=(count, 3),
+    )
+    triangle_id = _require_projection_array(
+        projection.triangle_id,
+        name="triangle_id",
+        dtype=np.int64,
+        shape=(count,),
+    )
+    distance = _require_projection_array(
+        projection.projection_distance_m,
+        name="projection_distance_m",
+        dtype=np.float64,
+        shape=(count,),
+    )
+    raw_normal = _require_projection_array(
+        projection.raw_normal,
+        name="raw_normal",
+        dtype=np.float64,
+        shape=(count, 3),
+    )
+    gate_pass = _require_projection_array(
+        projection.projection_gate_pass,
+        name="projection_gate_pass",
+        dtype=np.bool_,
+        shape=(count,),
+    )
+
+    if not np.array_equal(canonical_index, np.arange(count, dtype=np.int64)):
+        raise ValueError("projection canonical_index must be 0..N-1")
+    if not np.all(np.isfinite(solver_xyz)):
+        raise ValueError("projection solver_xyz must contain only finite values")
+    if not _exact_equal(solver_xyz, canonical_xyz):
         raise ValueError("projection solver_xyz does not match geometry canonical ordering")
+    expected_canonical_hash = hashlib.sha256(solver_xyz.tobytes(order="C")).hexdigest()
+    if projection.canonical_geometry_sha256 != expected_canonical_hash:
+        raise ValueError("projection canonical geometry SHA-256 does not match solver_xyz")
     if projection.geometry_source_sha256 != geometry.source_sha256:
         raise ValueError("projection geometry source SHA-256 does not match geometry")
     if projection.triangle_count != triangle_array.shape[0]:
         raise ValueError("projection triangle_count does not match triangles")
-    count = canonical_xyz.shape[0]
-    if not np.array_equal(projection.canonical_index, np.arange(count, dtype=np.int64)):
-        raise ValueError("projection canonical_index must be 0..N-1")
+
+    if not np.all(np.isfinite(projected_xyz)):
+        raise ValueError("projection projected_xyz must contain only finite values")
+    if np.any(triangle_id < 0) or np.any(triangle_id >= projection.triangle_count):
+        raise ValueError("projection triangle_id contains an index outside the triangle mesh")
+    if not np.all(np.isfinite(distance)) or np.any(distance < 0.0):
+        raise ValueError("projection distance must contain only finite nonnegative values")
+    if raw_normal.shape != (count, 3):
+        raise ValueError(f"projection raw_normal must have shape ({count}, 3)")
+
+    try:
+        gate = float(projection.projection_gate_m)
+    except (TypeError, ValueError) as error:
+        raise ValueError("projection gate must be a finite scalar greater than zero") from error
+    if not np.isfinite(gate) or gate <= 0.0:
+        raise ValueError("projection gate must be a finite scalar greater than zero")
+    if not np.array_equal(gate_pass, distance <= gate):
+        raise ValueError("projection gate-pass mask does not match distance <= gate")
     return triangle_array
 
 

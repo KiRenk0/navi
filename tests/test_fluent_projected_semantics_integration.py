@@ -13,6 +13,7 @@ from ref_enthalpy_method.mapping.fluent_surface import (
     compare_canonical_geometry,
     read_fluent_surface_geometry_csv,
 )
+from scripts.tools.faceted3d_phase4b_geometry_qa import _execution_metadata
 
 _HEADER = "cellnumber,x-coordinate,y-coordinate,z-coordinate\n"
 
@@ -50,6 +51,12 @@ class FluentProjectedSemanticsIntegrationTest(unittest.TestCase):
             encoding="utf-8",
         )
         return read_fluent_surface_geometry_csv(path, x_offset_m=0.030)
+
+    @staticmethod
+    def _readonly(value, dtype=None):
+        array = np.array(value, dtype=dtype, copy=True, order="C")
+        array.setflags(write=False)
+        return array
 
     def _integrate(self, geometry, *, gate: float = 0.005, projection=None):
         if projection is None:
@@ -188,6 +195,84 @@ class FluentProjectedSemanticsIntegrationTest(unittest.TestCase):
         self.assertEqual(cross["gate_fail_semantic_valid"], 1)
         self.assertEqual(result.geometry_qa["semantic_validity"]["valid_count"], 2)
         self.assertIn("projection gate", result.geometry_qa["semantic_validity"]["definition"])
+
+    def test_projection_contract_rejects_corrupted_fields_fail_closed(self) -> None:
+        geometry = self._geometry(
+            [("u1", 0.2, 0.2, 0.201), ("u2", 0.8, 0.8, 0.202)]
+        )
+        projection = project_fluent_surface_exact(
+            geometry, self.triangles, projection_gate_m=0.005
+        )
+        writeable_projected = projection.projected_xyz.copy()
+        fortran_projected = np.asfortranarray(projection.projected_xyz)
+        fortran_projected.setflags(write=False)
+        non_owned_projected = projection.projected_xyz.view()
+        invalid_projections = (
+            replace(projection, canonical_geometry_sha256="0" * 64),
+            replace(
+                projection,
+                projected_xyz=self._readonly(projection.projected_xyz, np.float32),
+            ),
+            replace(
+                projection,
+                triangle_id=self._readonly(projection.triangle_id, np.int32),
+            ),
+            replace(
+                projection,
+                projection_distance_m=self._readonly(
+                    projection.projection_distance_m[:1], np.float64
+                ),
+            ),
+            replace(
+                projection,
+                projection_distance_m=self._readonly([np.nan, 0.0], np.float64),
+            ),
+            replace(
+                projection,
+                projection_distance_m=self._readonly([-1.0, 0.0], np.float64),
+            ),
+            replace(
+                projection,
+                raw_normal=self._readonly(projection.raw_normal[:, :2], np.float64),
+            ),
+            replace(projection, projection_gate_m=0.0),
+            replace(projection, projection_gate_m=np.inf),
+            replace(
+                projection,
+                projection_gate_pass=self._readonly(
+                    projection.projection_gate_pass, np.int8
+                ),
+            ),
+            replace(
+                projection,
+                projection_gate_pass=self._readonly(
+                    projection.projection_gate_pass[:1], np.bool_
+                ),
+            ),
+            replace(
+                projection,
+                projection_gate_pass=self._readonly(
+                    ~projection.projection_gate_pass, np.bool_
+                ),
+            ),
+            replace(projection, projected_xyz=writeable_projected),
+            replace(projection, projected_xyz=fortran_projected),
+            replace(projection, projected_xyz=non_owned_projected),
+        )
+        for invalid_projection in invalid_projections:
+            with self.subTest(projection=invalid_projection):
+                with self.assertRaises(ValueError):
+                    self._integrate(geometry, projection=invalid_projection)
+
+    def test_formal_qa_execution_metadata_distinguishes_chunk_calls_and_reuse(self) -> None:
+        metadata = _execution_metadata(8)
+        self.assertEqual(
+            metadata["exact_kernel_invocation_count"],
+            metadata["projection_chunk_count"],
+        )
+        self.assertEqual(metadata["formal_projection_dataset_count"], 1)
+        self.assertTrue(metadata["projection_reused_after_canonical_identity"])
+        self.assertFalse(metadata["independent_second_projection_executed"])
 
     def test_invalid_parameters_shapes_dtypes_and_projection_identity_fail_closed(self) -> None:
         geometry = self._geometry([("u", 0.2, 0.2, 0.201)])

@@ -148,6 +148,20 @@ def _project_parallel(
     )
 
 
+def _execution_metadata(projection_chunk_count: int) -> dict[str, int | bool | str]:
+    return {
+        "formal_projection_dataset_count": 1,
+        "projection_chunk_count": projection_chunk_count,
+        "exact_kernel_invocation_count": projection_chunk_count,
+        "projection_reused_after_canonical_identity": True,
+        "independent_second_projection_executed": False,
+        "projection_reuse_reason": (
+            "compare_canonical_geometry proved exact canonical identity before projection array reuse"
+        ),
+        "case_specific_provenance_replaced": True,
+    }
+
+
 def _integrate(
     geometry: Any,
     projection: Any,
@@ -255,14 +269,17 @@ def main() -> int:
             "outline_path": str(OUTLINE_PATH.relative_to(ROOT)),
         },
         "geometry_qa": left.geometry_qa,
-        "cross_case_determinism": {
+        "cross_case_projection_reuse": {
             "canonical_geometry": _comparison_dict(geometry_comparison),
-            "projection_kernel_execution_count": 1,
-            "projection_chunk_count": projection_chunk_count,
-            "projection_reuse_reason": "compare_canonical_geometry proved exact canonical identity before reuse",
-            "projection_arrays_byte_equal": projection_equal,
-            "semantic_arrays_byte_equal": semantics_equal,
-            "deterministic_qa_serialization_equal": deterministic_qa_equal,
+            **_execution_metadata(projection_chunk_count),
+            "projection_arrays_equal_after_reuse": projection_equal,
+            "semantic_arrays_equal_after_projection_reuse": all(semantics_equal.values()),
+            "semantic_array_field_equality_after_projection_reuse": semantics_equal,
+            "deterministic_qa_serialization_equal_after_projection_reuse": deterministic_qa_equal,
+            "left_geometry_source_path": str(left_projection.geometry_source_path),
+            "left_geometry_source_sha256": left_projection.geometry_source_sha256,
+            "right_geometry_source_path": str(right_projection.geometry_source_path),
+            "right_geometry_source_sha256": right_projection.geometry_source_sha256,
             "alpha_dependent_fields_compared": True,
             "reason": "both formal cases use identical alpha_deg and semantics inputs",
         },
