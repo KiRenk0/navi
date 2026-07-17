@@ -39,6 +39,7 @@ from .geometry.local_incidence import (
     NORMAL_SOURCE_INVALID,
     diagnose_sheet_from_geometry,
 )
+from .geometry.qchain_surface import qchain_stl_acceptance_from_slopes
 from .geometry.stl_surface import AsciiStlMesh, SurfaceSlopeSampler
 from .heatflux.leading_edge import kemp_riddell_modified_qsph_baseline, leading_edge_heat_flux_baseline
 from .heatflux.leeward import (
@@ -183,11 +184,14 @@ def _reject_stl_surface_outliers(
     if not np.any(valid):
         return sx, sy
 
-    normals = facet_normal_from_slopes(sx=sx, sy=sy)
-    ref_normal = facet_normal_from_slopes(sx=np.array([float(ref_sx)]), sy=np.array([float(ref_sy)]))[0]
-    dot = np.sum(normals * ref_normal.reshape((1,) * (normals.ndim - 1) + (3,)), axis=-1)
-    dot = np.clip(dot, -1.0, 1.0)
-    keep = valid & (dot >= math.cos(math.radians(float(max_normal_angle_deg)))) & (np.abs(normals[..., 2]) >= float(min_abs_nz))
+    keep = valid & qchain_stl_acceptance_from_slopes(
+        sx=sx,
+        sy=sy,
+        ref_sx=float(ref_sx),
+        ref_sy=float(ref_sy),
+        max_normal_angle_deg=float(max_normal_angle_deg),
+        min_abs_nz=float(min_abs_nz),
+    )
     sx[~keep] = np.nan
     sy[~keep] = np.nan
     return sx, sy

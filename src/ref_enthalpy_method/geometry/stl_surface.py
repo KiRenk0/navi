@@ -211,11 +211,15 @@ class SurfaceSlopeSampler:
                     self._bins[base + ix].append(i)
 
     def sample_upper_lower(self, *, x: float, span: float) -> tuple[tuple[float, float, float, float, float, float] | None, tuple[float, float, float, float, float, float] | None]:
-        """Return upper/lower facet samples at ``(x, span)``.
+        """Return the existing six-field upper/lower sampling contract."""
+        upper, lower = self.sample_upper_lower_with_triangle_id(x=x, span=span)
+        return (
+            None if upper is None else upper[:6],
+            None if lower is None else lower[:6],
+        )
 
-        Each sample is ``(sx, sy, z_up, raw_nx, raw_ny, raw_nz)``. The raw normal
-        comes from the same selected triangle and preserves its STL winding.
-        """
+    def sample_upper_lower_with_triangle_id(self, *, x: float, span: float) -> tuple[tuple[float, float, float, float, float, float, int] | None, tuple[float, float, float, float, float, float, int] | None]:
+        """Return selected skin samples plus the exact source triangle ID."""
         bid = self._bin_id(float(x), float(span))
         cand = self._bins[bid]
         if not cand:
@@ -262,14 +266,18 @@ class SurfaceSlopeSampler:
                     "ny": float(ny),
                     "nz": float(nz),
                     "abs_nz_hat": float(abs_nz_hat),
+                    "triangle_id": int(ti),
                 }
             )
 
         if not candidates:
             return None, None
 
-        def _pick_surface(*, want_upper: bool) -> tuple[float, float, float, float, float, float] | None:
-            ordered = sorted(candidates, key=lambda c: float(c["z"]), reverse=bool(want_upper))
+        def _pick_surface(*, want_upper: bool) -> tuple[float, float, float, float, float, float, int] | None:
+            ordered = sorted(
+                candidates,
+                key=lambda c: ((-1.0 if want_upper else 1.0) * float(c["z"]), int(c["triangle_id"])),
+            )
             for c in ordered:
                 if float(c["abs_nz_hat"]) >= float(self.surface_abs_nz_min):
                     return (
@@ -279,6 +287,7 @@ class SurfaceSlopeSampler:
                         float(c["nx"]),
                         float(c["ny"]),
                         float(c["nz"]),
+                        int(c["triangle_id"]),
                     )
             return None
 

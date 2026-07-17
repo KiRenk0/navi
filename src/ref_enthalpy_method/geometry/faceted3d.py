@@ -306,6 +306,23 @@ def triangle_inside_mask(
     return float(chord), np.ones((int(np.asarray(x_over_c).size),), dtype=bool)
 
 
+def triangle_planform_xle_chord(
+    *,
+    span_m: float,
+    c_root_m: float,
+    half_angle_deg: float,
+) -> tuple[float, float]:
+    """Resolve physical leading edge and chord for one triangular-planform span."""
+
+    x_le = triangle_x_le_from_half_angle(y_m=float(span_m), half_angle_deg=float(half_angle_deg))
+    chord = triangle_chord_from_half_angle(
+        c_root_m=float(c_root_m),
+        y_m=float(span_m),
+        half_angle_deg=float(half_angle_deg),
+    )
+    return float(x_le), float(chord)
+
+
 def triangle_strip_xle_chord_mask(
     *,
     x_over_c: np.ndarray,
@@ -318,8 +335,11 @@ def triangle_strip_xle_chord_mask(
     """Return (x_le_m, chord_m, mask_x) for one triangular-planform strip."""
 
     y_m = float(y_over_b) * float(b_half_m)
-    x_le = triangle_x_le_from_half_angle(y_m=y_m, half_angle_deg=float(half_angle_deg))
-    chord = triangle_chord_from_half_angle(c_root_m=float(c_root_m), y_m=y_m, half_angle_deg=float(half_angle_deg))
+    x_le, chord = triangle_planform_xle_chord(
+        span_m=y_m,
+        c_root_m=float(c_root_m),
+        half_angle_deg=float(half_angle_deg),
+    )
     chord = float(chord)
     if not np.isfinite(x_le) or chord < float(chord_min_m):
         return float(x_le), float(chord), np.zeros((int(np.asarray(x_over_c).size),), dtype=bool)
@@ -452,6 +472,43 @@ def outline_strip_mask_and_chord(
     return float(chord), np.ones((int(np.asarray(x_over_c).size),), dtype=bool)
 
 
+def outline_planform_xle_chord(
+    *,
+    span_m: float,
+    outline_x_m: np.ndarray,
+    outline_span_m: np.ndarray,
+) -> tuple[float, float]:
+    """Resolve physical leading edge and chord from the formal outline intersection."""
+
+    y_m = float(span_m)
+    if not np.isfinite(y_m):
+        return float("nan"), float("nan")
+    px, py = _close_polyline(outline_x_m, outline_span_m)
+    y_min = float(np.nanmin(py))
+    y_max = float(np.nanmax(py))
+    if not (y_min - 1e-9 <= y_m <= y_max + 1e-9):
+        return float("nan"), float("nan")
+    span = float(y_max - y_min)
+    eps = max(1e-9, 1e-6 * abs(span))
+    y_eval = min(max(y_m, y_min + eps), y_max - eps)
+
+    intersections: list[float] = []
+    for i in range(px.size - 1):
+        x0, y0 = float(px[i]), float(py[i])
+        x1, y1 = float(px[i + 1]), float(py[i + 1])
+        if abs(y1 - y0) < 1e-12 or y_eval < min(y0, y1) or y_eval >= max(y0, y1):
+            continue
+        t = (y_eval - y0) / (y1 - y0)
+        if 0.0 <= t <= 1.0:
+            intersections.append(x0 + t * (x1 - x0))
+    finite = np.asarray(intersections, dtype=float)
+    finite = finite[np.isfinite(finite)]
+    if finite.size < 2:
+        return float("nan"), float("nan")
+    x_le = float(np.min(finite))
+    return x_le, float(np.max(finite) - x_le)
+
+
 def outline_strip_xle_chord_mask(
     *,
     x_over_c: np.ndarray,
@@ -464,48 +521,13 @@ def outline_strip_xle_chord_mask(
     """Return (x_le_m, chord_m, mask_x) for one strip using an outline polygon."""
 
     y_m = float(y_over_b) * float(b_half_m)
-    if not np.isfinite(y_m):
-        return float("nan"), float("nan"), np.zeros((int(np.asarray(x_over_c).size),), dtype=bool)
-
-    px, py = _close_polyline(outline_x_m, outline_span_m)
-    y_min = float(np.nanmin(py))
-    y_max = float(np.nanmax(py))
-    if not (y_min - 1e-9 <= y_m <= y_max + 1e-9):
-        return 0.0, 0.0, np.zeros((int(np.asarray(x_over_c).size),), dtype=bool)
-    span = float(y_max - y_min)
-    eps = max(1e-9, 1e-6 * abs(span))
-    if y_m <= y_min:
-        y_m = y_min + eps
-    if y_m >= y_max:
-        y_m = y_max - eps
-
-    xs: list[float] = []
-    for i in range(px.size - 1):
-        x0, y0 = float(px[i]), float(py[i])
-        x1, y1 = float(px[i + 1]), float(py[i + 1])
-        if abs(y1 - y0) < 1e-12:
-            continue
-        if (y_m < min(y0, y1)) or (y_m >= max(y0, y1)):
-            continue
-        t = (y_m - y0) / (y1 - y0)
-        if not (0.0 <= t <= 1.0):
-            continue
-        xs.append(x0 + t * (x1 - x0))
-
-    if len(xs) < 2:
-        return 0.0, 0.0, np.zeros((int(np.asarray(x_over_c).size),), dtype=bool)
-
-    xs_arr = np.asarray(xs, dtype=float)
-    xs_arr = xs_arr[np.isfinite(xs_arr)]
-    if xs_arr.size < 2:
-        return 0.0, 0.0, np.zeros((int(np.asarray(x_over_c).size),), dtype=bool)
-
-    x_le = float(np.min(xs_arr))
-    x_te = float(np.max(xs_arr))
-    chord = float(x_te - x_le)
-    if not (chord > 0.0) or chord < float(chord_min_m):
+    x_le, chord = outline_planform_xle_chord(
+        span_m=y_m,
+        outline_x_m=outline_x_m,
+        outline_span_m=outline_span_m,
+    )
+    if not np.isfinite(x_le) or not np.isfinite(chord) or chord < float(chord_min_m):
         return float(x_le), float(chord), np.zeros((int(np.asarray(x_over_c).size),), dtype=bool)
-
     return float(x_le), float(chord), np.ones((int(np.asarray(x_over_c).size),), dtype=bool)
 
 
