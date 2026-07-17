@@ -1,6 +1,6 @@
 # Faceted3D 文件索引
 
-> 更新：2026-07-17（Fluent geometry exact-projection foundation 收口）
+> 更新：2026-07-17（Phase 4A projected geometry semantics 收口）
 
 ---
 
@@ -107,7 +107,18 @@ Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CL
 | `runs/local_incidence_alpha_scan/local_incidence_alpha_scan.json` | 正式扫描结果 |
 | `runs/local_incidence_alpha_scan/epsilon_comparison_summary.png` | 汇总图 |
 
-## 11. Fluent Geometry Exact-Projection 最终资产
+## 11. Phase 4A Projected Geometry Semantics 最终资产
+
+| 路径 | 说明 |
+|------|------|
+| `src/ref_enthalpy_method/geometry/projected_semantics.py` | projected-point raw semantics 纯层；组合 sheet、outward normal、incidence 与 projected `x/c`、`y/b`，保持输入顺序并返回 owned、C-order、read-only 数组 |
+| `src/ref_enthalpy_method/geometry/qchain_surface.py` | q-chain surface acceptance 单源；闭区间接受 `normal angle<=20°` 且 `abs(n_z)>=0.45` |
+| `src/ref_enthalpy_method/geometry/stl_surface.py` | `SurfaceSlopeSampler` 正式 triangle selection 与 sheet identity；保留 `sample_upper_lower()` 六字段合同，新方法额外返回 triangle ID |
+| `src/ref_enthalpy_method/geometry/faceted3d.py` | outline 优先、triangle fallback 的共享 planform 参数化语义 |
+| `tests/test_projected_geometry_semantics.py` | sheet、normal source、incidence、q-chain 边界、raw 参数和数组所有权/顺序合同 |
+| `src/ref_enthalpy_method/solver_faceted3d.py` | 复用共享 q-chain acceptance 与 planform 语义；正式 pressure、edge-state、Taw 与热流数值链未改变 |
+
+## 12. Fluent Geometry Exact-Projection 最终资产
 
 | 路径 | 说明 |
 |------|------|

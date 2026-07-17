@@ -213,3 +213,12 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - exact projection adapter 保持 canonical/source ordering 显式可逆；21,250 个点对 6,341 个三角面全量投影，21,250/21,250 finite、valid triangle ID 且通过闭区间 5 mm gate，gate fail=0
 - 74/74 tests PASS；schema v5、72/72 fields、Groups 1–8 `max_abs_diff=0`、53 项 source identity 与 current regression overall 全部 PASS
 - 本阶段未进入 Fluent/LF clean、LF→Fluent mapping 或 temperature error，不构成 leeward model validation
+
+---
+
+## 2026-07-17: Phase 4A Projected Geometry Semantics 正式收口
+
+- 提交 `7077aceac6d4d5ff92c63ca3ddaf987e5baaf6fe` 与 `6934b64c5ab33c29577b8d3071e453c5358d4e40` 完成 Phase 4A pure semantics foundation。
+- projected-point sheet、outward normal、incidence、共享 q-chain acceptance 与 projected planform 参数化合同已冻结；正式热流数值链未改变。
+- 84/84 tests PASS；55/55 source identity PASS；schema v5、72 fields、Groups 1–8 `max_abs_diff=0`，current regression overall PASS。
+- 尚未进入真实 21,250 点 semantics integration，也未构造 Fluent clean 或 LF clean。

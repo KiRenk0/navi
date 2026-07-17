@@ -1,6 +1,6 @@
 # Faceted3D 当前工程状态
 
-> 更新：2026-07-17（Fluent geometry exact-projection foundation 收口）
+> 更新：2026-07-17（Phase 4A projected geometry semantics 收口）
 
 ---
 
@@ -31,11 +31,11 @@
 - Groups 1–8：全部 PASS，全部 `max_abs_diff=0`；
 - Group 8 semantic QA：PASS；
 - endpoint/metadata：PASS；
-- source identity：53/53 PASS；
-- tests：74/74 PASS；
+- source identity：55/55 PASS；
+- tests：84/84 PASS；
 - overall：`CURRENT REGRESSION OVERALL: PASS`。
 
-唯一 current regression 命令为 `python scripts/tools/current_baseline_regression_check.py`。该 PASS 只证明 harness 实际执行的数值、字段、semantic QA、endpoint/metadata 与 53 项 source identity gate，不得扩大解释为未执行的 validation 或 artifact gate。
+唯一 current regression 命令为 `python scripts/tools/current_baseline_regression_check.py`。该 PASS 只证明 harness 实际执行的数值、字段、semantic QA、endpoint/metadata 与 55 项 source identity gate，不得扩大解释为未执行的 validation 或 artifact gate。
 
 ### 3.1 Source identity promotion
 
@@ -64,30 +64,27 @@ Group 8 冻结了 18 个 sheet-specific leeward freestream-recovery 字段，upp
 
 因此当前 summary 只用于 legacy provenance。summary v5 parsed-semantic promotion 尚未执行；后续应冻结 parsed semantic contract，而不是跨环境 candidate raw hash。本轮未修改 summary、manifest 或 regression harness。
 
-## 6. Fluent geometry exact-projection foundation
+## 6. Phase 4A projected-point geometry semantics
 
-本阶段正式能力边界如下：
+Phase 4A 已完成 projected-point geometry semantics 纯层，职责只覆盖投影点的 raw 几何语义：
 
-- exact point-to-triangle kernel 对所有 STL 三角面穷举，覆盖 interior、edge、vertex 与 degenerate triangle，使用 deterministic triangle-index tie-break；不使用固定 `k` centroid shortlist、近似 KD-tree、BVH 或 cache。
-- strict Fluent geometry parser 只按名称读取 `cellnumber` 和三坐标。坐标合同为 `solver=(x+0.030, y, z) m`，其中 `0.030 m` 由调用方作为 nominal nose-radius origin offset 显式传入。
-- canonical geometry identity 基于变换后 `(x, span, up)` 稳定排序，不依赖 CSV row order 或非唯一 `cellnumber`；两个正式 Fluent case 的 canonical coordinate bytes 完全相同。
-- exact projection adapter 保持 canonical/source ordering 显式可逆，输出 projected point、triangle ID、distance、raw normal 与闭区间 gate mask `distance <= 0.005 m`。
-- 21,250 个共享 canonical Fluent 点对 6,341 个正式 STL 三角面完成全量 exact projection：finite 与 valid triangle ID 均为 21,250/21,250，5 mm gate fail=0，唯一投影 triangle ID 数为 4,362。
+- triangle-level sheet 编码冻结为 `INVALID=-1`、`OTHER=0`、`UPPER=1`、`LOWER=2`。
+- sheet identity 来自正式 `SurfaceSlopeSampler` 的 triangle selection 语义；不使用 Fluent 原始 `z` 正负，不使用 triangle winding 或 raw-normal `n_z` 正负猜测 sheet。
+- 原 `sample_upper_lower()` 六字段合同保持不变；新增采样方法额外返回 triangle ID。
+- outward normal 与 incidence 复用 `local_incidence.py`；geometric sheet 和 aerodynamic incidence class 是独立字段，upper 不自动等于 leeward。
+- q-chain acceptance 已统一到共享模块：`max normal angle=20°`、`min abs(n_z)=0.45`，两项均按闭区间接受。
+- `x/c`、`y/b` 使用 projected point；outline 为优先正式 planform 来源，triangle planform 为 fallback。raw 参数不取绝对值、不裁剪。
+- 输出数组 owned、C-order、read-only，并保持输入顺序。
 
-该能力只完成 geometry/projection foundation，不代表 clean mapping 或 temperature validation 已完成。
+当前验证为 84/84 tests PASS、55/55 source identity PASS、schema v5、72 fields、Groups 1–8 全部 `max_abs_diff=0`、`CURRENT REGRESSION OVERALL: PASS`。
 
-### 6.1 剩余任务顺序
+### 6.1 当前能力边界与下一阶段
 
-1. 投影三角面几何语义；
-2. upper/lower；
-3. surface class；
-4. normal-source accepted/rejected-but-used；
-5. 任意投影点的 `x/c`、`y/b`；
-6. 独立 Fluent clean；
-7. LF clean；
-8. LF clean → Fluent clean mapping；
-9. duplicate 和 mutual-nearest QA；
-10. 最后才是 leeward temperature error。
+- 尚未对真实 21,250 个 Fluent canonical points 执行 semantics integration。
+- 尚未构造 Fluent clean 或 LF clean，尚未执行 LF→Fluent mapping。
+- 尚未读取 wall-temperature，尚未计算 temperature error。
+
+> Phase 4B：将 `FluentSurfaceProjection` 接入 projected geometry semantics，对真实 21,250 个 canonical points 生成 raw semantic fields，并执行真实几何统计 QA；仍不构造 clean。
 
 ## 7. 当前禁止项
 
