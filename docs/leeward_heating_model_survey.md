@@ -203,7 +203,7 @@ St(x) = St_base · f(x/c)
 
 ## 5. 历史建议与当前裁决
 
-以下路线排序是 2026-06-28 调研结论，保留为历史候选空间，不是当前执行顺序。当前正式阶段不进入 residual learning，也不修改 legacy 背风模型；exact projection 与 projected semantics integration 已完成，当前只构造 Fluent clean，并在 mapping QA 完成前不计算温度误差。
+以下路线排序是 2026-06-28 调研结论，保留为历史候选空间，不是当前执行顺序。当前正式阶段不进入 residual learning，也不修改 legacy 背风模型；exact projection、projected semantics integration 与 Phase 5A Fluent clean 已完成，下一阶段唯一入口为 LF clean，并在 mapping QA 完成前不计算温度误差。
 
 ### 历史路线 A
 
@@ -252,12 +252,14 @@ St(x) = St_base · f(x/c)
 
 - 新 `Taw_tpg_leeward_upper/lower` 在绝热恢复温度定义层面可以与 Fluent adiabatic Tw 对应。
 - clean-leeward temperature comparison 的 raw 几何前置层已完成：Fluent geometry input、显式 `+0.030 m` 坐标合同、canonical identity、exact STL projection、projected semantics integration 与全量 21,250 点 geometry-only QA 均已通过；6,341 个 STL triangles 的 5 mm gate 为 21,250/21,250 PASS。
-- Fluent clean、LF clean、LF clean → Fluent clean mapping、mapping QA 与 temperature-error calculation 尚未完成，因此仍不能报告 leeward error 或声明 leeward model validated。
-- raw leeward mask 属于正式物理字段合同；clean leeward subset 只属于后续 mapping/filtering 合同，不得与 raw counts 混写。
+- Fluent clean 已完成；它是 Fluent canonical points 上 raw projected semantics 的 geometry-only 派生 mapping subset，不回写 raw semantics。
+- LF clean、LF clean → Fluent clean mapping、mapping QA、wall-temperature ingestion 与 temperature-error calculation 尚未完成，因此仍不能报告 leeward error 或声明 leeward model validated。
+- raw LF leeward mask 属于正式物理字段合同；Fluent clean 属于后续 mapping 合同，二者不得与 raw counts 混写。
+- Fluent clean 不读取温度；q-chain acceptance 不作为其 predicate，`normal_source` 1 与 2 均可进入。当前正式 Fluent clean upper/lower/any=`186/0/186`。
 
 ### 后续裁决
 
-当前固定顺序为：`Fluent clean → LF clean → LF clean to Fluent clean mapping → mapping QA → wall-temperature ingestion → leeward temperature error`。当前只进入 Fluent clean；temperature error 必须最后执行。legacy fixed-wall chain 与 Taw diagnostic 保持独立；尚不能报告背风温度误差。后续是否采用 local-expansion provider，只能由正式误差证据裁决；residual learning 不是当前阶段。
+当前固定顺序为：`LF clean → LF clean to Fluent clean mapping → mapping QA → wall-temperature ingestion → leeward temperature error`。下一阶段唯一入口为 LF clean；temperature error 必须最后执行。legacy fixed-wall chain 与 Taw diagnostic 保持独立；尚不能报告背风温度误差。后续是否采用 local-expansion provider，只能由正式误差证据裁决；residual learning 不是当前阶段。
 
 ### Classification 相关性
 

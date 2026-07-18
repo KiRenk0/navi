@@ -146,11 +146,13 @@
 - endpoint metadata 必须确认 81×41、`n_valid=3321`、row 40 全 81 点有效，并与 snapshot 精确一致
 - **Local-incidence group（12 字段）：** `normal_x/y/z_upper/lower`、`incidence_s_upper/lower`、`surface_class_upper/lower`（int8, -2/-1/0/1）、`normal_source_upper/lower`（int8, 0/1/2/3）
 - **Semantic QA：** normal unit length <= 1e-12 error、upper `n_z>0` / lower `n_z<0`、surface class 与 `s/epsilon` 一致、source 编码合法；Group 8 验证 mask/class exact equal、dtype/shape、NaN domain、freestream state、TPG recovery 与 sheet isolation
-- source inventory 共 56 项并全部 PASS；source hash promotion 只管理源码身份，不等于数值 baseline freeze
-- tests：93/93 PASS（另有 59 subtests PASS）；current regression overall：PASS
-- Phase 4B adapter 属于 additive geometry/mapping infrastructure，不进入现有 `fields.npz` 或 72-field numeric baseline，不修改 Groups 1–8
-- 两份 manifest 仅增加/更新 adapter 的 source identity；schema 仍为 v5，fields 仍为 72，Groups 1–8 数值仍全部 `max_abs_diff=0`
-- 21,250 点 Phase 4B QA 是独立 geometry-semantics gate；projection gate 与 semantic validity 都不是 current numeric baseline group
+- source inventory 共 57 项并全部 PASS；source hash promotion 只管理源码身份，不等于数值 baseline freeze
+- tests：97/97 PASS（另有 77 subtests PASS）；current regression overall：PASS
+- Phase 5A Fluent clean 属于 additive geometry/mapping infrastructure，不进入现有 `fields.npz`、72-field schema 或 Groups 1–8；新增 `fluent_clean.py` 与公开 `semantic_valid_mask()` 不改变现有数值组
+- `semantic_valid_mask()` 是 semantic-valid 公共单源：`normal_source in {1,2}`、geometric sheet 为 UPPER/LOWER、outward normal 与 incidence finite、surface class 非 INVALID；projection gate 与 planform validity 不属于 semantic-valid
+- Fluent clean eligibility 允许 `normal_source` 1 与 2，0 与 3 由 semantic-valid 排除；`qchain_stl_accepted` 不属于 Fluent clean predicate
+- Phase 5A formal QA 是独立 geometry-only gate；正式 Fluent clean upper/lower/any=`186/0/186`。它与 Group 8 的 LF solver raw upper/lower mask count=`256/0` 分属不同点集、不同 ordering 与不同阶段，不得互换
+- 两份 manifest 在上一代码阶段仅新增 `fluent_clean.py` source hash、更新 `fluent_semantics.py` source hash；本阶段不修改 manifest。schema 仍为 v5，fields 仍为 72，Groups 1–8 数值仍全部 `max_abs_diff=0`
 - `fields.npz`、summary、schema、artifact hashes 与 Groups 1–8 数值均未改变
 - **正式 routing：** alpha-sign 未切换；local-incidence 与 sheet-specific leeward recovery 均为 additive diagnostic；不存在 generic `Taw_tpg_l` 字段
 

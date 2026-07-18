@@ -242,3 +242,13 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 正式 projection dataset count=1，exact kernel invocation count 等于 projection chunk count；第二工况在 canonical geometry exact identity 后复用 projection，未执行独立第二次 projection。
 - 93 tests 与 59 subtests、56 source identities、schema v5、72 fields、Groups 1–8 零漂移及 current regression overall 全部 PASS。
 - 本阶段未构造 Fluent/LF clean，未执行 LF clean → Fluent clean mapping，未读取 wall-temperature 或计算 temperature error；下一阶段仅为 Fluent clean。
+
+---
+
+## 2026-07-18: Phase 5A Fluent Clean Leeward Contract 正式收口
+
+- 提交 `61e73b343f1a2251c8860664a2534eee06735186` 冻结 Phase 5A Fluent clean：`clean_eligible = projection_gate_pass AND semantic_valid_mask AND planform_domain_valid`，upper/lower 再分别要求对应 geometric sheet 与 `surface_class == LEEWARD`，any 为 upper/lower 并集。
+- `normal_source` 1 与 2 均可进入 clean，0 与 3 由 semantic-valid 排除；q-chain 的 20° / `abs(n_z)>=0.45` 合同保持不变，但 `qchain_stl_accepted` 不是 Fluent clean predicate。
+- 正式 geometry-only QA：clean upper/lower/any=`186/0/186`；clean upper 中 source 1/2=`15/171`，source 0/3=`0/0`；upper/lower overlap=0。
+- 当前验证为 97 tests、77 subtests、57 source identities 全部 PASS；schema v5、72 fields、Groups 1–8 全部 zero drift，current regression overall PASS。
+- 本阶段尚未进入 LF clean、LF clean → Fluent clean mapping、wall-temperature ingestion 或 leeward temperature error；下一阶段唯一入口为 LF clean。

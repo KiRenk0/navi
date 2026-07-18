@@ -5,7 +5,7 @@
 
 ## 当前主线一句话
 
-Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。正式高度参数域 **20–40 km**。Taw 固定使用 fully turbulent `Pr^(1/3)` recovery。Phase 4B geometry-only semantics integration 已完成：`FluentSurfaceGeometry → FluentSurfaceProjection → Fluent projected-semantics adapter → deterministic geometry-only QA`。唯一 current regression 命令是 `python scripts/tools/current_baseline_regression_check.py`，baseline 仅含 TPG 的 `ma6_a5_h30km` 与 `ma8_a5_h40km`。CPG runtime、current compatibility baseline 与 phase4a0 replay 均已删除；历史 CPG→TPG 改善只作为历史证据。
+Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。正式高度参数域 **20–40 km**。Taw 固定使用 fully turbulent `Pr^(1/3)` recovery。Phase 5A Fluent clean 已完成：在 canonical Fluent points 上冻结 geometry-only、只读派生的 clean leeward subset；下一阶段唯一入口为 LF clean。唯一 current regression 命令是 `python scripts/tools/current_baseline_regression_check.py`，baseline 仅含 TPG 的 `ma6_a5_h30km` 与 `ma8_a5_h40km`。CPG runtime、current compatibility baseline 与 phase4a0 replay 均已删除；历史 CPG→TPG 改善只作为历史证据。
 
 ---
 
@@ -49,7 +49,8 @@ scripts/run_case_rem.py
 - 当前 diagnostic comparison：`runs/fluent_freestream_v2/comparison_table.json`（9 工况 30–40 km）
 - local-incidence classification 与 sheet-specific leeward freestream-recovery TPG Taw diagnostic 已正式收口；alpha-sign routing 不变
 - current baseline schema v5，Groups 1–8，official CLI `fields.npz` 共 72 字段
-- Phase 4B geometry-only semantics integration 已完成；下一阶段只构造 Fluent clean
-- 其后依次为 LF clean、LF clean → Fluent clean mapping、mapping QA；temperature error 最后执行
+- Phase 5A Fluent clean 已完成；该 subset 是 canonical Fluent points 上的 geometry-only 只读派生合同
+- 下一阶段唯一入口为 LF clean
+- 固定顺序：LF clean → LF clean to Fluent clean mapping → mapping QA → wall-temperature ingestion → leeward temperature error
 - residual learning 尚未启动
 - 不做调参，不进 residual learning，不新增 closeout / manifest / audit / handoff md
