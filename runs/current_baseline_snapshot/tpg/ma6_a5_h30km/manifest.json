@@ -528,6 +528,7 @@
     "src/ref_enthalpy_method/heatflux/windward.py": "2eb69af9479ac7628f9edf25f51a3f3faeac0e7b5c0eab14b81f293e25ee8ae9",
     "src/ref_enthalpy_method/mapping/__init__.py": "1d66d77bdf1b551e61deb492a6816e9aae0722d6daceba2564ad104b91d45782",
     "src/ref_enthalpy_method/mapping/fluent_clean.py": "72c2bdb60b6b7e988ea1a1023704779a0837e450695ab4a758971d288357bf1d",
+    "src/ref_enthalpy_method/mapping/lf_clean.py": "d38e686fe9c4440ca8c5cb1bbe9355cdbc694f81548541f12051aedc42083e3d",
     "src/ref_enthalpy_method/mapping/fluent_projection.py": "acc76ec09917bb2edc0d0dc46f8bc63c02f37042da28f35bd7b223ef357a7090",
     "src/ref_enthalpy_method/mapping/fluent_semantics.py": "b2dd0259613adb23299393c127d5ba2114769f38844165ecb77f1f07c9fefbae",
     "src/ref_enthalpy_method/mapping/fluent_surface.py": "739ed53c13c628512c4af80b8847ff6c79bb102bf84b4ed2a42eca54e5ee6f8c",
