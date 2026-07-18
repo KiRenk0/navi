@@ -94,7 +94,7 @@ def _parameter_statistics(values: np.ndarray) -> dict[str, float | int | None]:
     }
 
 
-def _semantic_valid_mask(semantics: ProjectedGeometrySemantics) -> np.ndarray:
+def semantic_valid_mask(semantics: ProjectedGeometrySemantics) -> np.ndarray:
     return (
         np.isin(
             semantics.normal_source,
@@ -108,6 +108,9 @@ def _semantic_valid_mask(semantics: ProjectedGeometrySemantics) -> np.ndarray:
         & np.isfinite(semantics.incidence_s)
         & (semantics.surface_class != SURFACE_CLASS_INVALID)
     )
+
+
+_semantic_valid_mask = semantic_valid_mask
 
 
 def _cross_table(
@@ -268,7 +271,7 @@ def _consistency_checks(
     semantics: ProjectedGeometrySemantics,
     round_trip: dict[str, bool],
 ) -> dict[str, bool | float]:
-    semantic_valid = _semantic_valid_mask(semantics)
+    semantic_valid = semantic_valid_mask(semantics)
     valid_normals = semantics.outward_normal[semantic_valid]
     norm_error = (
         float(np.max(np.abs(np.linalg.norm(valid_normals, axis=1) - 1.0), initial=0.0))
@@ -328,7 +331,7 @@ def _build_geometry_qa(
         ("near_tangent", SURFACE_CLASS_NEAR_TANGENT),
         ("invalid", SURFACE_CLASS_INVALID),
     )
-    semantic_valid = _semantic_valid_mask(semantics)
+    semantic_valid = semantic_valid_mask(semantics)
     gate = projection.projection_gate_pass
     consistency = _consistency_checks(projection, semantics, round_trip)
     return {
