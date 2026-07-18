@@ -236,7 +236,7 @@ St(x) = St_base · f(x/c)
 
 ### 两条独立物理链
 
-- 当前正式身份：`main=3a7922518cb05533c779a11eb0eb3a4d3f653f32`；107 tests、87 subtests、58/58 source identities PASS；runtime `solver.last_fields` 为 74 项，正式 `fields.npz` 为 72 fields，schema=`current-tpg-baseline-regression/v5`，Groups 1–8 `max_abs_diff=0`，`CURRENT REGRESSION OVERALL: PASS`。
+- Phase 5B1 implementation landing SHA=`3a7922518cb05533c779a11eb0eb3a4d3f653f32`；107 tests、87 subtests、58/58 source identities PASS；runtime `solver.last_fields` 为 74 项，正式 `fields.npz` 为 72 fields，schema=`current-tpg-baseline-regression/v5`，Groups 1–8 `max_abs_diff=0`，`CURRENT REGRESSION OVERALL: PASS`。
 - legacy `Tw_l` / `q_l` / `St_l` / `Re_ns_l` 仍是 fixed-wall chain；`Tw_l` 是壁面边界条件，其他字段是 legacy mean-heating chain，不是绝热温度预测。
 - 新增并冻结 sheet-specific freestream-recovery TPG Taw diagnostic。upper/lower 分别输出 mask、`T_e/p_e/rho_e/V_e/Ma_e/h_e/mu_e` 与 `Taw_tpg`，不存在 generic `Taw_tpg_l` 字段。
 - 两条链物理定义、字段和数据流完全分离；新 diagnostic 不接管 legacy q-chain、pressure、windward edge-state 或 windward Taw。

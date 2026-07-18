@@ -8,7 +8,7 @@
 
 - 正式远端：`https://github.com/KiRenk0/navi.git`。
 - 当前正式本地活动工作区：`E:\navi_clean`。
-- GitHub `main` 是当前 source of truth；当前正式身份为 `3a7922518cb05533c779a11eb0eb3a4d3f653f32`，开发、验证和正式产物必须从该仓库身份出发。
+- GitHub `main` 是当前 source of truth。Phase 5B1 实现落地主线的代码提交为 `3a7922518cb05533c779a11eb0eb3a4d3f653f32`；后续 docs-only 提交不改变该实现身份或数值合同。
 - `E:\Faceted3D_recovery_hold_20260715`、`E:\Faceted3D_recovery_work_20260715` 仅为只读恢复证据，`D:\ref\reference-enthalpy_03_12_26-main` 仅为历史资料；三者都不是活动工作区或正式来源。
 
 活动 Python、Markdown、YAML 等文本按 `.gitattributes` 使用 LF。`runs/**`、`fluent_export/**`、CSV、STL、NPZ 与其他 binary artifact 保持原始字节，不执行无差别 normalization；未经单独授权不得执行全仓库 renormalize。
@@ -39,7 +39,7 @@
 
 ### 3.1 Source identity promotion
 
-source identity promotion 只收口源码身份，不等于数值 baseline freeze。当前 schema v5、72 fields、`fields.npz`、summary、artifact hashes 与 Groups 1–8 数值均未改变；Phase 5A Fluent clean 属于 additive geometry/mapping infrastructure，新增 `fluent_clean.py` 与公开 `semantic_valid_mask()` 不进入 `fields.npz`，不增加 72-field schema，不改变 Groups 1–8 数值。
+source identity promotion 只收口源码身份，不等于数值 baseline freeze。Phase 5A Fluent clean 与 Phase 5B1 LF clean 均属于 additive geometry/mapping infrastructure。`fluent_clean.py`、公开 `semantic_valid_mask()` 和 `lf_clean.py` 均不进入 `fields.npz`，不增加 72-field schema，不改变 Groups 1–8 数值。Phase 5B1 仅将 `lf_clean.py` 纳入 source identity；当前共 58 项 source identity PASS。
 
 ## 4. Group 8 能力与边界
 
@@ -109,21 +109,37 @@ Phase 5A 已将 Fluent clean 冻结为 raw projected semantics 上的 geometry-o
 Phase 5B1 已将 LF clean 冻结为 canonical LF 点上的 geometry/semantics-only 只读派生 subset。数据流合同如下：
 
 ```text
+构建前结构门禁：
+
+canonical_coordinate_identity =
+    x_w_m exact-equal x_l_m
+    AND span_w_m exact-equal span_l_m
+    AND xc_w exact-equal xc_l
+    AND yb_w exact-equal yb_l
+
+该门禁是整体 fail-closed 检查；失败直接抛出 ValueError，
+不生成逐点 identity mask。
+
 planform_domain_valid =
-    canonical w/l coordinate identity
-    AND finite(x, span, x/c, y/b)
-    AND 0 <= x/c <= 1
-    AND 0 <= y/b <= 1
+    finite(x_w_m)
+    AND finite(span_w_m)
+    AND finite(xc_w)
+    AND finite(yb_w)
+    AND 0 <= xc_w <= 1
+    AND 0 <= yb_w <= 1
 
 semantic_valid_<sheet> =
     normal_source_<sheet> in {1,2}
     AND normal finite
     AND incidence finite
-    AND surface_class != INVALID
+    AND surface_class_<sheet> != INVALID
 
-clean_leeward_<sheet> =
+clean_eligible_<sheet> =
     planform_domain_valid
     AND semantic_valid_<sheet>
+
+clean_leeward_<sheet> =
+    clean_eligible_<sheet>
     AND surface_class_<sheet> == LEEWARD
 
 clean_any = clean_upper OR clean_lower

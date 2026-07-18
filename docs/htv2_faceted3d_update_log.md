@@ -257,8 +257,8 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 
 ## 2026-07-18: Phase 5B1 LF Clean Leeward Contract 正式收口
 
-- 当前 `main=3a7922518cb05533c779a11eb0eb3a4d3f653f32`；三个实现提交依次为：`f4e09944` 实现 LF clean 背风子集合同，`eb4c65a0` 完成 source identity promotion，`3a792251` 校正 deterministic order / EOF hygiene。
-- frozen predicate 仅由 canonical `w/l` coordinate identity、finite 且位于闭区间 `[0,1]` 的 `x/c` 与 `y/b`、sheet-specific semantic validity、`surface_class == LEEWARD` 构成；source 1/2 eligible，0/3 excluded，不引入 q-chain acceptance 或 hidden geometry/physics filters。
+- Phase 5B1 implementation landing SHA=`3a7922518cb05533c779a11eb0eb3a4d3f653f32`；三个实现提交依次为：`f4e09944` 实现 LF clean 背风子集合同，`eb4c65a0` 完成 source identity promotion，`3a792251` 校正 deterministic order / EOF hygiene。
+- 构建前以 canonical identity 作为整体结构门禁；逐点 frozen predicate 使用 planform-domain、sheet-specific semantic validity 和 `surface_class == LEEWARD`。source 1/2 eligible，0/3 excluded，不引入 q-chain acceptance 或 hidden geometry/physics filters。
 - 两个正式 `alpha=+5°` case 均为 3,321 点，clean upper/lower/any=`256/0/256`，upper source 1/2/3=`22/234/0`，overlap=0，八个 masks 跨工况 byte-exact。
 - 非 baseline `alpha=-5°` lower-sheet integration shakeout 为 clean upper/lower/any=`1/1443/1444`，exact union 与 overlap=0 PASS；它不是新的正式物理 validation case。
 - 当前门禁为 107 tests、87 subtests、58 source identities 全部 PASS；schema `current-tpg-baseline-regression/v5`、正式 72 fields、Groups 1–8 zero drift，runtime `last_fields` 仍为 74 项。
