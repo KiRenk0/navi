@@ -203,7 +203,7 @@ St(x) = St_base · f(x/c)
 
 ## 5. 历史建议与当前裁决
 
-以下路线排序是 2026-06-28 调研结论，保留为历史候选空间，不是当前执行顺序。当前正式阶段不进入 residual learning，也不修改 legacy 背风模型；exact projection、projected semantics integration 与 Phase 5A Fluent clean 已完成，下一阶段唯一入口为 LF clean，并在 mapping QA 完成前不计算温度误差。
+以下路线排序是 2026-06-28 调研结论，保留为历史候选空间，不是当前执行顺序。当前正式阶段不进入 residual learning，也不修改 legacy 背风模型；exact projection、projected semantics integration、Phase 5A Fluent clean 与 Phase 5B1 LF clean 已完成，下一阶段唯一入口为 LF clean → Fluent clean mapping，并在 mapping QA 完成前不计算温度误差。
 
 ### 历史路线 A
 
@@ -236,6 +236,7 @@ St(x) = St_base · f(x/c)
 
 ### 两条独立物理链
 
+- 当前正式身份：`main=3a7922518cb05533c779a11eb0eb3a4d3f653f32`；107 tests、87 subtests、58/58 source identities PASS；runtime `solver.last_fields` 为 74 项，正式 `fields.npz` 为 72 fields，schema=`current-tpg-baseline-regression/v5`，Groups 1–8 `max_abs_diff=0`，`CURRENT REGRESSION OVERALL: PASS`。
 - legacy `Tw_l` / `q_l` / `St_l` / `Re_ns_l` 仍是 fixed-wall chain；`Tw_l` 是壁面边界条件，其他字段是 legacy mean-heating chain，不是绝热温度预测。
 - 新增并冻结 sheet-specific freestream-recovery TPG Taw diagnostic。upper/lower 分别输出 mask、`T_e/p_e/rho_e/V_e/Ma_e/h_e/mu_e` 与 `Taw_tpg`，不存在 generic `Taw_tpg_l` 字段。
 - 两条链物理定义、字段和数据流完全分离；新 diagnostic 不接管 legacy q-chain、pressure、windward edge-state 或 windward Taw。
@@ -253,13 +254,15 @@ St(x) = St_base · f(x/c)
 - 新 `Taw_tpg_leeward_upper/lower` 在绝热恢复温度定义层面可以与 Fluent adiabatic Tw 对应。
 - clean-leeward temperature comparison 的 raw 几何前置层已完成：Fluent geometry input、显式 `+0.030 m` 坐标合同、canonical identity、exact STL projection、projected semantics integration 与全量 21,250 点 geometry-only QA 均已通过；6,341 个 STL triangles 的 5 mm gate 为 21,250/21,250 PASS。
 - Fluent clean 已完成；它是 Fluent canonical points 上 raw projected semantics 的 geometry-only 派生 mapping subset，不回写 raw semantics。
-- LF clean、LF clean → Fluent clean mapping、mapping QA、wall-temperature ingestion 与 temperature-error calculation 尚未完成，因此仍不能报告 leeward error 或声明 leeward model validated。
-- raw LF leeward mask 属于正式物理字段合同；Fluent clean 属于后续 mapping 合同，二者不得与 raw counts 混写。
+- LF clean 已完成；它是 canonical LF 点上的 geometry/semantics-only 只读派生 subset：source 1/2 eligible，source 0/3 excluded，不进入 legacy fixed-wall chain，也不读取温度。
+- LF clean 正式 `alpha=+5°` QA 为 upper/lower/any=`256/0/256`；非 baseline `alpha=-5°` lower-sheet integration shakeout 为 `1/1443/1444`，仅覆盖分支集成，不构成新的正式物理 validation case。
+- LF clean → Fluent clean mapping、mapping QA、wall-temperature ingestion 与 temperature-error calculation 尚未完成，因此仍不能报告 leeward error 或声明 leeward model validated。
+- raw LF leeward mask 属于正式物理字段合同；LF clean 与 Fluent clean 属于后续 mapping 合同，三者不得与 raw counts 混写。
 - Fluent clean 不读取温度；q-chain acceptance 不作为其 predicate，`normal_source` 1 与 2 均可进入。当前正式 Fluent clean upper/lower/any=`186/0/186`。
 
 ### 后续裁决
 
-当前固定顺序为：`LF clean → LF clean to Fluent clean mapping → mapping QA → wall-temperature ingestion → leeward temperature error`。下一阶段唯一入口为 LF clean；temperature error 必须最后执行。legacy fixed-wall chain 与 Taw diagnostic 保持独立；尚不能报告背风温度误差。后续是否采用 local-expansion provider，只能由正式误差证据裁决；residual learning 不是当前阶段。
+当前固定顺序为：`LF clean（已完成）→ Fluent clean mapping → mapping QA → wall-temperature ingestion → leeward temperature error`。当前唯一入口为 LF clean → Fluent clean mapping contract audit / implementation；temperature error 必须最后执行。legacy fixed-wall chain 与 Taw diagnostic 保持独立；尚不能报告背风温度误差。后续是否采用 local-expansion provider，只能由正式误差证据裁决；residual learning 不是当前阶段。
 
 ### Classification 相关性
 
