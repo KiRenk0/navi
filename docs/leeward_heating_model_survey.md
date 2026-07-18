@@ -203,7 +203,7 @@ St(x) = St_base · f(x/c)
 
 ## 5. 历史建议与当前裁决
 
-以下路线排序是 2026-06-28 调研结论，保留为历史候选空间，不是当前执行顺序。当前正式阶段不进入 residual learning，也不修改 legacy 背风模型；exact projection、projected semantics integration、Phase 5A Fluent clean 与 Phase 5B1 LF clean 已完成，下一阶段唯一入口为 LF clean → Fluent clean mapping，并在 mapping QA 完成前不计算温度误差。
+以下路线排序是 2026-06-28 调研结论，保留为历史候选空间，不是当前执行顺序。当前正式阶段不进入 residual learning，也不修改 legacy 背风模型；exact projection、projected semantics integration、Phase 5A Fluent clean、Phase 5B1 LF clean 与 Phase 5B2 mapping contract audit 已完成。下一阶段唯一入口为 Fluent clean → LF clean geometry pairing 正式实现，并在 mapping QA 完成前不计算温度误差。
 
 ### 历史路线 A
 
@@ -256,13 +256,13 @@ St(x) = St_base · f(x/c)
 - Fluent clean 已完成；它是 Fluent canonical points 上 raw projected semantics 的 geometry-only 派生 mapping subset，不回写 raw semantics。
 - LF clean 已完成；它是 canonical LF 点上的 geometry/semantics-only 只读派生 subset：source 1/2 eligible，source 0/3 excluded，不进入 legacy fixed-wall chain，也不读取温度。
 - LF clean 正式 `alpha=+5°` QA 为 upper/lower/any=`256/0/256`；非 baseline `alpha=-5°` lower-sheet integration shakeout 为 `1/1443/1444`，仅覆盖分支集成，不构成新的正式物理 validation case。
-- LF clean → Fluent clean mapping、mapping QA、wall-temperature ingestion 与 temperature-error calculation 尚未完成，因此仍不能报告 leeward error 或声明 leeward model validated。
+- Phase 5B2 只读 mapping contract audit 已完成；正式 Fluent clean → LF clean geometry pairing、mapping QA、wall-temperature ingestion 与 temperature-error calculation 尚未完成，因此仍不能报告 leeward error 或声明 leeward model validated。
 - raw LF leeward mask 属于正式物理字段合同；LF clean 与 Fluent clean 属于后续 mapping 合同，三者不得与 raw counts 混写。
 - Fluent clean 不读取温度；q-chain acceptance 不作为其 predicate，`normal_source` 1 与 2 均可进入。当前正式 Fluent clean upper/lower/any=`186/0/186`。
 
 ### 后续裁决
 
-当前固定顺序为：`LF clean（已完成）→ Fluent clean mapping → mapping QA → wall-temperature ingestion → leeward temperature error`。当前唯一入口为 LF clean → Fluent clean mapping contract audit / implementation；temperature error 必须最后执行。legacy fixed-wall chain 与 Taw diagnostic 保持独立；尚不能报告背风温度误差。后续是否采用 local-expansion provider，只能由正式误差证据裁决；residual learning 不是当前阶段。
+当前固定顺序为：`Fluent clean → LF clean geometry pairing implementation → mapping QA → wall-temperature ingestion → leeward temperature error`。Phase 5B2 audit 只冻结方向、metric 与重复治理，不等于 implementation complete；temperature error 必须最后执行。legacy fixed-wall chain 与 Taw diagnostic 保持独立；尚不能报告背风温度误差。后续是否采用 local-expansion provider，只能由正式误差证据裁决；residual learning 不是当前阶段。
 
 ### Classification 相关性
 

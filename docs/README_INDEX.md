@@ -5,7 +5,7 @@
 
 ## 当前主线一句话
 
-Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。正式高度参数域 **20–40 km**。Taw 固定使用 fully turbulent `Pr^(1/3)` recovery。Phase 5A Fluent clean 与 Phase 5B1 LF clean 均已完成；下一阶段唯一入口为 LF clean → Fluent clean mapping contract audit / implementation。current regression 为 107 tests、87 subtests、58 source identities、schema v5、72 fields、Groups 1–8 zero drift；唯一命令是 `python scripts/tools/current_baseline_regression_check.py`，baseline 仅含 TPG 的 `ma6_a5_h30km` 与 `ma8_a5_h40km`。CPG runtime、current compatibility baseline 与 phase4a0 replay 均已删除；历史 CPG→TPG 改善只作为历史证据。
+Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。正式高度参数域 **20–40 km**。Taw 固定使用 fully turbulent `Pr^(1/3)` recovery。Fluent clean 与 LF clean 已完成；Phase 5B2 mapping contract audit 已完成；下一阶段为 Fluent clean → LF clean geometry pairing 正式实现。冻结审计口径为 direction=`Fluent→LF`、metric=`projected physical`、many-to-one allowed、no gate / no edge buffer。current regression 为 107 tests、87 subtests、58 source identities、schema v5、72 fields、Groups 1–8 zero drift；唯一命令是 `python scripts/tools/current_baseline_regression_check.py`，baseline 仅含 TPG 的 `ma6_a5_h30km` 与 `ma8_a5_h40km`。CPG runtime、current compatibility baseline 与 phase4a0 replay 均已删除；历史 CPG→TPG 改善只作为历史证据。
 
 ---
 
@@ -18,6 +18,7 @@ Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 t
 | `faceted3d_file_index_zh.md` | 文件索引（代码/配置/Fluent CSV） |
 | `htv2_faceted3d_update_log.md` | 主线历史 |
 | `faceted3d_official_cli_run_guide_zh.md` | Official CLI 跑法 |
+| `audits/faceted3d_phase5b2_mapping_contract_audit_20260718.md` | Phase 5B2 完整只读 mapping contract audit 定量证据 |
 
 ## 技术参考
 
@@ -51,8 +52,9 @@ scripts/run_case_rem.py
 - current baseline schema v5，Groups 1–8，official CLI `fields.npz` 共 72 字段
 - Phase 5A Fluent clean：完成
 - Phase 5B1 LF clean：完成
-- 当前唯一入口：LF clean → Fluent clean mapping
+- Phase 5B2 mapping contract audit：完成；direction=`Fluent→LF`，metric=`projected physical`，many-to-one allowed，no gate / no edge buffer
+- 当前唯一入口：Fluent clean → LF clean geometry pairing 正式实现
 - 后续顺序：mapping QA → wall-temperature ingestion → leeward temperature error
-- 完整链条：LF clean（已完成）→ LF clean → Fluent clean mapping → mapping QA → wall-temperature ingestion → leeward temperature error
+- 完整链条：Fluent clean 与 LF clean（已完成）→ Fluent clean → LF clean geometry pairing implementation → mapping QA → wall-temperature ingestion → leeward temperature error
 - residual learning 尚未启动
-- 不做调参，不进 residual learning，不新增 closeout / manifest / audit / handoff md
+- 不做调参，不进 residual learning；除单独明确授权的审计证据外，不新增 closeout / manifest / audit / handoff md

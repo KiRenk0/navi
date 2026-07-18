@@ -263,3 +263,13 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 非 baseline `alpha=-5°` lower-sheet integration shakeout 为 clean upper/lower/any=`1/1443/1444`，exact union 与 overlap=0 PASS；它不是新的正式物理 validation case。
 - 当前门禁为 107 tests、87 subtests、58 source identities 全部 PASS；schema `current-tpg-baseline-regression/v5`、正式 72 fields、Groups 1–8 zero drift，runtime `last_fields` 仍为 74 项。
 - 本阶段未进入 LF clean → Fluent clean mapping、mapping QA、wall-temperature ingestion 或 leeward temperature error；下一阶段唯一入口为 LF clean → Fluent clean mapping contract audit / implementation。
+
+---
+
+## 2026-07-18: Phase 5B2 Mapping Contract Audit
+
+- 在 `main@60e3473cc48d366671921ca246aaccf60f5a1fd1` 上完成只读 geometry/mapping contract audit；审计过程零仓库写入，两正式工况结果 byte-exact，未读取温度、未计算误差。
+- 比较 P（exact-projected physical）、R（raw Fluent centroid physical）与 U（projected normalized）双向最近邻；正式推荐 Fluent clean → LF clean + P。推荐方向中 P/R assignment=`186/186` 相同，P/U=`47/186` 相同。
+- Candidate P Fluent→LF：source/target=`186/256`，unique targets=`80`，coverage=`31.25%`，collision excess=`106`，duplicate targets=`60`，maximum multiplicity=`4`；distance min/mean/median/p95/max=`0.323/8.180/7.349/17.752/21.042 mm`。
+- many-to-one allowed；target multiplicity 与 mutual nearest 只保留为 diagnostic；不采用 injective/Hungarian assignment。
+- 本轮不冻结 hard distance gate，不冻结 edge buffer；20 mm 与 30 mm 仅是观察统计。正式 pairing implementation、mapping QA、wall-temperature ingestion 与 leeward temperature error 均未开始。

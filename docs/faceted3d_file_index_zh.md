@@ -1,6 +1,6 @@
 # Faceted3D 文件索引
 
-> 更新：2026-07-18（Phase 5A Fluent Clean Leeward Contract 收口）
+> 更新：2026-07-19（Phase 5B1 LF Clean 资产与 Phase 5B2 Mapping Audit 同步）
 
 ---
 
@@ -149,6 +149,22 @@ Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CL
 | `tests/test_fluent_clean.py` | semantic-valid、planform 闭区间、clean eligibility、sheet-specific masks、数组所有权与 fail-closed 合同测试 |
 | `scripts/tools/faceted3d_phase5a_fluent_clean_qa.py` | Phase 5A 正式双工况 geometry-only QA；验证 canonical identity、projection reuse、clean arrays 与去 provenance JSON 的确定性 |
 
-## 15. Canonical 文档入口收口
+## 15. Phase 5B1 LF Clean Leeward Contract 最终资产
+
+| 路径 | 说明 |
+|------|------|
+| `src/ref_enthalpy_method/mapping/lf_clean.py` | canonical LF 点上的 geometry/semantics-only 只读派生 subset；canonical coordinate identity fail-closed，不读取温度 |
+| `tests/test_lf_clean.py` | LF clean predicate、结构门禁、sheet disjoint/union、数组所有权与 solver cache 隔离测试 |
+| `scripts/tools/faceted3d_phase5b_lf_clean_qa.py` | Phase 5B1 正式双工况 geometry-only QA 与 lower-sheet branch shakeout |
+
+## 16. Phase 5B2 Mapping Contract Audit
+
+| 路径 | 说明 |
+|------|------|
+| `docs/audits/faceted3d_phase5b2_mapping_contract_audit_20260718.md` | 基于 `main@60e3473cc48d366671921ca246aaccf60f5a1fd1` 的完整只读定量审计证据；包含 P/R/U、4×4 bins、gate curves 与双向 worst 20 |
+
+Phase 5B2 当前只有只读 audit 结论：正式方向为 Fluent clean → LF clean，metric 为 exact-projected physical `(x, span)`，many-to-one allowed，不冻结 gate 或 edge buffer。尚无正式 pairing module、pairing tests 或 Phase 5B2 mapping QA runner；不得预写不存在的实现入口。
+
+## 17. Canonical 文档入口收口
 
 根目录旧诊断、旧 CLI 速查与旧流程说明已退出仓库；对应当前事实分别由 `docs/faceted3d_current_status_zh.md` / `docs/current_model_decisions_zh.md`、`docs/faceted3d_official_cli_run_guide_zh.md`、`README.md` / `docs/functional_baseline_contract.md` 单源维护。正式代码、CLI、baseline 与数据入口不变。
