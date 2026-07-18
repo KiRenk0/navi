@@ -161,7 +161,7 @@ Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CL
 
 | 路径 | 说明 |
 |------|------|
-| `docs/audits/faceted3d_phase5b2_mapping_contract_audit_20260718.md` | 基于 `main@60e3473cc48d366671921ca246aaccf60f5a1fd1` 的完整只读定量审计证据；包含 P/R/U、4×4 bins、gate curves 与双向 worst 20 |
+| `docs/audits/faceted3d_phase5b2_mapping_contract_audit_20260718.md` | 基于 `main@60e3473cc48d366671921ca246aaccf60f5a1fd1` 的关键结论与主要定量证据；包含 P/R/U 压缩统计、全部非空 4×4 bins、P/U 观察 gate curves 与双向各 20 条原画布现有 worst-point records，并明确未落库字段 |
 
 Phase 5B2 当前只有只读 audit 结论：正式方向为 Fluent clean → LF clean，metric 为 exact-projected physical `(x, span)`，many-to-one allowed，不冻结 gate 或 edge buffer。尚无正式 pairing module、pairing tests 或 Phase 5B2 mapping QA runner；不得预写不存在的实现入口。
 

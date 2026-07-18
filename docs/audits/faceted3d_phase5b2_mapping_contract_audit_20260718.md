@@ -1,9 +1,11 @@
-# Faceted3D v2 — Phase 5B2 Mapping Contract Audit
+# Faceted3D v2 — Phase 5B2 Mapping Contract Audit — Condensed Evidence Record
 
 > 审计日期：2026-07-18  
 > 审计基点：`main@60e3473cc48d366671921ca246aaccf60f5a1fd1`  
 > 作用域：只读 geometry/mapping contract audit  
-> 正式工况：`ma6_a5_h30km`、`ma8_a5_h40km`；两工况几何 mapping 结果 byte-exact
+> 正式工况：`ma6_a5_h30km`、`ma8_a5_h40km`；原审计画布记录两工况几何 mapping 结果 byte-exact
+
+本文件是原 Cursor 审计画布的 condensed evidence record，只声称关键结论与主要定量证据完整落库。原画布能够完整读取，但它保存的是压缩统计，不包含生成统计所用的原始 pairwise arrays、完整分位数、完整 multiplicity histograms、逐点 second-nearest records 或完整 nonmutation comparison records；这些缺项不以减法、重算或推断补造。
 
 本审计不包含正式 pairing implementation、mapping QA implementation、wall-temperature ingestion、temperature comparison、leeward temperature error 或 model validation。审计过程未向 Git 仓库写入运行产物。
 
@@ -35,6 +37,8 @@ Raw Fluent centroid → exact projection 的 3D displacement：min/median/p95/p9
 - `|dspan|` median/p95/max=`0.0060/0.0311/0.0358 mm`。
 - 该 displacement 只描述 Fluent 投影，不是 LF↔Fluent mapping distance。
 
+Input 表中的 5 个 point count 均为 finite count，重复列均为对应坐标口径的 exact duplicate count：LF physical/normalized=`256/256` finite、各 `0` duplicates；Fluent raw/projected/normalized=`186/186/186` finite、各 `0` duplicates。原画布未记录 projection 3D displacement 的 mean、p75、p90，也未记录 out-of-plane median/p95/max；该项未由原审计画布记录，不补造数据。
+
 ## 3. P / R / U 双向最近邻
 
 P=exact-projected physical；R=raw Fluent centroid physical；U=projected normalized `(x/c, y/b)`。
@@ -49,6 +53,8 @@ P=exact-projected physical；R=raw Fluent centroid physical；U=projected normal
 | U · Fluent→LF | 0.00713 | 0.01459 | 0.02064 | 143 / 256 (55.9%) | 43 | 3 | 3 / 11 / 22 / 56 |
 
 `*` LF→Fluent maximum 由唯一 domain-mismatch 点 canonical 2188（`x/c=0.0125, y/b=0.675`）主导；除该点外 Candidate P 全部 ≤40 mm。
+
+原画布对 P/R/U 六个方向只保存 median、p95、max、unique target/coverage、collision excess、maximum multiplicity 与四档 ambiguity counts。除下述 P Fluent→LF fingerprint 外，min、mean、p75、p90、p99、`|dx|`、`|dspan|`、duplicate-target count、完整 hit-target multiplicity histogram 和 exact nearest tie count 均未由原审计画布记录，不补造数据。
 
 ### 3.1 Candidate P Fluent→LF 核心 fingerprint
 
@@ -70,6 +76,8 @@ P=exact-projected physical；R=raw Fluent centroid physical；U=projected normal
 | P | 80 | 31.25% | 43.01% | 4.359 mm | 9.821 mm | 20.146 mm |
 | R | 80 | 31.25% | 43.01% | 4.351 mm | 9.840 mm | 20.145 mm |
 | U | 137 | 53.52% | 73.66% | 0.00605 | 0.01189 | 0.01578 |
+
+本轮补证任务的原始要求明确给出 P、R 的 non-mutual LF=`176`、non-mutual Fluent=`106`。原画布只记录 U mutual pairs=`137` 及两侧占比，没有独立记录 U non-mutual counts；因此不以总数减 mutual pairs 的方式补写 `119/49`。
 
 ### 4.2 Rectangular injective 诊断
 
@@ -127,7 +135,24 @@ bin `x0..x3` / `y0..y3` 的边界为 `[0, .25, .5, .75, 1]`；距离单位为 mm
 
 LF→Fluent 在 40–100 mm 均停在 255，剩余单点距离为 308.755 mm。
 
+### 7.1 Candidate U gate curves
+
+以下阈值只用于观察 normalized distance 覆盖率；这些是观察阈值，不是 acceptance gate。
+
+| 观察阈值 | LF→Fluent count | LF→Fluent coverage | Fluent→LF count | Fluent→LF coverage |
+|---:|---:|---:|---:|---:|
+| 0.001 | 1 | 0.39% | 1 | 0.54% |
+| 0.002 | 10 | 3.91% | 10 | 5.38% |
+| 0.005 | 45 | 17.58% | 46 | 24.73% |
+| 0.010 | 148 | 57.81% | 131 | 70.43% |
+| 0.020 | 247 | 96.48% | 184 | 98.92% |
+| 0.030 | 255 | 99.61% | 186 | 100% |
+| 0.050 | 255 | 99.61% | 186 | 100% |
+| 0.100 | 255 | 99.61% | 186 | 100% |
+
 ## 8. Candidate P worst 20 — LF→Fluent
+
+原画布仅保存以下字段；本文件完整保留原画布现有的 20 个点，但不存在的坐标列不予补造。缺失字段包括 source/target physical `x`、physical `span`、target `x/c`、target `y/b`、second-nearest canonical index 和 second distance `d2`；画布仅保存 `d2/d1`。
 
 | source | target | source x/c · y/b | dx · dspan (mm) | d1 (mm) | d2/d1 | multiplicity | mutual |
 |---:|---:|---|---|---:|---:|---:|---|
@@ -154,6 +179,8 @@ LF→Fluent 在 40–100 mm 均停在 255，剩余单点距离为 308.755 mm。
 
 ## 9. Candidate P worst 20 — Fluent→LF
 
+原画布仅保存以下字段；本文件完整保留原画布现有的 20 个点，但不存在的坐标列不予补造。缺失字段与上一方向相同。
+
 | source | target | source x/c · y/b | dx · dspan (mm) | d1 (mm) | d2/d1 | multiplicity | mutual |
 |---:|---:|---|---|---:|---:|---:|---|
 | 20379 | 3058 | 0.6784 / 0.9454 | -1.40 / -20.99 | 21.042 | 1.016 | 4 | 否 |
@@ -177,7 +204,37 @@ LF→Fluent 在 40–100 mm 均停在 255，剩余单点距离为 308.755 mm。
 | 20179 | 3052 | 0.6135 / 0.9396 | -0.60 / -15.08 | 15.091 | 1.050 | 4 | 否 |
 | 18680 | 2783 | 0.2934 / 0.8637 | 4.18 / -14.08 | 14.685 | 1.064 | 3 | 否 |
 
-## 10. 正式实现边界
+## 10. Cross-case determinism
+
+原审计画布对两个正式工况记录“几何 mapping 结果 byte-exact”。本轮补证要求所附原审计结论进一步记录 Fluent canonical geometry：numerical exact=`true`、C-order bytes exact=`true`、maximum coordinate difference=`0`。
+
+本轮补证要求将该压缩结论的范围列为 LF clean canonical indices、Fluent clean canonical indices、P/R/U pairwise distance matrices、双方向 nearest target indices/distances、second-nearest indices/distances、mutual flags、collision multiplicities 与 Hungarian assignments。可读取画布没有把这些项目各自的 byte-comparison 明细或 hash 落盘，因此本文件只保留原审计的整体 determinism 结论，不把缺少逐项原始记录的项目改写为独立复验。
+
+## 11. Input nonmutation 与 temperature isolation
+
+本轮补证要求所附原审计结论记录的 nonmutation 范围包括：
+
+- LF `solver.last_fields` 的 key order、field set、shape、dtype、bytes、writeable flags unchanged；
+- LF clean masks unchanged；
+- Fluent geometry、projection、semantics 与 clean masks unchanged；
+- runtime fields=`74`，formal serialized fields=`72`，pairing/audit fields added=`0`。
+
+上述为本轮补证要求所附的原审计压缩结论；可读取画布未保存逐数组 comparison record 或 hash，本文件不补造。
+
+Fluent temperature columns were not read. LF Taw fields were not read. No temperature error was calculated.
+
+## 12. 审计后回归证据
+
+- pytest collection：`107 tests collected`。
+- pytest：`107 passed, 87 subtests passed`。
+- Fluent clean QA：PASS，`186 / 0 / 186`，7 clean arrays byte-exact。
+- LF clean QA：PASS，`256 / 0 / 256`，8 masks byte-exact。
+- current baseline regression：schema v5，`72 / 72 fields`，Groups 1–8 zero drift，58 source identities PASS，`CURRENT REGRESSION OVERALL PASS`。
+- `git diff --check`：PASS。
+
+这些结果用于证明文档补证后既有合同仍通过；不把 regression PASS 当成未执行 mapping gate 的证明。
+
+## 13. 正式实现边界
 
 下一阶段 geometry pairing 可承载 source/target canonical indices、sheet identity、distance、`dx/dspan`、mutual flag、LF target multiplicity、稳定 canonical-index tie-break 和显式 metric=P。
 

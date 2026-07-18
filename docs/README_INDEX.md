@@ -18,7 +18,7 @@ Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 t
 | `faceted3d_file_index_zh.md` | 文件索引（代码/配置/Fluent CSV） |
 | `htv2_faceted3d_update_log.md` | 主线历史 |
 | `faceted3d_official_cli_run_guide_zh.md` | Official CLI 跑法 |
-| `audits/faceted3d_phase5b2_mapping_contract_audit_20260718.md` | Phase 5B2 完整只读 mapping contract audit 定量证据 |
+| `audits/faceted3d_phase5b2_mapping_contract_audit_20260718.md` | Phase 5B2 mapping contract audit 的关键结论与主要定量证据；原画布未保存的完整原始统计已明确标注 |
 
 ## 技术参考
 
