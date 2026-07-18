@@ -232,3 +232,13 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 历史 archive/runs、`新翼型.md`、AI 辅助资料、三维调研、pressure sandbox 与历史源码快照存在历史证据、用户资料或替代关系疑义，保留待裁决。
 - 84/84 tests PASS；55/55 source identity PASS；schema v5、72 fields、Groups 1–8 `max_abs_diff=0`，current regression overall PASS。
 - 未修改正式源码、manifest、fields、summary、artifact hash、物理链或数值 baseline；下一阶段仍为 Phase 4B。
+
+---
+
+## 2026-07-18: Phase 4B Fluent Projected Semantics Integration 正式收口
+
+- 提交 `46964f330b6c8a8f30d3e6e0917f7bc3735f6b05` 与 `a67b307fe46ea2a276a819f25791a4fda3b2c587` 完成 adapter、integration test 与正式 geometry-only QA runner。
+- 21,250 个 Fluent points 对 6,341 个 STL triangles 的闭区间 5 mm gate 全通过；sheet UPPER/LOWER/OTHER/INVALID=7,325/7,516/5,703/706，normal source 0/1/2/3=6,409/10,006/4,835/0，surface class windward/leeward/near-tangent/invalid=13,971/186/684/6,409，semantic-valid/invalid=14,841/6,409，另有 10 个独立的 planform-invalid。
+- 正式 projection dataset count=1，exact kernel invocation count 等于 projection chunk count；第二工况在 canonical geometry exact identity 后复用 projection，未执行独立第二次 projection。
+- 93 tests 与 59 subtests、56 source identities、schema v5、72 fields、Groups 1–8 零漂移及 current regression overall 全部 PASS。
+- 本阶段未构造 Fluent/LF clean，未执行 LF clean → Fluent clean mapping，未读取 wall-temperature 或计算 temperature error；下一阶段仅为 Fluent clean。
