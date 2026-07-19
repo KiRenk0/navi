@@ -552,7 +552,7 @@
   },
   "artifact_hashes_sha256": {
     "fields.npz": "31de7f4b5955bdb77f1fe8fa303712edd19eb377c953f450952a298ce26712b3",
-    "summary.json": "e168d276e358921ff7654fbca1ba1a98f0b38ab3890854f360a3450a767a8661"
+    "summary.json": "acd667e7ec593e4aa93e5c4e6809c78dcbccea7e230dd6177b0966f9327ea5fe"
   },
   "baseline_generator": "scripts/tools/current_baseline_regression_check.py --freeze",
   "generator_cli_template": "C:\\Users\\Admin\\AppData\\Local\\Programs\\Python\\Python313\\python.exe E:\\Faceted3D_recovery_work_20260715\\scripts\\run_case_rem.py --vehicle E:\\Faceted3D_recovery_work_20260715\\specs\\vehicles\\htv2_faceted3d_0629.yaml --case E:\\Faceted3D_recovery_work_20260715\\specs\\cases\\doc_ma6_alpha5_h30km_faceted3d.yaml --sampling E:\\Faceted3D_recovery_work_20260715\\specs\\sampling\\engineering_full_wing_surface_grid_81x41.yaml --run_dir <run_dir> --mach 8.0 --alpha 5.0 --h_m 40000.0 --transition_weighting step --no_plots"

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -101,6 +102,64 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def verify_artifact_hashes(
+    case_id: str,
+    baseline_dir: Path,
+    manifest: dict[str, Any],
+) -> tuple[bool, list[str]]:
+    registered_hashes = manifest.get("artifact_hashes_sha256")
+    if not isinstance(registered_hashes, dict) or not registered_hashes:
+        return False, [
+            f"case={case_id} artifact=<manifest:artifact_hashes_sha256> "
+            f"registered={registered_hashes!r} actual=<not-computed> reason=missing-or-invalid-map"
+        ]
+
+    errors: list[str] = []
+    required_artifacts = (
+        {"fields.npz", "summary.json"}
+        if manifest.get("manifest_schema") == "current-tpg-baseline-regression/v5"
+        else set()
+    )
+    artifact_names = set(registered_hashes) | required_artifacts
+    baseline_root = baseline_dir.resolve()
+
+    for artifact_name in sorted(artifact_names, key=str):
+        registered = registered_hashes.get(artifact_name, "<missing>")
+        if not isinstance(artifact_name, str):
+            errors.append(
+                f"case={case_id} artifact={artifact_name!r} registered={registered!r} "
+                "actual=<not-computed> reason=artifact-path-not-string"
+            )
+            continue
+
+        artifact_path = (baseline_dir / artifact_name).resolve()
+        try:
+            artifact_path.relative_to(baseline_root)
+        except ValueError:
+            errors.append(
+                f"case={case_id} artifact={artifact_name} registered={registered!r} "
+                "actual=<not-computed> reason=artifact-path-outside-baseline"
+            )
+            continue
+
+        actual = sha256(artifact_path) if artifact_path.is_file() else "<missing>"
+        digest_valid = isinstance(registered, str) and re.fullmatch(r"[0-9a-f]{64}", registered) is not None
+        if actual == "<missing>":
+            reason = "artifact-file-missing"
+        elif not digest_valid:
+            reason = "registered-digest-not-lowercase-sha256"
+        elif registered != actual:
+            reason = "artifact-hash-mismatch"
+        else:
+            continue
+        errors.append(
+            f"case={case_id} artifact={artifact_name} registered={registered!r} "
+            f"actual={actual} reason={reason}"
+        )
+
+    return not errors, errors
 
 
 def source_files() -> list[Path]:
@@ -477,12 +536,19 @@ def _check_local_incidence_quality(fields: Any) -> list[tuple[str, bool, str]]:
 
 def compare_case(case_id: str) -> bool:
     baseline_dir = SNAPSHOT / "tpg" / case_id
-    artifacts = [*FORMAL_INPUTS, "fields.npz", "summary.json", "manifest.json"]
+    artifacts = [*FORMAL_INPUTS, "manifest.json"]
     missing_artifacts = [name for name in artifacts if not (baseline_dir / name).is_file()]
     if missing_artifacts:
         print(f"[tpg/{case_id}] FAIL mandatory baseline artifacts missing: {', '.join(missing_artifacts)}")
         return False
     baseline_manifest = json.loads((baseline_dir / "manifest.json").read_text(encoding="utf-8"))
+    artifact_hashes_ok, artifact_hash_errors = verify_artifact_hashes(case_id, baseline_dir, baseline_manifest)
+    print(f"  Artifact hashes: {'PASS' if artifact_hashes_ok else 'FAIL'}")
+    for error in artifact_hash_errors:
+        print(f"    {error}")
+    if not artifact_hashes_ok:
+        print(f"[tpg/{case_id}] TPG OFFICIAL FAIL")
+        return False
     with tempfile.TemporaryDirectory(prefix=f"baseline_compare_tpg_{case_id}_") as temp:
         current_dir = Path(temp)
         command = run_formal(case_id, current_dir)
