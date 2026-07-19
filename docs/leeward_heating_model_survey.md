@@ -298,4 +298,26 @@ source-level comparison 的冻结语义保持不变：一行对应一个 Fluent 
 
 ### 阶段边界
 
-Chapter 3.1 已完成；3.2 Evidence 合同与资产边界未开始；3.3 Source-level evidence 实现与验证未开始；Chapter 3 尚未完成；GATE A 尚未进入。后续需先完成 3.2，本次文档收口不执行 3.2。
+Chapter 3.1 已完成；该审计时点 3.2 Evidence 合同与资产边界、3.3 Source-level evidence 实现与验证尚未开始。该状态已由后续 Chapter 3.2/3.3 正式 evidence consumer 收口更新；Chapter 3 仍尚未完成，GATE A 仍尚未进入。
+
+---
+
+## 8. Chapter 3.2/3.3 正式 Evidence Consumer 状态（2026-07-20）
+
+### Consumer 职责与冻结数据流
+
+- 现有 `FluentLfTawComparison` 合同保持不变。Chapter 3.3 consumer 只负责 evidence materialization，不重新执行 ingestion、pairing、nearest 或 error calculation，也不改变 provider、comparison、pairing、ingestion 或 baseline。
+- 正式 population 为等权 Fluent source rows；many-to-one source rows 全部保留且不按 LF target 去重，target multiplicity 只作 diagnostic。空间表达使用 comparison 提供的 authoritative projected coordinates。
+- 显式 two-case registry 仅包含 `ma6_a5_h30km` 与 `ma8_a5_h40km`。两个 case 当前均为 upper=`186` source rows、`80` unique LF targets，lower=typed-empty；这些计数是当前 case 事实，不扩张为未来 case 的永久合同。
+
+### Evidence 资产边界
+
+- raw evidence 为 deterministic NPZ，case summary 为 JSON，visualization 为 PNG；provenance、source hashes 与 artifact hashes 由 independent manifest 登记。
+- 资产采用原子发布与防覆盖约束。当前 evidence 证明链已具备正式生成能力，但本阶段没有把正式长期 evidence run 写入项目 `runs/`，Chapter 3.4 也尚未开展 case-level descriptive summary 与图表结果分析。
+- formal QA 的 PASS 只证明程序、合同、资产生成与完整性成功，不进行模型性能数值 gate，也不把 fixed plotting range 解释为性能阈值。
+
+### N3c 触发证据与阶段边界
+
+现有 windward diagnostic 与 leeward source-level evidence 在 row identity、mapping direction、统计母体、repeated-target weighting、relative-error representation 和 provenance 完整性方面不可直接比较。这是建议评估 N3c 的触发证据，不是 windward evidence 无效或 provider 路线裁决。
+
+本轮没有建立 windward 新合同，没有正式启动 N3c，没有进行 GATE A provider 路线裁决，也没有模型性能数值 gate。Chapter 3.1、3.2 已完成，Chapter 3.3 技术实现与验证已完成；Chapter 3.4 尚未开始，Chapter 3 与 N3 尚未完成，GATE A 尚未进入，strategy v1.0 保持冻结。

@@ -294,4 +294,17 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 两 case 攻角、几何与 clean/pairing topology 相同，不能泛化到其他攻角、lower-sheet branch 或尚未进入 Phase 5C–5E 正式链的 Fluent cases。source-level 统计继续按 Fluent source rows 计数，全部 source rows 保留；many-to-one 不按 unique target 去重，target multiplicity 仅作 diagnostic。
 - 现有 windward diagnostic 与 leeward source-level comparison 在 row identity、mapping direction、统计母体、repeated-target weighting、relative-error representation 与 provenance 完整性方面不一致，现有 windward summary 不能直接作为同口径正式对照。已发现建议评估 N3c 的触发证据，但本轮未进入 N3c、未设计 windward 新合同，也未修改 leeward comparison 合同。
 - 当前没有用户批准的统一性能阈值；缺少性能 PASS/FAIL 不是 evidence consumer 的实现缺口。任何 PASS 只表示程序、合同、QA 或资产生成成功，不表示模型性能合格。
-- 阶段状态：3.1 已完成；3.2 与 3.3 未开始；Chapter 3 尚未完成；GATE A 尚未进入。后续需先完成 3.2 Evidence 合同与资产边界，本次文档收口不执行 3.2。
+- 阶段状态（该审计收口时点）：3.1 已完成；3.2 与 3.3 当时未开始；Chapter 3 尚未完成；GATE A 尚未进入。该状态已由后续 Chapter 3.2/3.3 收口条目更新。
+
+---
+
+## 2026-07-20: Chapter 3.2/3.3 Source-level Evidence 合同与实现收口
+
+- Chapter 3.2 Evidence 合同与资产边界已完成；合同达到 unique / complete / internally consistent / directly implementable。Chapter 3.3 由 `scripts/tools/generate_leeward_source_evidence.py`、`scripts/tools/faceted3d_chapter3_leeward_source_evidence_qa.py` 与 `tests/test_leeward_source_evidence.py` 实现并完成验证。
+- evidence consumer 使用显式 two-case registry，仅覆盖 `ma6_a5_h30km` 与 `ma8_a5_h40km`。它保持现有 comparison 合同，只做 evidence materialization，不重新执行 ingestion、pairing、nearest 或 error calculation。
+- 正式统计母体为等权 Fluent source rows；source-level many-to-one 行完整保留且不按 target 去重，target multiplicity 仅作 diagnostic。空间坐标使用 authoritative projected coordinates；两个正式 case 当前均为 upper=`186` source rows、`80` unique LF targets，lower=typed-empty。
+- 每个 case 独立输出 deterministic NPZ raw evidence、JSON case summary 与 PNG visualization；独立 manifest 登记 provenance、source hashes 与 artifact hashes。发布采用原子落盘与防覆盖约束，不向项目 `runs/` 发布正式长期 evidence run。
+- 本阶段没有 schema、Groups 1–8、72-field contract 或 baseline promotion；provider、comparison、pairing 与 ingestion 均未修改。
+- 验证证据：targeted tests=`17 passed`；comparison dependency=`9 passed, 11 subtests passed`；formal QA=`PASS`，run id=`20260719T213343Z_6766cb3e3bd0`，manifest SHA-256=`53c8198c82cb0dba6d445f0eca32e9e0246b3fe51a0c86ac165b62ac8be53314`；full pytest=`162 passed, 117 subtests passed`；current regression=`PASS`；72/72 fields=`PASS`；Groups 1–8=`zero drift`；source hashes=`PASS`；artifact hashes=`PASS`；`git diff --check=PASS`；independent evidence integrity=`PASS`。
+- formal QA 的 PASS 仅表示程序、合同、资产生成与完整性成功，不表示模型性能合格；本阶段没有进行模型性能阈值判断，也没有把 fixed plotting range 解释为性能阈值。
+- 阶段状态：Chapter 3.1、3.2 已完成，Chapter 3.3 技术实现与验证已完成；Chapter 3.4 尚未开始，Chapter 3 与 N3 尚未完成，N3c 尚未正式启动，GATE A 尚未进入，strategy v1.0 保持冻结。
