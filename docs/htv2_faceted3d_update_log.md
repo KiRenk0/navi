@@ -272,4 +272,14 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 比较 P（exact-projected physical）、R（raw Fluent centroid physical）与 U（projected normalized）双向最近邻；正式推荐 Fluent clean → LF clean + P。推荐方向中 P/R assignment=`186/186` 相同，P/U=`47/186` 相同。
 - Candidate P Fluent→LF：source/target=`186/256`，unique targets=`80`，coverage=`31.25%`，collision excess=`106`，duplicate targets=`60`，maximum multiplicity=`4`；distance min/mean/median/p95/max=`0.323/8.180/7.349/17.752/21.042 mm`。
 - many-to-one allowed；target multiplicity 与 mutual nearest 只保留为 diagnostic；不采用 injective/Hungarian assignment。
-- 本轮不冻结 hard distance gate，不冻结 edge buffer；20 mm 与 30 mm 仅是观察统计。正式 pairing implementation、mapping QA、wall-temperature ingestion 与 leeward temperature error 均未开始。
+- 本轮不冻结 hard distance gate，不冻结 edge buffer；20 mm 与 30 mm 仅是观察统计。该条目的“尚未开始”状态已由后续 Phase 5C/5D/5E 正式收口取代。
+
+---
+
+## 2026-07-20: Phase 5C–5E Source-level Leeward Comparison 正式收口
+
+- Phase 5C Fluent clean → LF clean pairing 与 Phase 5D Fluent wall-temperature ingestion 均已通过 formal QA；pairing metric 保持 exact-projected physical `(x, span)` 二维欧氏距离。
+- Phase 5E 冻结唯一 source-level comparison：一行对应一个 Fluent clean-leeward source；upper 完整保留 `186` 行与 `80` 个 unique LF full-canonical targets 的 many-to-one 关系，不去重、不聚合。
+- observation 使用 `wall-temperature`，prediction 唯一使用 Group 8 `Taw_tpg_leeward_<sheet>` full-canonical field并按 `target_canonical_index` 直接索引；legacy `Tw_l=300 K` 不是 adiabatic prediction。
+- signed/absolute K 与 percent error 公式、lower typed-empty、metadata/provenance 及 owned/C-contiguous/read-only arrays 已通过两个正式 case 的 Phase 5E QA。
+- 本阶段未设置性能 gate、threshold、accepted mask 或 area weighting，未输出第一轮正式性能误差结论；freestream-recovery provider 仍是 diagnostic，是否升级等待下一轮正式误差证据。
