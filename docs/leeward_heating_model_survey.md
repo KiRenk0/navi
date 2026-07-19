@@ -267,3 +267,35 @@ St(x) = St_base · f(x/c)
 ### Classification 相关性
 
 normal-dot classification 审计中发现的鼻尖/圆弧前缘/near-tangent 上表面分类粗化问题属于未来 mapping/filtering contract 的裁决范围，不影响当前 windward baseline 主结果。
+
+---
+
+## 7. Chapter 3.1 Evidence 入口审计裁决（2026-07-20）
+
+### 当前 comparison consumers
+
+- 正式内存 API `src/ref_enthalpy_method/mapping/fluent_lf_taw_comparison.py` 提供 `FluentLfTawComparison` 与 `build_fluent_lf_taw_comparison`，负责构造保留 Fluent source-row identity 的正式 source-level comparison object；它不持久化 evidence，不生成 case-level summary 或 visualization。
+- Phase 5E formal QA `scripts/tools/faceted3d_phase5e_fluent_lf_taw_comparison_qa.py` 验证 comparison 合同、source identity、many-to-one、typed-empty、误差公式与 metadata，并向 stdout 输出 PASS/FAIL；它不是正式 evidence exporter、case reporter、visualization pipeline 或模型性能判定入口。
+- Unit test `tests/test_fluent_lf_taw_comparison.py` 验证 API 与 fail-closed 边界，不承担正式 evidence 输出。
+
+正式裁决为结论 2：当前已有部分入口，但不完整，不能直接承担 Chapter 3 正式 evidence。已有正式 comparison API、unit tests、Phase 5E formal QA、内存 source identity 与基础 provenance metadata；仍缺正式 source-level raw evidence exporter、case-level descriptive summary、leeward spatial/statistical visualization、完整 evidence CLI/reporter、持久化 evidence manifest 与正式 evidence artifact-hash 登记。Phase 5E QA 不等价于正式 evidence pipeline。
+
+### 正式 case 与 source-level 语义
+
+当前仅 `ma6_a5_h30km` 与 `ma8_a5_h40km` 具备可信 Fluent wall-temperature CSV、正式 ingestion、Fluent→LF pairing、comparison、current baseline manifest、CSV SHA-256、provider/pairing metric 和 source/target identity provenance 的完整可构造链。两 case 均为 `alpha=+5°`，upper=`186` Fluent source rows、`80` unique LF targets，lower=typed-empty。
+
+`186 → 80` 是这两个 case 的事实，不是未来 case 的永久计数合同。两者攻角相同，几何及 clean/pairing topology 相同，不能泛化到其他攻角、lower-sheet branch 或尚未进入 Phase 5C–5E 正式链的 Fluent cases。
+
+source-level comparison 的冻结语义保持不变：一行对应一个 Fluent source row，全部 source rows 完整保留；多个 Fluent source rows 可以共享同一个 LF prediction，不按 unique LF target 去重。source-level statistics 按 Fluent source rows 计数，target multiplicity 只属于 diagnostic；不得引入 distance、mutual 或 multiplicity gate，不得引入 accepted mask、Hungarian/injective assignment，也不得以 target-level 去重结果冒充 source-level evidence。
+
+### Windward 可比性、N3c 与性能判定
+
+现有 windward diagnostic 与 leeward source-level comparison 在 row identity、mapping direction、统计母体、repeated-target weighting、relative-error representation 和 provenance 完整性方面不一致。因此，现有 windward summary 不能直接作为与 leeward source-level evidence 同口径的正式对照；这不等于宣布 windward evidence 无效。
+
+当前已发现建议评估 N3c 的触发证据，但 Chapter 3.1 未进入 N3c，未建立 windward source-level comparison，未设计 windward 新合同，也未修改 leeward comparison 合同。
+
+当前没有用户批准的统一性能阈值。缺少性能 PASS/FAIL 不是 evidence consumer 的实现缺口，不得新增 performance threshold、accepted 或 gate；任何 PASS 仅表示程序、合同、QA 或资产生成成功，不表示模型性能合格。
+
+### 阶段边界
+
+Chapter 3.1 已完成；3.2 Evidence 合同与资产边界未开始；3.3 Source-level evidence 实现与验证未开始；Chapter 3 尚未完成；GATE A 尚未进入。后续需先完成 3.2，本次文档收口不执行 3.2。

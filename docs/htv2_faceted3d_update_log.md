@@ -283,3 +283,15 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - observation 使用 `wall-temperature`，prediction 唯一使用 Group 8 `Taw_tpg_leeward_<sheet>` full-canonical field并按 `target_canonical_index` 直接索引；legacy `Tw_l=300 K` 不是 adiabatic prediction。
 - signed/absolute K 与 percent error 公式、lower typed-empty、metadata/provenance 及 owned/C-contiguous/read-only arrays 已通过两个正式 case 的 Phase 5E QA。
 - 本阶段未设置性能 gate、threshold、accepted mask 或 area weighting，未输出第一轮正式性能误差结论；freestream-recovery provider 仍是 diagnostic，是否升级等待下一轮正式误差证据。
+
+---
+
+## 2026-07-20: Chapter 3.1 正式 Evidence 入口审计收口
+
+- Chapter 3.1 正式 evidence 入口审计已完成。审计严格只读，起始与结束均为 `main@066fd41`、工作树 clean；未运行 tests、formal QA 或 current regression，未生成正式 evidence，也未修改 provider、comparison、pairing 或 ingestion。未运行测试是本只读入口审计的任务边界，不是验证失败。
+- 正式裁决为结论 2：已有部分入口但不完整，不能直接承担 Chapter 3 正式 evidence。已有正式内存 comparison API、unit tests、Phase 5E formal QA、内存 source identity 与基础 provenance metadata；尚无正式 source-level raw evidence exporter、case-level descriptive summary、leeward spatial/statistical visualization、完整 evidence CLI/reporter、持久化 evidence manifest 或正式 evidence artifact-hash 登记。
+- 当前仅 `ma6_a5_h30km` 与 `ma8_a5_h40km` 具备可信 Fluent wall-temperature CSV、正式 ingestion、Fluent→LF pairing、comparison、current baseline manifest、CSV SHA-256、provider/pairing metric 与 source/target identity provenance 的完整可构造链。两 case 均为 `alpha=+5°`，upper=`186` Fluent source rows、`80` unique LF targets，lower=typed-empty；`186 → 80` 是当前 case 事实，不是未来 case 的永久计数合同。
+- 两 case 攻角、几何与 clean/pairing topology 相同，不能泛化到其他攻角、lower-sheet branch 或尚未进入 Phase 5C–5E 正式链的 Fluent cases。source-level 统计继续按 Fluent source rows 计数，全部 source rows 保留；many-to-one 不按 unique target 去重，target multiplicity 仅作 diagnostic。
+- 现有 windward diagnostic 与 leeward source-level comparison 在 row identity、mapping direction、统计母体、repeated-target weighting、relative-error representation 与 provenance 完整性方面不一致，现有 windward summary 不能直接作为同口径正式对照。已发现建议评估 N3c 的触发证据，但本轮未进入 N3c、未设计 windward 新合同，也未修改 leeward comparison 合同。
+- 当前没有用户批准的统一性能阈值；缺少性能 PASS/FAIL 不是 evidence consumer 的实现缺口。任何 PASS 只表示程序、合同、QA 或资产生成成功，不表示模型性能合格。
+- 阶段状态：3.1 已完成；3.2 与 3.3 未开始；Chapter 3 尚未完成；GATE A 尚未进入。后续需先完成 3.2 Evidence 合同与资产边界，本次文档收口不执行 3.2。
