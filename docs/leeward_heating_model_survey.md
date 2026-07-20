@@ -355,3 +355,26 @@ B−A 的 mean signed error=`82.866029 K`、mean absolute error=`80.189112 K`、
 当前证据没有证明 provider 物理正确或应被修改，没有判定 Fluent observation 的质量或因果责任，没有证明 mapping/pairing 绝对正确，没有排除共同 mapping/geometry bias，也没有形成 windward/leeward 联合结论、模型性能接受性、物理因果或机制归因。未来若要区分 Mach、高度、provider 与 observation 影响，需要独立对照、新 case 或更严格的实验设计，而不是从当前两点混杂比较外推。
 
 Chapter 3.4 与 Chapter 3.5 技术范围已完成。N3c 触发证据继续保留，但 N3c 未正式启动；GATE A 未进入；provider 未修改；display limits 不是 performance threshold，integrity PASS 也不是性能 PASS。
+
+---
+
+## 10. Chapter 3.6 GATE A 输入 Package 边界（2026-07-20）
+
+### Package 状态与 evidence tier
+
+Chapter 3.6A readiness audit 已完成，readiness=`READY_FOR_3_6B`；随后完成 Chapter 3.6B evidence package assembly 与 boundary QA，submission status=`PACKAGE_READY_FOR_GATE_A_REVIEW`。formal run、two-case source-row population、cross-case facts 与 limited attribution 已组装进 GATE A 输入 package；本节不重复 Chapter 3.4/3.5 已冻结数值。
+
+formal leeward 属于正式 source-row evidence tier。windward 仅为 `DIAGNOSTIC CONTEXT ONLY`、`NOT FORMAL SOURCE-LEVEL EVIDENCE`，不构成与 formal leeward 同层级的 source-level evidence，也不能与 leeward 形成联合 population 或联合性能统计。两侧 signed relative error 的代数方向和 percent 单位可以对应，但 row identity、mapping direction、population、repeated-target weighting、provenance/integrity、registry/alignment 与 figure/display contract 不同；只能分层并列，不得直接数值排名或借助颜色、面积、fixed scale 作跨表面性能比较。
+
+### 允许与禁止的归因
+
+当前允许使用 formal asset facts、independent recomputation、exact algebraic implications、有限 exclusion statements，以及明确标记的 unresolved/confounded issues。当前证据禁止推出 Mach 或高度的独立因果、provider 责任、Fluent observation 责任、mapping/geometry/pairing 绝对正确、provider 必须升级或模型性能接受性。
+
+`PACKAGE_READY_FOR_GATE_A_REVIEW` 仅表示 package 完整、可追溯且边界明确，不表示 GATE A 已开始或已作路线裁决。当前 package 路径不要求启动 N3c；N3c 未启动，也未被永久取消。若未来要求同 identity、同 population、同 weighting、同 provenance 的跨表面联合数值比较，必须重新裁决是否正式启动 N3c。
+
+### 未决问题与后续证据分支
+
+- 正式 leeward evidence 仅覆盖两个 case，Mach 与高度混杂；lower 仍为 typed-empty。
+- windward 尚无同层级 formal source-level contract；共同 geometry/mapping bias 不能排除。
+- 当前没有用户批准的性能 threshold，integrity PASS 不等于 performance PASS。
+- 证据数量不足、case 覆盖不足、变量混杂、需要新增可信 case 或补充正式诊断时，可能进入 N3a；只有发现 identity、data、geometry、mapping 或 evidence-chain 的具体错误时，才可能进入 N3b。当前不决定进入 N3a 或 N3b，也不裁决 provider 路线。

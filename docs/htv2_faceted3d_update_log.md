@@ -347,3 +347,24 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 对既有正式 run 直接调用只读 `validate_run`：PASS；artifact count=`12`，formal evidence assets=`10`，diagnostic-only assets=`2`，detached verified=`True`。两个 upper 均为 `186/80`，两个 lower 均为 typed-empty。
 - 未生成第二个 run，未修改 provider、comparison、pairing、ingestion、源码、测试、配置、baseline 或正式 evidence。pressure、edge-state、TPG、Taw recovery、geometry、clean、mapping 与 Groups 1–8 冻结合同保持不变。
 - Chapter 3.4 与 Chapter 3.5 技术范围已完成；N3c 触发证据继续保留但 N3c 未正式启动；GATE A 未进入；provider 未修改；未建立性能 threshold 或模型性能 PASS/FAIL。
+
+---
+
+## 2026-07-20: Chapter 3.6 Evidence Package 收口
+
+### 3.6A Readiness Audit
+
+- 完成 N3 exit-condition / GATE A evidence-package readiness audit，结论=`READY_FOR_3_6B`。现有 formal leeward 与 diagnostic windward 可按 evidence tier 分层并列；windward 明确为 `DIAGNOSTIC CONTEXT ONLY`、`NOT FORMAL SOURCE-LEVEL EVIDENCE`。
+- 本阶段未生成新 run，未修改 provider、comparison、pairing 或 ingestion，未启动 N3c，未进入 GATE A。
+
+### 3.6B Package Assembly 与 QA
+
+- 完成 GATE A evidence package assembly；Package 0–12 共 13 项完整，submission status=`PACKAGE_READY_FOR_GATE_A_REVIEW`。
+- Package completeness QA=`13/13 PASS`；Package provenance QA=`PASS`；Evidence-tier QA=`PASS`；Population QA=`PASS`；Decision-boundary QA=`PASS`；N3c boundary QA=`PASS`；Internal consistency QA=`PASS`。
+- package readiness 只表示材料完整、可追溯且推论边界明确，不表示 GATE A 已开始或已裁决，不表示 provider 路线或模型性能 PASS/FAIL。
+
+### 正式身份与未完成边界
+
+- current docs source HEAD=`dccd5b4677d98086fbd0689f078c36be6927c1a3`；formal run=`20260720T055647Z_af1f1f5395a9`；run source=`af1f1f5395a992bf8b9f439cf824376c209ab19b`；manifest raw SHA-256=`4db8b71bf79602ffdae12a71a345c251711b0b791ae7405b97105cffef4f0b90`。
+- Chapter 3.7 未开始；GATE A 未开始；未执行 A0/A1/A2/A3 裁决；未修改 provider；未扩充正式 case；未进入 N4/N5/N6/N8。
+- 证据数量不足、case 覆盖不足、变量混杂、需要新增可信 case 或补充正式诊断时，可能进入 N3a；只有发现 identity、data、geometry、mapping 或 evidence-chain 的具体错误时，才可能进入 N3b。本次未决定进入 N3a 或 N3b。
