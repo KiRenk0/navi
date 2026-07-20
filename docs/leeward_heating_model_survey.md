@@ -398,4 +398,12 @@ Chapter 3.7A 只读审计已完成，N3 formal evidence package 的 technical ex
 - 是否存在稳定、可解释且跨 case 的 provider 系统偏差；
 - 用户认可的工程目标与模型性能口径是什么。
 
-当前不得由误差大小直接推导 provider 足够、provider 失败、provider 必须升级，也不得推导 Fluent observation 或 provider 的因果责任。A0/A1/A2/A3 尚未选择，provider 未修改，模型性能没有 PASS/FAIL 结论。
+当前不得由误差大小直接推导 provider 足够、provider 失败、provider 必须升级，也不得推导 Fluent observation 或 provider 的因果责任。以上为 Chapter 3.7A 收口时点的历史状态；后续 GATE A 已完成并选择 A0。
+
+---
+
+## 12. GATE A Provider 路线裁决（2026-07-20）
+
+GATE A 已完成，final branch=`A0`，当前战略节点=`N3a`，用于补充受控证据；没有进入 provider survey 或 N4，当前 freestream-recovery provider 保持 baseline 且不作修改。A3 未成立：现有 `ma6_a5_h30km` 与 `ma8_a5_h40km` 两个 formal cases 同时改变 Mach 与高度，case coverage 和变量控制不足，无法证明稳定、可解释、受控的跨 case provider 系统偏差。这是 coverage/变量混杂限制，不是 formal evidence chain 失败，也不构成模型性能 FAIL。
+
+N3a 只复用冻结的 ingestion、pairing 与 comparison 补可信 case 或必要诊断。第一步是对候选 case 的数据可用性、Fluent adiabatic-wall observation 与 provenance 入口进行只读审计；候选 M6/40 km 与 M8/30 km 只是 2×2 Mach/高度控制设计，不会自动进入正式 registry。任何 provider 候选研究或 N4 工作必须等待 N3a 完成并返回未来 GATE A 后的新裁决；当前不得新增 provider 公式、模型比较或性能 threshold。

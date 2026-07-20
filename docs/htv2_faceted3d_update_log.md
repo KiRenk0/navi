@@ -378,3 +378,13 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 结论为 N3 technical exit conditions=`CERTIFIED SATISFIED`，entry eligibility=`READY_TO_REQUEST_GATE_A_ENTRY`。该结论仅建立提交用户批准的资格；用户尚未批准，GATE A 尚未开始，A0/A1/A2/A3 未选择。
 - 本审计未修改 provider，未建立性能 threshold，未重算 windward，未生成新 run，未修改 baseline、manifest 或 artifact hashes；formal leeward 与 diagnostic windward 继续分层隔离。
 - 下一正式动作是将 entry request 提交用户批准；建议后续由 Opus 主持独立 GATE A review。
+
+---
+
+## 2026-07-20: GATE A=A0 与 N3a 入口文档收口
+
+- 本次 docs-only 收口起点为 Git `0d3fa5d066e33d4daf7207e2bc92798ef37ac4b4`。GATE A review 已完成；Package 0–12 completeness=`13/13 PASS`，provenance、evidence tier、population、decision boundary、N3c boundary 与 internal consistency 均为 PASS；final branch=`A0`。
+- 战略迁移正式记录为 `N3 completed → GATE A completed / A0 → N3a current`。A0 表示当前 case coverage 与变量控制不足，不表示 provider 失败、被否决、必须升级或模型性能 FAIL；没有用户批准的统一性能 threshold。
+- 正式 evidence run 保持 `20260720T055647Z_af1f1f5395a9`，source SHA=`af1f1f5395a992bf8b9f439cf824376c209ab19b`，manifest raw SHA-256 与 detached hash 均保持 `4db8b71bf79602ffdae12a71a345c251711b0b791ae7405b97105cffef4f0b90`。正式 registry 仍仅含 `ma6_a5_h30km` 与 `ma8_a5_h40km`；每 case upper=`186` Fluent source rows / `80` unique LF targets，lower=typed-empty。
+- `README_INDEX.md` 中 Chapter 3 仅到 3.3、3.4 尚未开始、N3 尚未完成等陈旧当前状态已改写。N3a 第一项工作仅为候选 case 数据可用性、Fluent adiabatic-wall observation 与 provenance 入口只读审计，不是 case 扩充施工。
+- provider、comparison、pairing、ingestion、schema、72-field baseline、Groups 1–8 与正式 run 均未改变；未新增 case，未修改 registry，未生成 N3a evidence。
