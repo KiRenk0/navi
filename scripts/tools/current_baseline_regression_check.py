@@ -5,11 +5,14 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
+import os
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +23,7 @@ from ref_enthalpy_method.geometry.local_incidence import SURFACE_CLASS_LEEWARD
 
 ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT = ROOT / "runs" / "current_baseline_snapshot"
+CANDIDATE_RUNS_ROOT = ROOT / "runs"
 RUNNER = ROOT / "scripts" / "run_case_rem.py"
 VEHICLE = ROOT / "specs" / "vehicles" / "htv2_faceted3d_0629.yaml"
 CASE = ROOT / "specs" / "cases" / "doc_ma6_alpha5_h30km_faceted3d.yaml"
@@ -94,6 +98,14 @@ LOCAL_INCIDENCE_METADATA = {
     "taw_tpg_l_implemented": False,
 }
 LOCAL_INCIDENCE_EPSILON = 0.05
+CANDIDATE_MANIFEST_SCHEMA = "tpg-candidate-manifest/v1"
+CANDIDATE_PROVENANCE = (
+    "Unregistered TPG candidate run manifest; source/artifact identity only; "
+    "not baseline-admitted, not promoted, and not formal evidence."
+)
+CANDIDATE_MANIFEST_GENERATOR = (
+    "scripts/tools/current_baseline_regression_check.py --candidate-manifest"
+)
 
 
 def sha256(path: Path) -> str:
@@ -219,6 +231,249 @@ def endpoint_from_fields(fields: Any) -> dict[str, Any]:
         "endpoint_chord_m": endpoint_chord,
         "row_valid_count": int(np.count_nonzero(valid)),
     }
+
+
+def _finite_float(name: str, value: Any, *, positive: bool = False) -> float:
+    if isinstance(value, bool):
+        raise ValueError(f"{name} must be a finite float")
+    try:
+        result = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{name} must be a finite float") from exc
+    if not math.isfinite(result):
+        raise ValueError(f"{name} must be a finite float")
+    if positive and result <= 0.0:
+        raise ValueError(f"{name} must be greater than zero")
+    return result
+
+
+def candidate_generator_command(
+    *,
+    mach: float,
+    alpha_deg: float,
+    geometric_altitude_m: float,
+    run_dir: Path,
+) -> list[str]:
+    mach_value = _finite_float("mach", mach, positive=True)
+    alpha_value = _finite_float("alpha_deg", alpha_deg)
+    altitude_value = _finite_float(
+        "geometric_altitude_m", geometric_altitude_m, positive=True
+    )
+    return [
+        sys.executable, str(RUNNER), "--vehicle", str(VEHICLE), "--case", str(CASE),
+        "--sampling", str(SAMPLING), "--run_dir", str(run_dir), "--mach", str(mach_value),
+        "--alpha", str(alpha_value), "--h_m", str(altitude_value),
+        "--transition_weighting", "step", "--no_plots",
+    ]
+
+
+def _required_mapping(summary: dict[str, Any], key: str) -> dict[str, Any]:
+    value = summary.get(key)
+    if not isinstance(value, dict):
+        raise ValueError(f"summary.json missing required object: {key}")
+    return value
+
+
+def _required_values(mapping: dict[str, Any], *, scope: str, keys: Sequence[str]) -> None:
+    missing = [key for key in keys if key not in mapping or mapping[key] is None]
+    if missing:
+        raise ValueError(f"{scope} missing required values: {', '.join(missing)}")
+
+
+def build_candidate_manifest(
+    *,
+    case_id: str,
+    mach: float,
+    alpha_deg: float,
+    geometric_altitude_m: float,
+    run_dir: Path,
+    generator_command: Sequence[str],
+) -> dict[str, Any]:
+    if not isinstance(case_id, str) or not case_id.strip():
+        raise ValueError("case_id must be a non-empty string")
+    mach_value = _finite_float("mach", mach, positive=True)
+    alpha_value = _finite_float("alpha_deg", alpha_deg)
+    altitude_value = _finite_float(
+        "geometric_altitude_m", geometric_altitude_m, positive=True
+    )
+    if isinstance(generator_command, (str, bytes)) or not generator_command:
+        raise ValueError("generator_command must be a non-empty sequence of strings")
+    if any(not isinstance(item, str) for item in generator_command):
+        raise ValueError("generator_command must contain only strings")
+
+    candidate_dir = Path(run_dir)
+    if not candidate_dir.is_dir():
+        raise FileNotFoundError(f"candidate run directory does not exist: {candidate_dir}")
+    fields_path = candidate_dir / "fields.npz"
+    summary_path = candidate_dir / "summary.json"
+    if not fields_path.is_file():
+        raise FileNotFoundError(f"candidate artifact missing: {fields_path}")
+    if not summary_path.is_file():
+        raise FileNotFoundError(f"candidate artifact missing: {summary_path}")
+
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    if not isinstance(summary, dict):
+        raise ValueError("summary.json must contain a JSON object")
+    freestream = _required_mapping(summary, "freestream")
+    faceted3d = _required_mapping(summary, "faceted3d")
+    _required_values(
+        freestream,
+        scope="summary.freestream",
+        keys=(
+            "T_inf_K", "p_inf_Pa", "rho_inf_kg_m3", "freestream_source",
+            "atmosphere_model",
+        ),
+    )
+    _required_values(
+        summary,
+        scope="summary",
+        keys=("actual_cp_model", "actual_cp_newtonian_A", "actual_cp_newtonian_n"),
+    )
+    _required_values(faceted3d, scope="summary.faceted3d", keys=("chord_min_m",))
+
+    required_fields = {"yb_grid", "span_w_m", "x_w_m", "mask_w", "xc_grid"}
+    with np.load(fields_path, allow_pickle=False) as fields:
+        missing_fields = sorted(required_fields - set(fields.files))
+        if missing_fields:
+            raise ValueError(
+                f"fields.npz missing required arrays: {', '.join(missing_fields)}"
+            )
+        schema = {
+            key: {"shape": list(fields[key].shape), "dtype": str(fields[key].dtype)}
+            for key in sorted(fields.files)
+        }
+        mask_w = np.asarray(fields["mask_w"]).astype(bool)
+        endpoint = endpoint_from_fields(fields)
+
+    source_hashes = {
+        str(path.relative_to(ROOT)).replace("\\", "/"): sha256(path)
+        for path in source_files()
+    }
+    return {
+        "manifest_schema": CANDIDATE_MANIFEST_SCHEMA,
+        "provenance": CANDIDATE_PROVENANCE,
+        "suite_type": "TPG candidate",
+        "admission_status": "unregistered_candidate",
+        "case_id": case_id,
+        "case": {
+            "mach": mach_value,
+            "alpha_deg": alpha_value,
+            "geometric_altitude_m": altitude_value,
+        },
+        "freestream": {
+            "actual_T_inf_K": freestream["T_inf_K"],
+            "actual_p_inf_Pa": freestream["p_inf_Pa"],
+            "actual_rho_inf_kg_m3": freestream["rho_inf_kg_m3"],
+            "source": freestream["freestream_source"],
+        },
+        "atmosphere": {
+            "model": freestream["atmosphere_model"],
+            "altitude_semantics": "geometric altitude converted to geopotential altitude before 1976 layer evaluation",
+            "explicit_freestream_override": False,
+        },
+        "thermo": {
+            "model": "tpg",
+            "Taw_recovery": "fixed fully turbulent Pr^(1/3)",
+        },
+        "pressure": {
+            "model": summary["actual_cp_model"],
+            "A": summary["actual_cp_newtonian_A"],
+            "n": summary["actual_cp_newtonian_n"],
+        },
+        "grid": {
+            "ny": NY,
+            "nx": NX,
+            "n_valid": int(np.count_nonzero(mask_w)),
+            "chord_min_m": faceted3d["chord_min_m"],
+        },
+        "endpoint_metadata": endpoint,
+        "local_incidence": LOCAL_INCIDENCE_METADATA,
+        "fields_schema": schema,
+        "source_hashes_sha256": source_hashes,
+        "artifact_hashes_sha256": {
+            name: sha256(candidate_dir / name) for name in ("fields.npz", "summary.json")
+        },
+        "manifest_generator": CANDIDATE_MANIFEST_GENERATOR,
+        "generator_cli_template": subprocess.list2cmdline(list(generator_command)),
+    }
+
+
+def _validate_candidate_run_dir(
+    run_dir: Path,
+    *,
+    allowed_runs_root: Path,
+) -> Path:
+    runs_root = Path(allowed_runs_root).resolve(strict=True)
+    candidate_dir = Path(run_dir).resolve(strict=True)
+    if not candidate_dir.is_dir():
+        raise ValueError(f"candidate run path is not a directory: {candidate_dir}")
+    try:
+        candidate_dir.relative_to(runs_root)
+    except ValueError as exc:
+        raise ValueError(f"candidate run directory must be inside {runs_root}") from exc
+
+    for forbidden_name in ("current_baseline_snapshot", "leeward_source_evidence"):
+        forbidden_root = (runs_root / forbidden_name).resolve(strict=False)
+        try:
+            candidate_dir.relative_to(forbidden_root)
+        except ValueError:
+            continue
+        raise ValueError(f"candidate run directory is inside forbidden area: {forbidden_root}")
+
+    if "candidate" not in candidate_dir.name.casefold():
+        raise ValueError("candidate run directory name must contain 'candidate'")
+    for artifact_name in ("fields.npz", "summary.json"):
+        artifact = candidate_dir / artifact_name
+        if not artifact.is_file():
+            raise FileNotFoundError(f"candidate artifact missing: {artifact}")
+        resolved_artifact = artifact.resolve(strict=True)
+        try:
+            resolved_artifact.relative_to(candidate_dir)
+        except ValueError as exc:
+            raise ValueError(f"candidate artifact escapes run directory: {artifact}") from exc
+    return candidate_dir
+
+
+def _write_candidate_manifest_atomically(
+    run_dir: Path,
+    manifest: dict[str, Any],
+) -> Path:
+    target = run_dir / "manifest.json"
+    if target.exists():
+        raise FileExistsError(f"candidate manifest already exists: {target}")
+
+    temporary_path: Path | None = None
+    published = False
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="x",
+            encoding="utf-8",
+            dir=run_dir,
+            prefix=".candidate-manifest-",
+            suffix=".tmp",
+            delete=False,
+        ) as stream:
+            temporary_path = Path(stream.name)
+            json.dump(manifest, stream, indent=2, ensure_ascii=False, allow_nan=False)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+
+        if json.loads(temporary_path.read_text(encoding="utf-8")) != manifest:
+            raise RuntimeError("candidate manifest temporary-file verification failed")
+        if target.exists():
+            raise FileExistsError(f"candidate manifest appeared during write: {target}")
+        os.link(temporary_path, target)
+        published = True
+        temporary_path.unlink()
+        return target
+    except Exception:
+        if published:
+            target.unlink(missing_ok=True)
+        raise
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
 
 
 def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str, Any]:
@@ -633,8 +888,63 @@ def compare_case(case_id: str) -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--freeze", action="store_true", help="atomically generate or replace current TPG snapshots")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--freeze", action="store_true", help="atomically generate or replace current TPG snapshots")
+    mode.add_argument(
+        "--candidate-manifest",
+        action="store_true",
+        help="write identity-only manifest.json for an existing unregistered candidate run",
+    )
+    parser.add_argument("--case-id")
+    parser.add_argument("--mach", type=float)
+    parser.add_argument("--alpha", type=float)
+    parser.add_argument("--h-m", type=float)
+    parser.add_argument("--run-dir", type=Path)
     args = parser.parse_args()
+
+    candidate_values = {
+        "--case-id": args.case_id,
+        "--mach": args.mach,
+        "--alpha": args.alpha,
+        "--h-m": args.h_m,
+        "--run-dir": args.run_dir,
+    }
+    if args.candidate_manifest:
+        missing = [name for name, value in candidate_values.items() if value is None]
+        if missing:
+            parser.error(
+                "--candidate-manifest requires " + ", ".join(candidate_values)
+            )
+        candidate_dir = _validate_candidate_run_dir(
+            args.run_dir,
+            allowed_runs_root=CANDIDATE_RUNS_ROOT,
+        )
+        command = candidate_generator_command(
+            mach=args.mach,
+            alpha_deg=args.alpha,
+            geometric_altitude_m=args.h_m,
+            run_dir=candidate_dir,
+        )
+        manifest = build_candidate_manifest(
+            case_id=args.case_id,
+            mach=args.mach,
+            alpha_deg=args.alpha,
+            geometric_altitude_m=args.h_m,
+            run_dir=candidate_dir,
+            generator_command=command,
+        )
+        target = _write_candidate_manifest_atomically(candidate_dir, manifest)
+        print(f"candidate manifest written: {target}")
+        return 0
+
+    supplied_candidate_values = [
+        name for name, value in candidate_values.items() if value is not None
+    ]
+    if supplied_candidate_values:
+        parser.error(
+            "candidate arguments require --candidate-manifest: "
+            + ", ".join(supplied_candidate_values)
+        )
     if args.freeze:
         return 0 if freeze_all() else 1
     overall = True

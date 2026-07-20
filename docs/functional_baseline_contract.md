@@ -156,6 +156,41 @@
 - `fields.npz`、summary、schema、artifact hashes 与 Groups 1–8 数值均未改变
 - **正式 routing：** alpha-sign 未切换；local-incidence 与 sheet-specific leeward recovery 均为 additive diagnostic；不存在 generic `Taw_tpg_l` 字段
 
+### 2.4 未注册 TPG candidate manifest 合同（2026-07-21）
+
+`current-tpg-baseline-regression/v5` 与 `tpg-candidate-manifest/v1` 是严格隔离的两类身份：
+
+- `current-tpg-baseline-regression/v5` 只用于正式 current TPG baseline regression，保持冻结，正式 case 仍仅为 `ma6_a5_h30km` 与 `ma8_a5_h40km`；不得用于未注册 candidate。
+- `tpg-candidate-manifest/v1` 只为未注册 TPG candidate run 记录 source/artifact identity；它不是 baseline，不是 formal evidence，不构成 registry admission 或 promotion。
+
+candidate manifest 顶层字段按顺序固定为：
+
+- `manifest_schema`
+- `provenance`
+- `suite_type`
+- `admission_status`
+- `case_id`
+- `case`
+- `freestream`
+- `atmosphere`
+- `thermo`
+- `pressure`
+- `grid`
+- `endpoint_metadata`
+- `local_incidence`
+- `fields_schema`
+- `source_hashes_sha256`
+- `artifact_hashes_sha256`
+- `manifest_generator`
+- `generator_cli_template`
+
+固定身份为 `manifest_schema=tpg-candidate-manifest/v1`、`suite_type=TPG candidate`、`admission_status=unregistered_candidate`。该 schema 不含 `baseline_date`、`baseline_generator`、Git SHA、branch、commit SHA、performance PASS/FAIL 或 formal evidence admission。
+
+- candidate builder 不依赖 `CASES`，并复用既有 `source_files()` / `sha256()`；不得建立平行 hash 链。
+- candidate manifest 不能通过编辑、重命名或改字段成为 v5 baseline manifest。未来若 candidate 获准进入正式 baseline，必须先有独立 admission 决策，再由既有正式 freeze 机制重新生成真正的 v5 manifest。
+- candidate CLI 只读取既有 `fields.npz` 与 `summary.json`，不运行 solver；`run_dir` 必须位于 `ROOT/runs`，且目录名必须包含 `candidate`。
+- candidate CLI 拒绝 `current_baseline_snapshot` 与 `leeward_source_evidence`，拒绝覆盖既有 `manifest.json`，不提供 `--overwrite`，并以原子方式发布新 manifest。
+
 
 当你确认 `specs/` 内容齐全后（本项目默认即为 `specs/`）：
 

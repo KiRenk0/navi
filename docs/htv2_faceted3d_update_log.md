@@ -388,3 +388,15 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 正式 evidence run 保持 `20260720T055647Z_af1f1f5395a9`，source SHA=`af1f1f5395a992bf8b9f439cf824376c209ab19b`，manifest raw SHA-256 与 detached hash 均保持 `4db8b71bf79602ffdae12a71a345c251711b0b791ae7405b97105cffef4f0b90`。正式 registry 仍仅含 `ma6_a5_h30km` 与 `ma8_a5_h40km`；每 case upper=`186` Fluent source rows / `80` unique LF targets，lower=typed-empty。
 - `README_INDEX.md` 中 Chapter 3 仅到 3.3、3.4 尚未开始、N3 尚未完成等陈旧当前状态已改写。N3a 第一项工作仅为候选 case 数据可用性、Fluent adiabatic-wall observation 与 provenance 入口只读审计，不是 case 扩充施工。
 - provider、comparison、pairing、ingestion、schema、72-field baseline、Groups 1–8 与正式 run 均未改变；未新增 case，未修改 registry，未生成 N3a evidence。
+
+---
+
+## 2026-07-21: N3a.3c Candidate Manifest Tooling 正式收口
+
+- Opus 裁决=`DECISION_C_NEW_CANDIDATE_SCHEMA`，用户批准=`GRANTED`；新增未注册 TPG candidate 专用身份 schema `tpg-candidate-manifest/v1`。
+- `current-tpg-baseline-regression/v5` 保持冻结且完全不变；`CASES`、正式 registry、两个正式 baseline 与 formal evidence 均未改变。candidate manifest 不是 baseline、formal evidence、registry admission 或 promotion。
+- `scripts/tools/current_baseline_regression_check.py` 新增严格隔离的 candidate API/CLI，复用既有 source/artifact hash 核心；`tests/test_tpg_candidate_manifest.py` 覆盖 schema/case identity、hash 复用、路径隔离、拒绝覆盖、原子发布、v5 零漂移及 freeze/check/solver 隔离。
+- candidate targeted tests=`38 passed`；full pytest=`195 passed, 117 subtests passed`，无 failed、skipped、xfail 或 warnings。
+- 两个正式 baseline `ma6_a5_h30km`、`ma8_a5_h40km` 的 72 fields、Groups 1–8、source integrity、artifact integrity 与 current regression overall 均为 PASS；六个正式 baseline 资产 SHA-256 保持不变。
+- 正式 evidence run 未修改，manifest SHA-256 仍为 `4db8b71bf79602ffdae12a71a345c251711b0b791ae7405b97105cffef4f0b90`。
+- 本阶段未运行 M8/30，未生成真实 candidate run 或 manifest，未修改 strategy v1.2。strategy v1.2 保持 frozen，当前战略节点仍为 N3a，不退出 N3a，也不返回 GATE A。

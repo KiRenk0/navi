@@ -1,6 +1,6 @@
 # Faceted3D 文件索引
 
-> 更新：2026-07-19（Phase 5B1 LF Clean 资产与 Phase 5B2 Mapping Audit 同步）
+> 更新：2026-07-21（N3a candidate manifest 工具与测试索引）
 
 ---
 
@@ -20,7 +20,7 @@
 | `scripts/geometry/` | `prepare_geometry.py`（几何输入检查器）、`extract_outline_from_stl.py` |
 | `scripts/viz/` | `viz_error_cloud_readonly.py`（3D 误差散点）、`plot_windward_error_vs_fluent.py`（迎风面 `Taw_tpg_w` vs Fluent 绝热壁 Tw 相对误差%云图半模投影，弦向-展向，只读 diagnostic visualization；Fluent 迎风面按 z<0 压缩侧筛选，映射沿用 LF(x_w_m,span_w_m)→Fluent(x,y) 最近邻；**不替代 P2R2 corrected comparison canon、不代表 validation complete、不涉及 leeward temperature error**）、`plot_root_chord_temperature_from_run_rem.py`、`plot_wing_surface_temperature_from_run_rem.py` |
 | `scripts/pressure/` | `pressure_audit.py`、`pressure_audit_plots.py`、`edge_pressure_breakdown.py`、`cp_pressure_correction_sandbox.py`（pressure/Cp 审计） |
-| `scripts/tools/` | `current_baseline_regression_check.py`（唯一 current regression harness，仅 TPG 两工况）、`faceted3d_phase4b_geometry_qa.py`（正式双工况 geometry-only QA；第二工况在 canonical identity 后复用 projection）、`faceted3d_phase5a_fluent_clean_qa.py`（Phase 5A Fluent clean 正式 geometry-only QA）、`local_incidence_raw_facet_qa.py`（local-incidence 数值 QA 工具）、`local_incidence_alpha_scan.py`（四攻角 alpha coverage 扫描工具）、`export_faceted3d_fields_to_table.py`（字段导出） |
+| `scripts/tools/` | `current_baseline_regression_check.py`（两套严格隔离职责：formal baseline v5 freeze/check 与 candidate manifest v1 generation）、`faceted3d_phase4b_geometry_qa.py`（正式双工况 geometry-only QA；第二工况在 canonical identity 后复用 projection）、`faceted3d_phase5a_fluent_clean_qa.py`（Phase 5A Fluent clean 正式 geometry-only QA）、`local_incidence_raw_facet_qa.py`（local-incidence 数值 QA 工具）、`local_incidence_alpha_scan.py`（四攻角 alpha coverage 扫描工具）、`export_faceted3d_fields_to_table.py`（字段导出） |
 | `scripts/_archive/20260709_scripts_top_prune/` | 已完成阶段的 diagnostic / audit / ablation 脚本（非 active） |
 
 Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 无 thermo 选择。当前不声明 validation complete。
@@ -84,6 +84,7 @@ Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CL
 | `tests/test_leeward_freestream_recovery.py` | freestream provider、mask、NaN、TPG recovery 与 sheet isolation 单元合同 |
 | `tests/test_faceted3d_leeward_recovery_integration.py` | solver 内 upper/lower 接线、18 字段与 legacy 解耦合同 |
 | `tests/test_faceted3d_leeward_recovery_serialization.py` | official CLI 72 字段、dtype/shape/count、byte-exact serialization 合同 |
+| `tests/test_tpg_candidate_manifest.py` | candidate schema identity、显式 case identity、hash 核心复用、路径隔离、拒绝覆盖、原子发布、v5 零漂移及 freeze/check/solver 隔离合同 |
 | `src/ref_enthalpy_method/aero/edge_conditions.py` | 禁止改 |
 | `src/ref_enthalpy_method/heatflux/windward.py` | 禁止改 |
 | `src/ref_enthalpy_method/heatflux/leeward.py` | 禁止改 |
@@ -168,3 +169,12 @@ Phase 5B2 当前只有只读 audit 结论：正式方向为 Fluent clean → LF 
 ## 17. Canonical 文档入口收口
 
 根目录旧诊断、旧 CLI 速查与旧流程说明已退出仓库；对应当前事实分别由 `docs/faceted3d_current_status_zh.md` / `docs/current_model_decisions_zh.md`、`docs/faceted3d_official_cli_run_guide_zh.md`、`README.md` / `docs/functional_baseline_contract.md` 单源维护。正式代码、CLI、baseline 与数据入口不变。
+
+## 18. N3a Candidate Manifest Tooling
+
+| 路径 | 说明 |
+|------|------|
+| `scripts/tools/current_baseline_regression_check.py` | formal baseline `current-tpg-baseline-regression/v5` freeze/check 与未注册 candidate `tpg-candidate-manifest/v1` generation 的共用工具；两种模式严格互斥 |
+| `tests/test_tpg_candidate_manifest.py` | candidate schema/case identity、hash 复用、路径隔离、拒绝覆盖、原子发布、v5 零漂移及 freeze/check/solver 隔离测试 |
+
+candidate CLI 参数为 `--candidate-manifest`、`--case-id`、`--mach`、`--alpha`、`--h-m`、`--run-dir`。candidate 模式不运行 solver，不修改 `CASES`，不触碰 `current_baseline_snapshot` 或 `leeward_source_evidence`；只处理已存在 run，并拒绝覆盖既有 `manifest.json`。
