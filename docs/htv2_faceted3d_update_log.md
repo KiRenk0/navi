@@ -366,5 +366,15 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 ### 正式身份与未完成边界
 
 - current docs source HEAD=`dccd5b4677d98086fbd0689f078c36be6927c1a3`；formal run=`20260720T055647Z_af1f1f5395a9`；run source=`af1f1f5395a992bf8b9f439cf824376c209ab19b`；manifest raw SHA-256=`4db8b71bf79602ffdae12a71a345c251711b0b791ae7405b97105cffef4f0b90`。
-- Chapter 3.7 未开始；GATE A 未开始；未执行 A0/A1/A2/A3 裁决；未修改 provider；未扩充正式 case；未进入 N4/N5/N6/N8。
+- 该收口时点 Chapter 3.7 尚未开始；此状态已由后续 Chapter 3.7A 收口条目更新。GATE A 未开始；未执行 A0/A1/A2/A3 裁决；未修改 provider；未扩充正式 case；未进入 N4/N5/N6/N8。
 - 证据数量不足、case 覆盖不足、变量混杂、需要新增可信 case 或补充正式诊断时，可能进入 N3a；只有发现 identity、data、geometry、mapping 或 evidence-chain 的具体错误时，才可能进入 N3b。本次未决定进入 N3a 或 N3b。
+
+---
+
+## 2026-07-20: Chapter 3.7A N3 技术退出认证收口
+
+- 任务为 `N3 Final Exit Certification and GATE A Entry Eligibility Audit` 只读审计；未修改项目技术资产。
+- 审计认证 Git/Python/commit identity、formal run manifest 与 detached hash、`validate_run=PASS`、`12 assets = 10 formal + 2 diagnostic-only`、two-case registry、每 case upper=`186` Fluent source rows / `80` unique LF targets、lower=typed-empty、formal run ignored、Chapter 3 final evidence index、N3 exit matrix 与 N3c interpretation boundary。
+- 结论为 N3 technical exit conditions=`CERTIFIED SATISFIED`，entry eligibility=`READY_TO_REQUEST_GATE_A_ENTRY`。该结论仅建立提交用户批准的资格；用户尚未批准，GATE A 尚未开始，A0/A1/A2/A3 未选择。
+- 本审计未修改 provider，未建立性能 threshold，未重算 windward，未生成新 run，未修改 baseline、manifest 或 artifact hashes；formal leeward 与 diagnostic windward 继续分层隔离。
+- 下一正式动作是将 entry request 提交用户批准；建议后续由 Opus 主持独立 GATE A review。

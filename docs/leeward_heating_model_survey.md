@@ -378,3 +378,24 @@ formal leeward 属于正式 source-row evidence tier。windward 仅为 `DIAGNOST
 - windward 尚无同层级 formal source-level contract；共同 geometry/mapping bias 不能排除。
 - 当前没有用户批准的性能 threshold，integrity PASS 不等于 performance PASS。
 - 证据数量不足、case 覆盖不足、变量混杂、需要新增可信 case 或补充正式诊断时，可能进入 N3a；只有发现 identity、data、geometry、mapping 或 evidence-chain 的具体错误时，才可能进入 N3b。当前不决定进入 N3a 或 N3b，也不裁决 provider 路线。
+
+---
+
+## 11. Chapter 3.7A Provider 路线审查入口边界（2026-07-20）
+
+Chapter 3.7A 只读审计已完成，N3 formal evidence package 的 technical exit conditions 已认证满足，entry eligibility=`READY_TO_REQUEST_GATE_A_ENTRY`。该状态足以请求用户批准进入 GATE A，但不是 GATE A 路线裁决；用户尚未批准，GATE A 尚未开始。
+
+### 当前证据适用范围
+
+- formal leeward 仍只覆盖 `ma6_a5_h30km` 与 `ma8_a5_h40km` 两个 source-level cases；两者 lower 均为 typed-empty，Mach 与高度混杂，共同 geometry/mapping bias 未被绝对排除。
+- 上述事项已作为明确适用范围或非阻塞局限记录，足以支持 GATE A entry request，但不足以选择任何 provider 路线分支。
+- windward 继续仅作为 `DIAGNOSTIC CONTEXT ONLY`，不得与 formal leeward 形成联合 population、联合统计或直接排名。
+
+### GATE A 必须回答的问题
+
+- 当前 evidence 数量是否足够，two-case 覆盖与变量混杂是否要求补充证据；
+- 是否存在具体 identity、data、geometry 或 mapping 问题；
+- 是否存在稳定、可解释且跨 case 的 provider 系统偏差；
+- 用户认可的工程目标与模型性能口径是什么。
+
+当前不得由误差大小直接推导 provider 足够、provider 失败、provider 必须升级，也不得推导 Fluent observation 或 provider 的因果责任。A0/A1/A2/A3 尚未选择，provider 未修改，模型性能没有 PASS/FAIL 结论。
