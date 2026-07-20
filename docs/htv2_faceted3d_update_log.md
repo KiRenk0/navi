@@ -307,4 +307,43 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 本阶段没有 schema、Groups 1–8、72-field contract 或 baseline promotion；provider、comparison、pairing 与 ingestion 均未修改。
 - 验证证据：targeted tests=`17 passed`；comparison dependency=`9 passed, 11 subtests passed`；formal QA=`PASS`，run id=`20260719T213343Z_6766cb3e3bd0`，manifest SHA-256=`53c8198c82cb0dba6d445f0eca32e9e0246b3fe51a0c86ac165b62ac8be53314`；full pytest=`162 passed, 117 subtests passed`；current regression=`PASS`；72/72 fields=`PASS`；Groups 1–8=`zero drift`；source hashes=`PASS`；artifact hashes=`PASS`；`git diff --check=PASS`；independent evidence integrity=`PASS`。
 - formal QA 的 PASS 仅表示程序、合同、资产生成与完整性成功，不表示模型性能合格；本阶段没有进行模型性能阈值判断，也没有把 fixed plotting range 解释为性能阈值。
-- 阶段状态：Chapter 3.1、3.2 已完成，Chapter 3.3 技术实现与验证已完成；Chapter 3.4 尚未开始，Chapter 3 与 N3 尚未完成，N3c 尚未正式启动，GATE A 尚未进入，strategy v1.0 保持冻结。
+- 阶段状态（该条目收口时点）：Chapter 3.1、3.2 已完成，Chapter 3.3 技术实现与验证已完成；Chapter 3.4 尚未开始。该状态已由后续 Chapter 3.4/3.5 正式结果收口更新；N3c 尚未正式启动，GATE A 尚未进入，strategy v1.0 保持冻结。
+
+---
+
+## 2026-07-20: Chapter 3.4/3.5 Canonical Evidence 结果收口
+
+### 3.4A 正式运行与母体
+
+- 正式 evidence run=`20260720T055647Z_af1f1f5395a9`，Git SHA=`af1f1f5395a992bf8b9f439cf824376c209ab19b`，manifest raw SHA-256 与 detached value 均为 `4db8b71bf79602ffdae12a71a345c251711b0b791ae7405b97105cffef4f0b90`。
+- registry 为 `ma6_a5_h30km`、`ma8_a5_h40km`。每个 case 的 upper=`186` Fluent source rows / `80` unique LF targets，lower=typed-empty；正式 population=`fluent_source_rows_equal_weight`。
+- many-to-one source rows 全部保留，未按 target 去重，未使用 inverse-multiplicity weighting，未生成 target-level error aggregation。display limits 不是性能 threshold；integrity PASS 不是性能 PASS。
+- 正式 run 位于 ignored `runs/leeward_source_evidence/`，作为长期保留的运行证据，不是 tracked baseline。此前仅 CRLF 工作树差异已恢复为干净字节身份；本次没有修改 evidence、baseline 或行尾合同。
+
+### 3.4B Case-level 描述性事实
+
+- Case A `ma6_a5_h30km`：prediction constant=`1550.4342365955222 K`；mean signed error=`14.859391 K`；mean absolute error=`17.536308 K`；mean signed relative error=`0.986416%`；mean absolute relative error=`1.158281%`；positive / negative / zero=`136 / 50 / 0`。
+- Case B `ma8_a5_h40km`：prediction constant=`2699.7814815610645 K`；mean signed error=`97.725420 K`；mean absolute error=`97.725420 K`；mean signed relative error=`3.756995%`；mean absolute relative error=`3.756995%`；positive / negative / zero=`186 / 0 / 0`。
+- 上述数值仅描述等权 source-row population，不构成 target-level 统计、性能阈值判断或 provider 路线裁决。
+
+### 3.5A Cross-case 直接事实与排除性结论
+
+- 两正式 upper 资产中，`source_canonical_index`、authoritative projected coordinates、`target_canonical_index`、pairing distance、pairing dx、pairing dspan、target multiplicity 均逐元素相等。
+- 因此，本次 cross-case 差异不能归因于上述 recorded structures 在两资产之间发生变化。该排除性结论不证明 mapping、geometry 或 pairing 绝对正确，也不排除两个 case 共享的 mapping/geometry bias。
+- B−A：mean signed error=`82.866029 K`；mean absolute error=`80.189112 K`；mean signed relative error=`2.770578 percentage points`；mean absolute relative error=`2.598714 percentage points`。
+- positive rows 从 A 的 `136/186` 变为 B 的 `186/186`，差值=`+50 rows / +26.881720 percentage points`。
+- Case A 同时为 Mach 6 / 30 km，Case B 同时为 Mach 8 / 40 km；Mach 与高度混杂，不能单独归因于 Mach，也不能单独归因于高度。
+
+### 3.5B 有限归因与证据类型
+
+- 正式资产直接事实：每个 case 内 prediction 为 source-row constant；A 的 prediction 位于 observation range 内，故同时存在正、负 signed-error rows；B 的 prediction 高于全部 observation rows，故 `186` 行 signed error 全为正。
+- 独立重算事实：两个 case 的 direction counts、observation range、cross-case recorded-array equality 与严格 row alignment 均从现有 NPZ 只读复核。
+- 精确代数推论：`signed_error_i = constant_prediction - observation_i`；因此 `centered_signed_error = -centered_observation`。严格 row alignment 下，`Δsigned_error = Δprediction - Δobservation`。
+- 排除性结论仅限于“两资产之间 recorded structures 未变化”不能解释本次差异；不扩张为 mapping、geometry 或 pairing 正确性证明。
+- 尚未证明：Mach 独立作用、高度独立作用、provider 物理正确性或修改必要性、Fluent observation 质量或因果责任、mapping/pairing 绝对正确性、共同 mapping/geometry bias 不存在、windward/leeward 联合结论、模型性能接受性，以及任何物理因果或机制归因。
+
+### 验证、冻结边界与章节状态
+
+- 对既有正式 run 直接调用只读 `validate_run`：PASS；artifact count=`12`，formal evidence assets=`10`，diagnostic-only assets=`2`，detached verified=`True`。两个 upper 均为 `186/80`，两个 lower 均为 typed-empty。
+- 未生成第二个 run，未修改 provider、comparison、pairing、ingestion、源码、测试、配置、baseline 或正式 evidence。pressure、edge-state、TPG、Taw recovery、geometry、clean、mapping 与 Groups 1–8 冻结合同保持不变。
+- Chapter 3.4 与 Chapter 3.5 技术范围已完成；N3c 触发证据继续保留但 N3c 未正式启动；GATE A 未进入；provider 未修改；未建立性能 threshold 或模型性能 PASS/FAIL。

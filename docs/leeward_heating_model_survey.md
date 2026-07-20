@@ -256,13 +256,13 @@ St(x) = St_base · f(x/c)
 - Fluent clean 已完成；它是 Fluent canonical points 上 raw projected semantics 的 geometry-only 派生 mapping subset，不回写 raw semantics。
 - LF clean 已完成；它是 canonical LF 点上的 geometry/semantics-only 只读派生 subset：source 1/2 eligible，source 0/3 excluded，不进入 legacy fixed-wall chain，也不读取温度。
 - LF clean 正式 `alpha=+5°` QA 为 upper/lower/any=`256/0/256`；非 baseline `alpha=-5°` lower-sheet integration shakeout 为 `1/1443/1444`，仅覆盖分支集成，不构成新的正式物理 validation case。
-- Phase 5C Fluent clean → LF clean geometry pairing、Phase 5D wall-temperature ingestion 与 Phase 5E source-level comparison 均已完成并通过 formal QA。正式 comparison 以一个 Fluent clean-leeward source 为一行，upper 保留 `186` 行并直接索引 `80` 个 unique LF full-canonical targets；many-to-one 不去重、不聚合。当前只证明合同与公式正确，尚未形成第一轮正式性能误差证据，也不能声明 leeward model validated。
+- Phase 5C Fluent clean → LF clean geometry pairing、Phase 5D wall-temperature ingestion 与 Phase 5E source-level comparison 均已完成并通过 formal QA。正式 comparison 以一个 Fluent clean-leeward source 为一行，upper 保留 `186` 行并直接索引 `80` 个 unique LF full-canonical targets；many-to-one 不去重、不聚合。Phase 5E 收口时点只证明合同与公式正确，尚未形成第一轮正式性能误差证据；该状态已由后续 Chapter 3.4/3.5 正式结果收口更新，但仍不能声明 leeward model validated。
 - raw LF leeward mask 属于正式物理字段合同；LF clean 与 Fluent clean 属于后续 mapping 合同，三者不得与 raw counts 混写。
 - Fluent clean 不读取温度；q-chain acceptance 不作为其 predicate，`normal_source` 1 与 2 均可进入。当前正式 Fluent clean upper/lower/any=`186/0/186`。
 
 ### 后续裁决
 
-固定实现顺序 `Fluent clean → LF clean geometry pairing → mapping QA → wall-temperature ingestion → source-level comparison` 已执行完毕。Phase 5E prediction 唯一使用 Group 8 `Taw_tpg_leeward_<sheet>`；legacy `Tw_l=300 K` 仍是壁面边界条件，不是 adiabatic prediction。当前 freestream-recovery provider 仍是 diagnostic；是否升级 local-expansion provider，等待下一轮单独形成的正式性能误差证据裁决。residual learning 不是当前阶段。
+固定实现顺序 `Fluent clean → LF clean geometry pairing → mapping QA → wall-temperature ingestion → source-level comparison` 已执行完毕。Phase 5E prediction 唯一使用 Group 8 `Taw_tpg_leeward_<sheet>`；legacy `Tw_l=300 K` 仍是壁面边界条件，不是 adiabatic prediction。当前 freestream-recovery provider 仍是 diagnostic；Chapter 3.4/3.5 已形成描述性误差证据，但没有证明 provider 是否应升级。residual learning 不是当前阶段。
 
 ### Classification 相关性
 
@@ -320,4 +320,38 @@ Chapter 3.1 已完成；该审计时点 3.2 Evidence 合同与资产边界、3.3
 
 现有 windward diagnostic 与 leeward source-level evidence 在 row identity、mapping direction、统计母体、repeated-target weighting、relative-error representation 和 provenance 完整性方面不可直接比较。这是建议评估 N3c 的触发证据，不是 windward evidence 无效或 provider 路线裁决。
 
-本轮没有建立 windward 新合同，没有正式启动 N3c，没有进行 GATE A provider 路线裁决，也没有模型性能数值 gate。Chapter 3.1、3.2 已完成，Chapter 3.3 技术实现与验证已完成；Chapter 3.4 尚未开始，Chapter 3 与 N3 尚未完成，GATE A 尚未进入，strategy v1.0 保持冻结。
+该阶段没有建立 windward 新合同，没有正式启动 N3c，没有进行 GATE A provider 路线裁决，也没有模型性能数值 gate。Chapter 3.1、3.2 已完成，Chapter 3.3 技术实现与验证已完成；该时点 Chapter 3.4 尚未开始。该状态已由后续 Chapter 3.4/3.5 正式结果收口更新；strategy v1.0 保持冻结。
+
+---
+
+## 9. Chapter 3.4/3.5 背风 Evidence 解释（2026-07-20）
+
+### 正式数据流与 case 内误差结构
+
+正式 run=`20260720T055647Z_af1f1f5395a9`，对应 `main@af1f1f5395a992bf8b9f439cf824376c209ab19b`，manifest SHA-256=`4db8b71bf79602ffdae12a71a345c251711b0b791ae7405b97105cffef4f0b90`。registry 仅含 `ma6_a5_h30km` 与 `ma8_a5_h40km`；每个 case 的 upper 为 `186` 个等权 Fluent source rows、`80` 个 unique LF targets，lower 为 typed-empty。many-to-one source rows 不按 target 去重，也不使用 inverse-multiplicity weighting。
+
+freestream-recovery provider 使每个 case 内 source-row prediction 为常数。对任一行：
+
+`signed_error_i = constant_prediction - observation_i`
+
+因此精确代数上：
+
+`centered_signed_error = -centered_observation`
+
+在两个 case 的严格 row alignment 下：
+
+`Δsigned_error = Δprediction - Δobservation`
+
+Case A 的 prediction=`1550.4342365955222 K`，位于 observation range 内，因此正式资产同时包含 `136` 个正误差行与 `50` 个负误差行；Case B 的 prediction=`2699.7814815610645 K`，高于全部 observation rows，因此 `186` 行 signed error 均为正。这些是 source-row population 的描述性事实，不是性能接受性结论。
+
+### Cross-case 事实与有限排除
+
+两个正式资产的 source canonical index、authoritative projected coordinates、target canonical index、pairing distance / dx / dspan 与 target multiplicity 逐元素相等。由此只能排除“这些 recorded structures 在 A、B 两资产之间发生变化”作为本次差异来源；不能据此证明 mapping、geometry 或 pairing 绝对正确，也不能排除共同 mapping/geometry bias。
+
+B−A 的 mean signed error=`82.866029 K`、mean absolute error=`80.189112 K`、mean signed relative error=`2.770578 percentage points`、mean absolute relative error=`2.598714 percentage points`；positive rows 增加 `50` 行，即 `26.881720 percentage points`。这些 cross-case 变化由正式资产与独立重算支持，但 Case A 同时为 Mach 6 / 30 km，Case B 同时为 Mach 8 / 40 km，Mach 与高度混杂，不能把变化单独归因于任一因素。
+
+### 仍未建立的物理结论
+
+当前证据没有证明 provider 物理正确或应被修改，没有判定 Fluent observation 的质量或因果责任，没有证明 mapping/pairing 绝对正确，没有排除共同 mapping/geometry bias，也没有形成 windward/leeward 联合结论、模型性能接受性、物理因果或机制归因。未来若要区分 Mach、高度、provider 与 observation 影响，需要独立对照、新 case 或更严格的实验设计，而不是从当前两点混杂比较外推。
+
+Chapter 3.4 与 Chapter 3.5 技术范围已完成。N3c 触发证据继续保留，但 N3c 未正式启动；GATE A 未进入；provider 未修改；display limits 不是 performance threshold，integrity PASS 也不是性能 PASS。
