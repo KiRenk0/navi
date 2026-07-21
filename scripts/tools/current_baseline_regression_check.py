@@ -247,24 +247,52 @@ def _finite_float(name: str, value: Any, *, positive: bool = False) -> float:
     return result
 
 
+def _validate_explicit_freestream_pair(
+    *,
+    T_inf_K: float | None,
+    p_inf_Pa: float | None,
+) -> tuple[float | None, float | None]:
+    if (T_inf_K is None) != (p_inf_Pa is None):
+        raise ValueError(
+            "T_inf_K and p_inf_Pa must be provided together or both omitted"
+        )
+    if T_inf_K is None:
+        return None, None
+    return (
+        _finite_float("T_inf_K", T_inf_K, positive=True),
+        _finite_float("p_inf_Pa", p_inf_Pa, positive=True),
+    )
+
+
 def candidate_generator_command(
     *,
     mach: float,
     alpha_deg: float,
     geometric_altitude_m: float,
     run_dir: Path,
+    T_inf_K: float | None = None,
+    p_inf_Pa: float | None = None,
 ) -> list[str]:
+    T_inf_value, p_inf_value = _validate_explicit_freestream_pair(
+        T_inf_K=T_inf_K,
+        p_inf_Pa=p_inf_Pa,
+    )
     mach_value = _finite_float("mach", mach, positive=True)
     alpha_value = _finite_float("alpha_deg", alpha_deg)
     altitude_value = _finite_float(
         "geometric_altitude_m", geometric_altitude_m, positive=True
     )
-    return [
+    command = [
         sys.executable, str(RUNNER), "--vehicle", str(VEHICLE), "--case", str(CASE),
         "--sampling", str(SAMPLING), "--run_dir", str(run_dir), "--mach", str(mach_value),
         "--alpha", str(alpha_value), "--h_m", str(altitude_value),
-        "--transition_weighting", "step", "--no_plots",
     ]
+    if T_inf_value is not None and p_inf_value is not None:
+        command.extend(
+            ["--T_inf_K", str(T_inf_value), "--p_inf_Pa", str(p_inf_value)]
+        )
+    command.extend(["--transition_weighting", "step", "--no_plots"])
+    return command
 
 
 def _required_mapping(summary: dict[str, Any], key: str) -> dict[str, Any]:
@@ -280,6 +308,87 @@ def _required_values(mapping: dict[str, Any], *, scope: str, keys: Sequence[str]
         raise ValueError(f"{scope} missing required values: {', '.join(missing)}")
 
 
+def _require_requested_summary_value(
+    *,
+    name: str,
+    actual: Any,
+    expected: float,
+) -> float:
+    actual_value = _finite_float(name, actual, positive=True)
+    if not math.isclose(actual_value, expected, rel_tol=0.0, abs_tol=1e-12):
+        raise ValueError(
+            f"{name} does not match requested explicit freestream value: "
+            f"actual={actual_value!r} expected={expected!r}"
+        )
+    return actual_value
+
+
+def _validate_candidate_freestream_provenance(
+    *,
+    summary: dict[str, Any],
+    freestream: dict[str, Any],
+    T_inf_K: float | None,
+    p_inf_Pa: float | None,
+) -> bool:
+    T_inf_value, p_inf_value = _validate_explicit_freestream_pair(
+        T_inf_K=T_inf_K,
+        p_inf_Pa=p_inf_Pa,
+    )
+    inputs = summary.get("inputs")
+    recorded_overrides = (
+        isinstance(inputs, dict)
+        and (
+            inputs.get("T_inf_K_override") is not None
+            or inputs.get("p_inf_Pa_override") is not None
+        )
+    )
+    explicit_summary = (
+        freestream.get("freestream_source") == "explicit_override"
+        or recorded_overrides
+    )
+
+    if T_inf_value is None or p_inf_value is None:
+        if explicit_summary:
+            raise ValueError(
+                "explicit freestream run requires explicit T_inf_K and p_inf_Pa "
+                "provenance inputs"
+            )
+        return False
+
+    inputs = _required_mapping(summary, "inputs")
+    _required_values(
+        inputs,
+        scope="summary.inputs",
+        keys=("T_inf_K_override", "p_inf_Pa_override"),
+    )
+    if freestream.get("freestream_source") != "explicit_override":
+        raise ValueError(
+            "summary.freestream.freestream_source must be explicit_override "
+            "when explicit freestream provenance inputs are provided"
+        )
+    _require_requested_summary_value(
+        name="summary.inputs.T_inf_K_override",
+        actual=inputs["T_inf_K_override"],
+        expected=T_inf_value,
+    )
+    _require_requested_summary_value(
+        name="summary.inputs.p_inf_Pa_override",
+        actual=inputs["p_inf_Pa_override"],
+        expected=p_inf_value,
+    )
+    _require_requested_summary_value(
+        name="summary.freestream.T_inf_K",
+        actual=freestream.get("T_inf_K"),
+        expected=T_inf_value,
+    )
+    _require_requested_summary_value(
+        name="summary.freestream.p_inf_Pa",
+        actual=freestream.get("p_inf_Pa"),
+        expected=p_inf_value,
+    )
+    return True
+
+
 def build_candidate_manifest(
     *,
     case_id: str,
@@ -288,7 +397,13 @@ def build_candidate_manifest(
     geometric_altitude_m: float,
     run_dir: Path,
     generator_command: Sequence[str],
+    T_inf_K: float | None = None,
+    p_inf_Pa: float | None = None,
 ) -> dict[str, Any]:
+    T_inf_value, p_inf_value = _validate_explicit_freestream_pair(
+        T_inf_K=T_inf_K,
+        p_inf_Pa=p_inf_Pa,
+    )
     if not isinstance(case_id, str) or not case_id.strip():
         raise ValueError("case_id must be a non-empty string")
     mach_value = _finite_float("mach", mach, positive=True)
@@ -330,6 +445,35 @@ def build_candidate_manifest(
         keys=("actual_cp_model", "actual_cp_newtonian_A", "actual_cp_newtonian_n"),
     )
     _required_values(faceted3d, scope="summary.faceted3d", keys=("chord_min_m",))
+    explicit_freestream_override = _validate_candidate_freestream_provenance(
+        summary=summary,
+        freestream=freestream,
+        T_inf_K=T_inf_value,
+        p_inf_Pa=p_inf_value,
+    )
+    if explicit_freestream_override:
+        _finite_float(
+            "summary.freestream.rho_inf_kg_m3",
+            freestream["rho_inf_kg_m3"],
+            positive=True,
+        )
+
+    expected_generator_command = candidate_generator_command(
+        mach=mach_value,
+        alpha_deg=alpha_value,
+        geometric_altitude_m=altitude_value,
+        run_dir=candidate_dir,
+        T_inf_K=T_inf_value,
+        p_inf_Pa=p_inf_value,
+    )
+    if (
+        explicit_freestream_override
+        and list(generator_command) != expected_generator_command
+    ):
+        raise ValueError(
+            "generator_command must match the complete candidate runner command "
+            "for the supplied provenance inputs"
+        )
 
     required_fields = {"yb_grid", "span_w_m", "x_w_m", "mask_w", "xc_grid"}
     with np.load(fields_path, allow_pickle=False) as fields:
@@ -369,7 +513,7 @@ def build_candidate_manifest(
         "atmosphere": {
             "model": freestream["atmosphere_model"],
             "altitude_semantics": "geometric altitude converted to geopotential altitude before 1976 layer evaluation",
-            "explicit_freestream_override": False,
+            "explicit_freestream_override": explicit_freestream_override,
         },
         "thermo": {
             "model": "tpg",
@@ -900,21 +1044,56 @@ def main() -> int:
     parser.add_argument("--alpha", type=float)
     parser.add_argument("--h-m", type=float)
     parser.add_argument("--run-dir", type=Path)
+    parser.add_argument(
+        "--t-inf-k",
+        type=float,
+        help=(
+            "explicit freestream static temperature (K) provenance; "
+            "must be provided together with --p-inf-pa"
+        ),
+    )
+    parser.add_argument(
+        "--p-inf-pa",
+        type=float,
+        help=(
+            "explicit freestream static pressure (Pa) provenance; "
+            "must be provided together with --t-inf-k"
+        ),
+    )
     args = parser.parse_args()
 
-    candidate_values = {
+    required_candidate_values = {
         "--case-id": args.case_id,
         "--mach": args.mach,
         "--alpha": args.alpha,
         "--h-m": args.h_m,
         "--run-dir": args.run_dir,
     }
+    candidate_values = {
+        **required_candidate_values,
+        "--t-inf-k": args.t_inf_k,
+        "--p-inf-pa": args.p_inf_pa,
+    }
     if args.candidate_manifest:
-        missing = [name for name, value in candidate_values.items() if value is None]
+        missing = [
+            name for name, value in required_candidate_values.items() if value is None
+        ]
         if missing:
             parser.error(
-                "--candidate-manifest requires " + ", ".join(candidate_values)
+                "--candidate-manifest requires "
+                + ", ".join(required_candidate_values)
             )
+        if (args.t_inf_k is None) != (args.p_inf_pa is None):
+            parser.error(
+                "--t-inf-k and --p-inf-pa must be provided together or both omitted"
+            )
+        try:
+            T_inf_value, p_inf_value = _validate_explicit_freestream_pair(
+                T_inf_K=args.t_inf_k,
+                p_inf_Pa=args.p_inf_pa,
+            )
+        except ValueError as exc:
+            parser.error(str(exc))
         candidate_dir = _validate_candidate_run_dir(
             args.run_dir,
             allowed_runs_root=CANDIDATE_RUNS_ROOT,
@@ -924,6 +1103,8 @@ def main() -> int:
             alpha_deg=args.alpha,
             geometric_altitude_m=args.h_m,
             run_dir=candidate_dir,
+            T_inf_K=T_inf_value,
+            p_inf_Pa=p_inf_value,
         )
         manifest = build_candidate_manifest(
             case_id=args.case_id,
@@ -932,6 +1113,8 @@ def main() -> int:
             geometric_altitude_m=args.h_m,
             run_dir=candidate_dir,
             generator_command=command,
+            T_inf_K=T_inf_value,
+            p_inf_Pa=p_inf_value,
         )
         target = _write_candidate_manifest_atomically(candidate_dir, manifest)
         print(f"candidate manifest written: {target}")

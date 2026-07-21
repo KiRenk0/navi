@@ -114,23 +114,82 @@ def _write_candidate_artifacts(run_dir: Path) -> None:
     )
 
 
-def _candidate_command(run_dir: Path) -> list[str]:
-    return manifest_tool.candidate_generator_command(
-        mach=7.25,
-        alpha_deg=-1.5,
-        geometric_altitude_m=35000.0,
-        run_dir=run_dir,
+def _read_summary(run_dir: Path) -> dict[str, Any]:
+    return json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
+
+
+def _write_summary(run_dir: Path, summary: dict[str, Any]) -> None:
+    (run_dir / "summary.json").write_text(
+        json.dumps(summary, ensure_ascii=False) + "\n",
+        encoding="utf-8",
     )
 
 
-def _build_candidate(run_dir: Path) -> dict[str, Any]:
+def _set_explicit_summary(
+    run_dir: Path,
+    *,
+    T_inf_K: float = 226.509,
+    p_inf_Pa: float = 1197.0,
+) -> None:
+    summary = _read_summary(run_dir)
+    summary["inputs"] = {
+        "T_inf_K_override": T_inf_K,
+        "p_inf_Pa_override": p_inf_Pa,
+    }
+    summary["freestream"].update(
+        {
+            "T_inf_K": T_inf_K,
+            "p_inf_Pa": p_inf_Pa,
+            "freestream_source": "explicit_override",
+        }
+    )
+    _write_summary(run_dir, summary)
+
+
+def _candidate_command(
+    run_dir: Path,
+    *,
+    mach: float = 7.25,
+    alpha_deg: float = -1.5,
+    geometric_altitude_m: float = 35000.0,
+    T_inf_K: float | None = None,
+    p_inf_Pa: float | None = None,
+) -> list[str]:
+    return manifest_tool.candidate_generator_command(
+        mach=mach,
+        alpha_deg=alpha_deg,
+        geometric_altitude_m=geometric_altitude_m,
+        run_dir=run_dir,
+        T_inf_K=T_inf_K,
+        p_inf_Pa=p_inf_Pa,
+    )
+
+
+def _build_candidate(
+    run_dir: Path,
+    *,
+    mach: float = 7.25,
+    alpha_deg: float = -1.5,
+    geometric_altitude_m: float = 35000.0,
+    T_inf_K: float | None = None,
+    p_inf_Pa: float | None = None,
+) -> dict[str, Any]:
     return manifest_tool.build_candidate_manifest(
         case_id="candidate_not_in_registry",
-        mach=7.25,
-        alpha_deg=-1.5,
-        geometric_altitude_m=35000.0,
+        mach=mach,
+        alpha_deg=alpha_deg,
+        geometric_altitude_m=geometric_altitude_m,
         run_dir=run_dir,
-        generator_command=_candidate_command(run_dir),
+        generator_command=_candidate_command(
+            run_dir,
+            mach=mach,
+            alpha_deg=alpha_deg,
+            geometric_altitude_m=geometric_altitude_m,
+            T_inf_K=T_inf_K,
+            p_inf_Pa=p_inf_Pa,
+        ),
+        T_inf_K=T_inf_K,
+        p_inf_Pa=p_inf_Pa,
     )
 
 
@@ -210,6 +269,309 @@ def test_candidate_generator_command_is_unregistered_and_formal(candidate_run: P
         "--no_plots",
     ]
     assert all(case_id not in command for case_id in manifest_tool.CASES)
+    assert "--T_inf_K" not in command
+    assert "--p_inf_Pa" not in command
+
+
+def test_candidate_generator_command_includes_explicit_freestream_pair(
+    candidate_run: Path,
+) -> None:
+    command = _candidate_command(
+        candidate_run,
+        mach=8.0,
+        alpha_deg=5.0,
+        geometric_altitude_m=30000.0,
+        T_inf_K=226.509,
+        p_inf_Pa=1197.0,
+    )
+
+    assert command[-7:] == [
+        "--T_inf_K",
+        "226.509",
+        "--p_inf_Pa",
+        "1197.0",
+        "--transition_weighting",
+        "step",
+        "--no_plots",
+    ]
+    for option in (
+        "--vehicle",
+        "--case",
+        "--sampling",
+        "--run_dir",
+        "--mach",
+        "--alpha",
+        "--h_m",
+    ):
+        assert option in command
+
+
+@pytest.mark.parametrize(
+    ("T_inf_K", "p_inf_Pa"),
+    [(226.509, None), (None, 1197.0)],
+)
+def test_candidate_generator_command_requires_explicit_freestream_pair(
+    candidate_run: Path,
+    T_inf_K: float | None,
+    p_inf_Pa: float | None,
+) -> None:
+    with pytest.raises(ValueError, match="T_inf_K.*p_inf_Pa.*together"):
+        _candidate_command(
+            candidate_run,
+            T_inf_K=T_inf_K,
+            p_inf_Pa=p_inf_Pa,
+        )
+
+
+@pytest.mark.parametrize(
+    ("T_inf_K", "p_inf_Pa"),
+    [(226.509, None), (None, 1197.0)],
+)
+def test_build_candidate_manifest_requires_explicit_freestream_pair(
+    candidate_run: Path,
+    T_inf_K: float | None,
+    p_inf_Pa: float | None,
+) -> None:
+    with pytest.raises(ValueError, match="T_inf_K.*p_inf_Pa.*together"):
+        manifest_tool.build_candidate_manifest(
+            case_id="candidate",
+            mach=8.0,
+            alpha_deg=5.0,
+            geometric_altitude_m=30000.0,
+            run_dir=candidate_run,
+            generator_command=["solver"],
+            T_inf_K=T_inf_K,
+            p_inf_Pa=p_inf_Pa,
+        )
+
+
+@pytest.mark.parametrize(
+    ("T_inf_K", "p_inf_Pa"),
+    [
+        (float("nan"), 1197.0),
+        (float("inf"), 1197.0),
+        (0.0, 1197.0),
+        (-1.0, 1197.0),
+        (226.509, float("nan")),
+        (226.509, float("inf")),
+        (226.509, 0.0),
+        (226.509, -1.0),
+    ],
+)
+def test_explicit_freestream_values_must_be_finite_and_positive(
+    candidate_run: Path,
+    T_inf_K: float,
+    p_inf_Pa: float,
+) -> None:
+    with pytest.raises(ValueError, match="T_inf_K|p_inf_Pa"):
+        _candidate_command(
+            candidate_run,
+            T_inf_K=T_inf_K,
+            p_inf_Pa=p_inf_Pa,
+        )
+
+
+@pytest.mark.parametrize(
+    ("T_inf_K", "p_inf_Pa"),
+    [
+        (float("nan"), 1197.0),
+        (0.0, 1197.0),
+        (226.509, float("inf")),
+        (226.509, -1.0),
+    ],
+)
+def test_build_candidate_manifest_rejects_invalid_explicit_values(
+    candidate_run: Path,
+    T_inf_K: float,
+    p_inf_Pa: float,
+) -> None:
+    with pytest.raises(ValueError, match="T_inf_K|p_inf_Pa"):
+        manifest_tool.build_candidate_manifest(
+            case_id="candidate",
+            mach=8.0,
+            alpha_deg=5.0,
+            geometric_altitude_m=30000.0,
+            run_dir=candidate_run,
+            generator_command=["solver"],
+            T_inf_K=T_inf_K,
+            p_inf_Pa=p_inf_Pa,
+        )
+
+
+def test_explicit_m8_h30_candidate_manifest_records_complete_provenance(
+    candidate_run: Path,
+) -> None:
+    _set_explicit_summary(candidate_run)
+
+    manifest = _build_candidate(
+        candidate_run,
+        mach=8.0,
+        alpha_deg=5.0,
+        geometric_altitude_m=30000.0,
+        T_inf_K=226.509,
+        p_inf_Pa=1197.0,
+    )
+
+    assert list(manifest) == CANDIDATE_KEYS
+    assert manifest["case"] == {
+        "mach": 8.0,
+        "alpha_deg": 5.0,
+        "geometric_altitude_m": 30000.0,
+    }
+    assert manifest["atmosphere"]["explicit_freestream_override"] is True
+    assert manifest["freestream"]["actual_T_inf_K"] == 226.509
+    assert manifest["freestream"]["actual_p_inf_Pa"] == 1197.0
+    assert manifest["freestream"]["source"] == "explicit_override"
+    assert "--T_inf_K 226.509" in manifest["generator_cli_template"]
+    assert "--p_inf_Pa 1197.0" in manifest["generator_cli_template"]
+
+
+def test_explicit_summary_without_provenance_pair_is_rejected(
+    candidate_run: Path,
+) -> None:
+    _set_explicit_summary(candidate_run)
+
+    with pytest.raises(
+        ValueError,
+        match="explicit freestream run requires explicit T_inf_K and p_inf_Pa provenance inputs",
+    ):
+        _build_candidate(candidate_run)
+
+
+@pytest.mark.parametrize(
+    ("scope", "key", "value"),
+    [
+        ("inputs", "T_inf_K_override", 226.5),
+        ("inputs", "p_inf_Pa_override", 1196.0),
+        ("freestream", "T_inf_K", 226.5),
+        ("freestream", "p_inf_Pa", 1196.0),
+    ],
+)
+def test_explicit_summary_value_mismatch_is_rejected(
+    candidate_run: Path,
+    scope: str,
+    key: str,
+    value: float,
+) -> None:
+    _set_explicit_summary(candidate_run)
+    summary = _read_summary(candidate_run)
+    summary[scope][key] = value
+    _write_summary(candidate_run, summary)
+
+    with pytest.raises(ValueError, match=key):
+        _build_candidate(candidate_run, T_inf_K=226.509, p_inf_Pa=1197.0)
+
+
+@pytest.mark.parametrize(
+    ("scope", "key", "value"),
+    [
+        ("inputs", "T_inf_K_override", float("nan")),
+        ("inputs", "p_inf_Pa_override", 0.0),
+        ("freestream", "T_inf_K", float("inf")),
+        ("freestream", "p_inf_Pa", -1.0),
+        ("freestream", "rho_inf_kg_m3", 0.0),
+    ],
+)
+def test_explicit_summary_values_must_be_finite_and_positive(
+    candidate_run: Path,
+    scope: str,
+    key: str,
+    value: float,
+) -> None:
+    _set_explicit_summary(candidate_run)
+    summary = _read_summary(candidate_run)
+    summary[scope][key] = value
+    _write_summary(candidate_run, summary)
+
+    with pytest.raises(ValueError, match=key):
+        _build_candidate(candidate_run, T_inf_K=226.509, p_inf_Pa=1197.0)
+
+
+def test_explicit_summary_source_mismatch_is_rejected(candidate_run: Path) -> None:
+    _set_explicit_summary(candidate_run)
+    summary = _read_summary(candidate_run)
+    summary["freestream"]["freestream_source"] = "atmosphere"
+    _write_summary(candidate_run, summary)
+
+    with pytest.raises(ValueError, match="freestream_source.*explicit_override"):
+        _build_candidate(candidate_run, T_inf_K=226.509, p_inf_Pa=1197.0)
+
+
+@pytest.mark.parametrize("missing_key", ["T_inf_K_override", "p_inf_Pa_override"])
+def test_explicit_pair_requires_both_summary_override_fields(
+    candidate_run: Path,
+    missing_key: str,
+) -> None:
+    _set_explicit_summary(candidate_run)
+    summary = _read_summary(candidate_run)
+    del summary["inputs"][missing_key]
+    _write_summary(candidate_run, summary)
+
+    with pytest.raises(ValueError, match=missing_key):
+        _build_candidate(candidate_run, T_inf_K=226.509, p_inf_Pa=1197.0)
+
+
+def test_explicit_pair_requires_summary_override_object(candidate_run: Path) -> None:
+    summary = _read_summary(candidate_run)
+    summary["freestream"].update(
+        {
+            "T_inf_K": 226.509,
+            "p_inf_Pa": 1197.0,
+            "freestream_source": "explicit_override",
+        }
+    )
+    _write_summary(candidate_run, summary)
+
+    with pytest.raises(ValueError, match="summary.json missing required object: inputs"):
+        _build_candidate(candidate_run, T_inf_K=226.509, p_inf_Pa=1197.0)
+
+
+def test_explicit_pair_rejects_incomplete_generator_command(
+    candidate_run: Path,
+) -> None:
+    _set_explicit_summary(candidate_run)
+
+    with pytest.raises(ValueError, match="complete candidate runner command"):
+        manifest_tool.build_candidate_manifest(
+            case_id="candidate_m8_h30",
+            mach=8.0,
+            alpha_deg=5.0,
+            geometric_altitude_m=30000.0,
+            run_dir=candidate_run,
+            generator_command=["solver"],
+            T_inf_K=226.509,
+            p_inf_Pa=1197.0,
+        )
+
+
+def test_non_explicit_summary_remains_backward_compatible(candidate_run: Path) -> None:
+    manifest = _build_candidate(candidate_run)
+
+    assert manifest["atmosphere"]["explicit_freestream_override"] is False
+    assert manifest["freestream"] == {
+        "actual_T_inf_K": 230.0,
+        "actual_p_inf_Pa": 900.0,
+        "actual_rho_inf_kg_m3": 0.014,
+        "source": "atmosphere",
+    }
+    assert "--T_inf_K" not in manifest["generator_cli_template"]
+    assert "--p_inf_Pa" not in manifest["generator_cli_template"]
+
+
+def test_non_explicit_builder_preserves_supplied_generator_command(
+    candidate_run: Path,
+) -> None:
+    manifest = manifest_tool.build_candidate_manifest(
+        case_id="candidate",
+        mach=7.25,
+        alpha_deg=-1.5,
+        geometric_altitude_m=35000.0,
+        run_dir=candidate_run,
+        generator_command=["existing-non-explicit-command"],
+    )
+
+    assert manifest["generator_cli_template"] == "existing-non-explicit-command"
+    assert manifest["atmosphere"]["explicit_freestream_override"] is False
 
 
 def test_empty_case_id_fails(candidate_run: Path) -> None:
@@ -375,6 +737,135 @@ def test_candidate_cli_requires_all_arguments(monkeypatch: pytest.MonkeyPatch) -
     with pytest.raises(SystemExit) as exc_info:
         manifest_tool.main()
     assert exc_info.value.code == 2
+
+
+def test_candidate_cli_help_documents_explicit_freestream_pair(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["candidate-manifest", "--help"])
+    with pytest.raises(SystemExit) as exc_info:
+        manifest_tool.main()
+
+    assert exc_info.value.code == 0
+    help_text = capsys.readouterr().out
+    assert "--t-inf-k" in help_text
+    assert "--p-inf-pa" in help_text
+    assert "K" in help_text
+    assert "Pa" in help_text
+    assert "together" in help_text
+
+
+@pytest.mark.parametrize(
+    "explicit_args",
+    [
+        ["--t-inf-k", "226.509"],
+        ["--p-inf-pa", "1197.0"],
+    ],
+)
+def test_candidate_cli_rejects_unpaired_explicit_freestream_argument(
+    candidate_run: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    explicit_args: list[str],
+) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "candidate-manifest",
+            "--candidate-manifest",
+            "--case-id",
+            "candidate",
+            "--mach",
+            "8",
+            "--alpha",
+            "5",
+            "--h-m",
+            "30000",
+            "--run-dir",
+            str(candidate_run),
+            *explicit_args,
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        manifest_tool.main()
+
+    assert exc_info.value.code == 2
+    assert "--t-inf-k and --p-inf-pa must be provided together" in capsys.readouterr().err
+
+
+def test_candidate_cli_rejects_invalid_explicit_freestream_pair(
+    candidate_run: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "candidate-manifest",
+            "--candidate-manifest",
+            "--case-id",
+            "candidate",
+            "--mach",
+            "8",
+            "--alpha",
+            "5",
+            "--h-m",
+            "30000",
+            "--run-dir",
+            str(candidate_run),
+            "--t-inf-k",
+            "nan",
+            "--p-inf-pa",
+            "1197.0",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        manifest_tool.main()
+
+    assert exc_info.value.code == 2
+    assert "T_inf_K must be a finite float" in capsys.readouterr().err
+
+
+def test_candidate_cli_maps_explicit_freestream_pair(
+    candidate_run: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _set_explicit_summary(candidate_run)
+    monkeypatch.setattr(manifest_tool, "CANDIDATE_RUNS_ROOT", candidate_run.parents[1])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "candidate-manifest",
+            "--candidate-manifest",
+            "--case-id",
+            "candidate_m8_h30",
+            "--mach",
+            "8",
+            "--alpha",
+            "5",
+            "--h-m",
+            "30000",
+            "--run-dir",
+            str(candidate_run),
+            "--t-inf-k",
+            "226.509",
+            "--p-inf-pa",
+            "1197.0",
+        ],
+    )
+
+    assert manifest_tool.main() == 0
+    manifest = json.loads((candidate_run / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["atmosphere"]["explicit_freestream_override"] is True
+    assert manifest["freestream"]["source"] == "explicit_override"
+    assert "--T_inf_K 226.509" in manifest["generator_cli_template"]
+    assert "--p_inf_Pa 1197.0" in manifest["generator_cli_template"]
 
 
 def test_candidate_cli_only_writes_manifest(

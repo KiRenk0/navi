@@ -1,6 +1,6 @@
 # Faceted3D 文件索引
 
-> 更新：2026-07-21（N3a candidate manifest 工具与测试索引）
+> 更新：2026-07-21（N3a candidate explicit-freestream provenance 工具与测试索引）
 
 ---
 
@@ -174,7 +174,7 @@ Phase 5B2 当前只有只读 audit 结论：正式方向为 Fluent clean → LF 
 
 | 路径 | 说明 |
 |------|------|
-| `scripts/tools/current_baseline_regression_check.py` | formal baseline `current-tpg-baseline-regression/v5` freeze/check 与未注册 candidate `tpg-candidate-manifest/v1` generation 的共用工具；两种模式严格互斥 |
-| `tests/test_tpg_candidate_manifest.py` | candidate schema/case identity、hash 复用、路径隔离、拒绝覆盖、原子发布、v5 零漂移及 freeze/check/solver 隔离测试 |
+| `scripts/tools/current_baseline_regression_check.py` | formal baseline `current-tpg-baseline-regression/v5` freeze/check 与未注册 candidate `tpg-candidate-manifest/v1` generation 的共用工具；candidate-only 显式 freestream provenance 由成对可选参数接入，两种 manifest 身份与运行模式严格隔离 |
+| `tests/test_tpg_candidate_manifest.py` | candidate schema/case identity、显式 freestream pair/summary/runner command provenance、非显式兼容、hash 复用、路径隔离、拒绝覆盖、原子发布、v5 零漂移及 freeze/check/solver 隔离测试 |
 
-candidate CLI 参数为 `--candidate-manifest`、`--case-id`、`--mach`、`--alpha`、`--h-m`、`--run-dir`。candidate 模式不运行 solver，不修改 `CASES`，不触碰 `current_baseline_snapshot` 或 `leeward_source_evidence`；只处理已存在 run，并拒绝覆盖既有 `manifest.json`。
+candidate CLI 必选参数为 `--candidate-manifest`、`--case-id`、`--mach`、`--alpha`、`--h-m`、`--run-dir`；成对可选 provenance 参数为 `--t-inf-k`、`--p-inf-pa`。两项必须同时提供或同时省略，且必须为有限正值。显式路径的 runner 复现命令使用正式 `--T_inf_K`、`--p_inf_Pa`，交叉校验 summary override/freestream/source 并记录 `atmosphere.explicit_freestream_override=true`；非显式路径保持 `false`。candidate 模式不运行 solver，不修改 `CASES`，不触碰 `current_baseline_snapshot` 或 `leeward_source_evidence`；只处理已存在 run，并拒绝覆盖既有 `manifest.json`。candidate 顶层字段与正式 v5 baseline、Groups 1–8、72-field contract 均未改变。

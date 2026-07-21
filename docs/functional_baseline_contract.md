@@ -190,6 +190,10 @@ candidate manifest 顶层字段按顺序固定为：
 - candidate manifest 不能通过编辑、重命名或改字段成为 v5 baseline manifest。未来若 candidate 获准进入正式 baseline，必须先有独立 admission 决策，再由既有正式 freeze 机制重新生成真正的 v5 manifest。
 - candidate CLI 只读取既有 `fields.npz` 与 `summary.json`，不运行 solver；`run_dir` 必须位于 `ROOT/runs`，且目录名必须包含 `candidate`。
 - candidate CLI 拒绝 `current_baseline_snapshot` 与 `leeward_source_evidence`，拒绝覆盖既有 `manifest.json`，不提供 `--overwrite`，并以原子方式发布新 manifest。
+- candidate-only 显式 freestream provenance 通过成对可选参数 `--t-inf-k` / `--p-inf-pa` 提供；两项必须同时提供或同时省略，非有限、零值或负值一律拒绝。它们只补充 candidate manifest provenance，不是 solver 新能力。
+- 显式路径生成的 runner 复现命令使用正式 runner 参数名 `--T_inf_K` / `--p_inf_Pa`，并必须完整记录真实显式温压参数和值。
+- 显式路径交叉校验 `inputs.T_inf_K_override`、`inputs.p_inf_Pa_override`、`freestream.freestream_source`、`freestream.T_inf_K` 与 `freestream.p_inf_Pa`；source 必须为 `explicit_override`，校验通过后记录 `atmosphere.explicit_freestream_override=true`。显式 summary 未同时提供对应 provenance pair 时拒绝生成 manifest。
+- 非显式 candidate 路径保持向后兼容并记录 `atmosphere.explicit_freestream_override=false`。本修复未改变 candidate manifest 顶层字段集合，也未改变正式 v5 baseline、`CASES`、registry、freeze/check、source inventory、Groups 1–8 或 72-field serialization contract。
 
 
 当你确认 `specs/` 内容齐全后（本项目默认即为 `specs/`）：

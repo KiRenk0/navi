@@ -400,3 +400,14 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 两个正式 baseline `ma6_a5_h30km`、`ma8_a5_h40km` 的 72 fields、Groups 1–8、source integrity、artifact integrity 与 current regression overall 均为 PASS；六个正式 baseline 资产 SHA-256 保持不变。
 - 正式 evidence run 未修改，manifest SHA-256 仍为 `4db8b71bf79602ffdae12a71a345c251711b0b791ae7405b97105cffef4f0b90`。
 - 本阶段未运行 M8/30，未生成真实 candidate run 或 manifest，未修改 strategy v1.2。strategy v1.2 保持 frozen，当前战略节点仍为 N3a，不退出 N3a，也不返回 GATE A。
+
+---
+
+## 2026-07-21: N3a.4d/e Candidate Explicit-Freestream Provenance 修复与独立 QA
+
+- `tpg-candidate-manifest/v1` 已补齐 candidate-only 显式 freestream provenance。candidate manifest CLI 新增成对可选 `--t-inf-k` / `--p-inf-pa`，要求同时提供或同时省略，并拒绝非有限、零值或负值。
+- runner 原有显式 freestream 能力未变；manifest 的复现命令使用正式 runner 参数 `--T_inf_K` / `--p_inf_Pa` 并保留真实值。explicit 路径交叉校验 summary 中的 override pair、freestream source 与实际温压；source 必须为 `explicit_override`，并记录 `atmosphere.explicit_freestream_override=true`。显式 summary 缺少 provenance pair 时 fail-closed。
+- 非显式 candidate 路径保持 `explicit_freestream_override=false`；candidate manifest 顶层字段集合不变。正式 v5 baseline、`CASES`、registry、freeze/check、source inventory、Groups 1–8、72-field contract、provider 与 formal evidence 均未改变。
+- 独立 QA：candidate 专项=`73 passed`；full suite=`235 passed, 117 subtests passed`；两个正式 baseline regression、72 fields、Groups 1–8、source integrity 与 artifact integrity 均为 PASS。六个正式 baseline 资产、两个生产 v5 manifest、14 个正式 evidence 文件与 33 个历史 pyc 均为 zero drift。
+- 下一次唯一 M8/30 candidate generation 的用户批准显式 override 为 `Mach=8`、`alpha=+5 deg`、几何高度 `30000 m`、`T_inf_K=226.509 K`、`p_inf_Pa=1197.0 Pa`；本阶段未执行 candidate generation，未生成 production candidate manifest，未 admission/promotion，也未进入 formal comparison/evidence。
+- provider 保持 unchanged；N3a 尚未退出；GATE A 未重新开启。上述 QA 只证明修复、合同与冻结资产完整性，不表示 M8/30 数值结果已生成或验证。
