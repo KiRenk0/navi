@@ -411,3 +411,18 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 独立 QA：candidate 专项=`73 passed`；full suite=`235 passed, 117 subtests passed`；两个正式 baseline regression、72 fields、Groups 1–8、source integrity 与 artifact integrity 均为 PASS。六个正式 baseline 资产、两个生产 v5 manifest、14 个正式 evidence 文件与 33 个历史 pyc 均为 zero drift。
 - 下一次唯一 M8/30 candidate generation 的用户批准显式 override 为 `Mach=8`、`alpha=+5 deg`、几何高度 `30000 m`、`T_inf_K=226.509 K`、`p_inf_Pa=1197.0 Pa`；本阶段未执行 candidate generation，未生成 production candidate manifest，未 admission/promotion，也未进入 formal comparison/evidence。
 - provider 保持 unchanged；N3a 尚未退出；GATE A 未重新开启。上述 QA 只证明修复、合同与冻结资产完整性，不表示 M8/30 数值结果已生成或验证。
+
+---
+
+## 2026-07-22: N3a.5b–N3a.5e Exact Projection Accelerator / Cache 技术链收口
+
+- 工作分支=`feat/n3a-exact-projection-cache`，base SHA=`0bd59480c14be2769ffca081318f84b29b2049b5`。修改范围严格限定为 `exact_bvh.py`、`projection_cache.py`、`fluent_projection.py`、两个对应测试和两个 canonical docs；原 brute-force exact triangle kernel 与 tie-break 语义未改变。
+- 新增 array-based exact BVH 与 geometry-identity fail-closed cache。BVH 使用三维 Euclidean AABB 真下界；exact/near-tie 继续使用 `_distances_equivalent`，canonical triangle index 最小者胜出；仅内部 `RuntimeError` 可回退，输入合同错误 fail closed。cache 仅保存 geometry-derived projection，不包含 wall-temperature。
+- CRLF 污染事件中，33 个范围外文件仅发生 LF→CRLF raw 表示变化，normalized content 与 HEAD 一致；已定向恢复，未发生语义修改。
+- M8/30 full projection QA：21,250 canonical points、6,341 STL triangles、gate=`0.005 m`；brute-force/BVH runtime=`718.270169500/83.302107300 s`，speedup=`8.6224729815×`；kernel calls=`134,746,250/2,904,162`，visited fraction=`2.1552822435%`，reduction=`97.8447177565%`，fallback=`0`。triangle ID、projected XYZ、distance、raw normal、gate、canonical/source identity 的逐字段 mismatch 均为 `0`，第二次完整 BVH deterministic rerun PASS。
+- reference 与 accelerated 的 formal projection、projected semantics、Fluent clean、LF clean、upper/lower pairing 和 upper/lower observation 均等价；冻结 counts 保持 Fluent semantic valid/invalid=`14,841/6,409`、planform valid=`21,240`、gate pass=`21,250`，Fluent clean upper/lower/any=`186/0/186`（source 1/2=`15/171`），LF points=`3,321`、clean upper/lower/any=`256/0/256`，pairing upper source/target=`186/256`、lower=`0/0`，observation upper/lower=`186/0`、unit=`K`。
+- 同一实现身份下 projection/BVH regression=`76/76 PASS`、cache regression=`29/29 PASS`，合计 `105/105 PASS`；failed/errors/skipped/xfail/warnings 均为 `0`。
+- 正式 cache=`runs/fluent_projection_cache/f8e831b08dd86283bb69dc2f5be5fdb636e160a801ce97ec4d9382098b611c23/projection_cache.npz`，size=`786,521 bytes`，SHA-256=`a82d7d56b01aaae8067cdfa2c3ba439f4d3cc7fcd537c0dedbb573cf4d6be3a7`，schema=`exact-projection-cache/v1`，algorithm=`n3a.5b-exact-bvh/v1`。
+- 两个独立冷启动 Python 进程均 cache hit，BVH/brute-force/compute fallback/cache writer calls 全为 `0`；formal projection validator、semantics、Fluent/LF clean、upper/lower pairing 与 observation 全部 PASS；两个进程的 deterministic result JSON SHA-256 均为 `709405e8871f0eb08625e404a58b8725db1b526bdf8963764a2fe499bfc31b44`。
+- 正式 cache 治理冻结为 ignored external frozen run artifact：不 tracked、不随普通 clone 分发、不绑定 CASE_REGISTRY、不 promotion 到 baseline/evidence，也不是 canonical source data、观测数据或 baseline；缺失时可由冻结输入与已提交实现重建，identity mismatch/corruption 必须 fail closed。
+- 本链未执行 comparison、未生成新 evidence、未处理 45 km、未 admission/promotion。下一步不是继续修改 projection，而是在独立 Git fast-forward merge closeout 后返回原 N3a 资格/治理主线。
