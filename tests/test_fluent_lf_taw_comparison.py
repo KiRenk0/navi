@@ -155,6 +155,20 @@ class FluentLfTawComparisonTest(unittest.TestCase):
         with self.assertRaises(FrozenInstanceError):
             self.build().unit = "C"
 
+    def test_public_import_surface_preserves_definition_identity(self) -> None:
+        from ref_enthalpy_method.mapping import (
+            FluentLfTawComparison as PublicComparison,
+            build_fluent_lf_taw_comparison as public_comparison_builder,
+            build_m8h30_comparison_inputs,
+        )
+        from ref_enthalpy_method.mapping.m8h30_comparison_inputs import (
+            build_m8h30_comparison_inputs as definition_input_builder,
+        )
+
+        self.assertIs(PublicComparison, FluentLfTawComparison)
+        self.assertIs(public_comparison_builder, build_fluent_lf_taw_comparison)
+        self.assertIs(build_m8h30_comparison_inputs, definition_input_builder)
+
     def test_direct_indexing_many_to_one_formulas_metadata_and_prohibitions(self) -> None:
         result = self.build()
         np.testing.assert_array_equal(result.source_canonical_index, [3, 7, 11])

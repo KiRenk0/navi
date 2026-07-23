@@ -106,6 +106,450 @@ CANDIDATE_PROVENANCE = (
 CANDIDATE_MANIFEST_GENERATOR = (
     "scripts/tools/current_baseline_regression_check.py --candidate-manifest"
 )
+MANIFEST_SCHEMA = "current-tpg-baseline-regression/v5"
+SOURCE_IDENTITY_SCHEMA = "git-head-tree-source-identity/v1"
+SOURCE_IDENTITY_KEYS = (
+    "schema",
+    "authority",
+    "canonical_bytes",
+    "digest_algorithm",
+    "path_format",
+    "inventory_rule",
+    "ordering",
+    "inventory_paths_sha256",
+    "aggregate_sha256",
+)
+FIXED_PRODUCTION_PATHS = (
+    "scripts/run_case_rem.py",
+    "specs/vehicles/htv2_faceted3d_0629.yaml",
+    "specs/cases/doc_ma6_alpha5_h30km_faceted3d.yaml",
+    "specs/sampling/engineering_full_wing_surface_grid_81x41.yaml",
+    "new_spec/htv2_0628.stl",
+    "new_spec/outline_xz_right_0629.csv",
+)
+PYTHON_SOURCE_PREFIX = "src/ref_enthalpy_method/"
+EXPECTED_PRODUCTION_SOURCE_COUNT = 65
+SOURCE_IDENTITY_MUTABLE_FIELDS = frozenset(
+    {"source_hashes_sha256", "source_identity"}
+)
+
+
+class SourceIdentityError(RuntimeError):
+    """Fail-closed source identity or repository-state defect."""
+
+
+class ProductionSourceDirtyError(SourceIdentityError):
+    def __init__(self, defects: Sequence[str]) -> None:
+        self.defects = tuple(defects)
+        super().__init__("; ".join(self.defects))
+
+
+def _compact_json(value: Any) -> bytes:
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=False,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+
+
+def _run_git_bytes(
+    repo_root: Path,
+    args: Sequence[str],
+    *,
+    stage: str,
+    source_path: str = "<repository>",
+) -> bytes:
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=repo_root,
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise SourceIdentityError(
+            f"GIT_COMMAND_FAILED path={source_path} stage={stage}"
+        ) from exc
+    if result.returncode != 0:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()
+        raise SourceIdentityError(
+            f"GIT_COMMAND_FAILED path={source_path} stage={stage} detail={detail!r}"
+        )
+    return result.stdout
+
+
+def resolve_head_commit(repo_root: Path = ROOT) -> str:
+    value = _run_git_bytes(
+        repo_root,
+        ["rev-parse", "--verify", "HEAD^{commit}"],
+        stage="resolve-head-commit",
+    ).strip()
+    try:
+        head = value.decode("ascii")
+    except UnicodeDecodeError as exc:
+        raise SourceIdentityError(
+            "GIT_COMMAND_FAILED path=<repository> stage=decode-head-commit"
+        ) from exc
+    if re.fullmatch(r"[0-9a-f]{40,64}", head) is None:
+        raise SourceIdentityError(
+            "GIT_COMMAND_FAILED path=<repository> stage=validate-head-commit"
+        )
+    return head
+
+
+def _parse_ls_tree_record(record: bytes) -> tuple[str, str, str, str]:
+    try:
+        metadata, raw_path = record.split(b"\t", 1)
+        mode, object_type, object_id = metadata.decode("ascii").split(" ", 2)
+        path = raw_path.decode("utf-8")
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise SourceIdentityError(
+            "INVALID_HEAD_TREE_ENTRY path=<unknown> stage=parse-ls-tree"
+        ) from exc
+    return mode, object_type, object_id, path
+
+
+def _head_tree_entries(repo_root: Path, head_commit: str) -> dict[str, tuple[str, str, str]]:
+    output = _run_git_bytes(
+        repo_root,
+        ["ls-tree", "-r", "-t", "-z", head_commit],
+        stage="list-head-tree",
+    )
+    entries: dict[str, tuple[str, str, str]] = {}
+    for record in output.split(b"\0"):
+        if not record:
+            continue
+        mode, object_type, object_id, path = _parse_ls_tree_record(record)
+        if path in entries:
+            raise SourceIdentityError(
+                f"INVALID_HEAD_TREE_ENTRY path={path} stage=duplicate-head-path"
+            )
+        entries[path] = (mode, object_type, object_id)
+    return entries
+
+
+def read_head_tree_entry(
+    repo_root: Path,
+    path: str,
+    *,
+    head_commit: str | None = None,
+) -> tuple[str, str, str]:
+    head = head_commit or resolve_head_commit(repo_root)
+    output = _run_git_bytes(
+        repo_root,
+        ["ls-tree", "-z", head, "--", path],
+        stage="read-head-tree-entry",
+        source_path=path,
+    )
+    records = [record for record in output.split(b"\0") if record]
+    if len(records) != 1:
+        raise SourceIdentityError(
+            f"MISSING_HEAD_SOURCE path={path} stage=read-head-tree-entry"
+        )
+    mode, object_type, object_id, actual_path = _parse_ls_tree_record(records[0])
+    if actual_path != path:
+        raise SourceIdentityError(
+            f"INVALID_HEAD_TREE_ENTRY path={path} stage=path-mismatch"
+        )
+    return mode, object_type, object_id
+
+
+def _is_inventory_python_path(path: str) -> bool:
+    return (
+        path.startswith(PYTHON_SOURCE_PREFIX)
+        and path.endswith(".py")
+        and len(path) > len(PYTHON_SOURCE_PREFIX) + 3
+    )
+
+
+def build_head_production_inventory(
+    repo_root: Path = ROOT,
+    *,
+    fixed_paths: Sequence[str] = FIXED_PRODUCTION_PATHS,
+    expected_count: int = EXPECTED_PRODUCTION_SOURCE_COUNT,
+    head_commit: str | None = None,
+) -> list[tuple[str, str]]:
+    head = head_commit or resolve_head_commit(repo_root)
+    entries = _head_tree_entries(repo_root, head)
+    normalized_fixed = tuple(fixed_paths)
+    if len(set(normalized_fixed)) != len(normalized_fixed):
+        raise SourceIdentityError(
+            "INVALID_HEAD_TREE_ENTRY path=<fixed-prefix> stage=duplicate-fixed-path"
+        )
+    missing = [path for path in normalized_fixed if path not in entries]
+    if missing:
+        raise SourceIdentityError(
+            f"MISSING_HEAD_SOURCE path={missing[0]} stage=build-inventory"
+        )
+    python_paths = sorted(path for path in entries if _is_inventory_python_path(path))
+    ordered_paths = [*normalized_fixed, *python_paths]
+    if len(set(ordered_paths)) != len(ordered_paths):
+        raise SourceIdentityError(
+            "INVALID_HEAD_TREE_ENTRY path=<inventory> stage=duplicate-production-path"
+        )
+
+    inventory: list[tuple[str, str]] = []
+    for path in ordered_paths:
+        mode, object_type, object_id = entries[path]
+        if mode not in {"100644", "100755"} or object_type != "blob":
+            raise SourceIdentityError(
+                "INVALID_HEAD_TREE_ENTRY "
+                f"path={path} stage=validate-entry mode={mode} type={object_type}"
+            )
+        inventory.append((path, object_id))
+    if len(inventory) != expected_count:
+        raise SourceIdentityError(
+            "INVENTORY_COUNT_DRIFT path=<inventory> stage=build-inventory "
+            f"expected={expected_count} actual={len(inventory)}"
+        )
+    return inventory
+
+
+def read_git_blob_bytes(repo_root: Path, path: str, object_id: str) -> bytes:
+    return _run_git_bytes(
+        repo_root,
+        ["cat-file", "blob", object_id],
+        stage="read-git-blob",
+        source_path=path,
+    )
+
+
+def build_canonical_source_identity(
+    repo_root: Path = ROOT,
+    *,
+    fixed_paths: Sequence[str] = FIXED_PRODUCTION_PATHS,
+    expected_count: int = EXPECTED_PRODUCTION_SOURCE_COUNT,
+) -> dict[str, Any]:
+    head = resolve_head_commit(repo_root)
+    inventory = build_head_production_inventory(
+        repo_root,
+        fixed_paths=fixed_paths,
+        expected_count=expected_count,
+        head_commit=head,
+    )
+    records: list[list[str]] = []
+    source_hashes: dict[str, str] = {}
+    for path, object_id in inventory:
+        digest = hashlib.sha256(read_git_blob_bytes(repo_root, path, object_id)).hexdigest()
+        source_hashes[path] = digest
+        records.append([path, digest])
+    paths = list(source_hashes)
+    source_identity = {
+        "schema": SOURCE_IDENTITY_SCHEMA,
+        "authority": "git-head-tree",
+        "canonical_bytes": "git-blob",
+        "digest_algorithm": "sha256",
+        "path_format": "repo-relative-posix",
+        "inventory_rule": "production-source-inventory/v1",
+        "ordering": "fixed-prefix-then-posix-lexicographic",
+        "inventory_paths_sha256": hashlib.sha256(_compact_json(paths)).hexdigest(),
+        "aggregate_sha256": hashlib.sha256(_compact_json(records)).hexdigest(),
+    }
+    contract = {
+        "source_identity": source_identity,
+        "source_hashes_sha256": source_hashes,
+    }
+    validate_source_identity_schema(
+        contract,
+        expected_count=expected_count,
+        fixed_paths=fixed_paths,
+    )
+    return contract
+
+
+def validate_source_identity_schema(
+    manifest: dict[str, Any],
+    *,
+    expected_count: int = EXPECTED_PRODUCTION_SOURCE_COUNT,
+    fixed_paths: Sequence[str] = FIXED_PRODUCTION_PATHS,
+) -> None:
+    source_identity = manifest.get("source_identity")
+    source_hashes = manifest.get("source_hashes_sha256")
+    if not isinstance(source_identity, dict) or tuple(source_identity) != SOURCE_IDENTITY_KEYS:
+        raise SourceIdentityError(
+            "SOURCE_IDENTITY_SCHEMA_MISMATCH path=<manifest> stage=source-identity-shape"
+        )
+    expected_constants = {
+        "schema": SOURCE_IDENTITY_SCHEMA,
+        "authority": "git-head-tree",
+        "canonical_bytes": "git-blob",
+        "digest_algorithm": "sha256",
+        "path_format": "repo-relative-posix",
+        "inventory_rule": "production-source-inventory/v1",
+        "ordering": "fixed-prefix-then-posix-lexicographic",
+    }
+    if any(source_identity.get(key) != value for key, value in expected_constants.items()):
+        raise SourceIdentityError(
+            "SOURCE_IDENTITY_SCHEMA_MISMATCH path=<manifest> stage=source-identity-constants"
+        )
+    if not isinstance(source_hashes, dict) or len(source_hashes) != expected_count:
+        raise SourceIdentityError(
+            "SOURCE_IDENTITY_SCHEMA_MISMATCH path=<manifest> stage=source-map-count"
+        )
+    paths = list(source_hashes)
+    fixed_prefix = list(fixed_paths)
+    if (
+        paths[: len(fixed_prefix)] != fixed_prefix
+        or paths[len(fixed_prefix) :] != sorted(paths[len(fixed_prefix) :])
+        or any(not _is_inventory_python_path(path) for path in paths[len(fixed_prefix) :])
+    ):
+        raise SourceIdentityError(
+            "SOURCE_IDENTITY_SCHEMA_MISMATCH path=<manifest> stage=inventory-ordering"
+        )
+    if any(
+        not isinstance(path, str)
+        or path.startswith("/")
+        or "\\" in path
+        or Path(path).is_absolute()
+        for path in paths
+    ):
+        raise SourceIdentityError(
+            "SOURCE_IDENTITY_SCHEMA_MISMATCH path=<manifest> stage=path-format"
+        )
+    if any(
+        not isinstance(digest, str)
+        or re.fullmatch(r"[0-9a-f]{64}", digest) is None
+        for digest in source_hashes.values()
+    ):
+        raise SourceIdentityError(
+            "SOURCE_IDENTITY_SCHEMA_MISMATCH path=<manifest> stage=source-digest"
+        )
+    records = [[path, source_hashes[path]] for path in paths]
+    expected_paths_digest = hashlib.sha256(_compact_json(paths)).hexdigest()
+    expected_aggregate = hashlib.sha256(_compact_json(records)).hexdigest()
+    if source_identity.get("inventory_paths_sha256") != expected_paths_digest:
+        raise SourceIdentityError(
+            "SOURCE_IDENTITY_SCHEMA_MISMATCH path=<manifest> stage=inventory-paths-digest"
+        )
+    if source_identity.get("aggregate_sha256") != expected_aggregate:
+        raise SourceIdentityError(
+            "SOURCE_IDENTITY_SCHEMA_MISMATCH path=<manifest> stage=aggregate-digest"
+        )
+
+
+def _parse_name_status(output: bytes, *, stage: str) -> list[tuple[str, tuple[str, ...]]]:
+    try:
+        if output and not output.endswith(b"\0"):
+            raise ValueError("name-status output is not NUL terminated")
+        tokens = output.split(b"\0")
+        rows: list[tuple[str, tuple[str, ...]]] = []
+        index = 0
+        while index < len(tokens) and tokens[index]:
+            status = tokens[index].decode("ascii")
+            index += 1
+            path_count = 2 if status.startswith(("R", "C")) else 1
+            if index + path_count > len(tokens):
+                raise ValueError("truncated name-status record")
+            paths = tuple(tokens[index + offset].decode("utf-8") for offset in range(path_count))
+            if any(not path for path in paths):
+                raise ValueError("empty name-status path")
+            index += path_count
+            rows.append((status, paths))
+    except (UnicodeDecodeError, ValueError, IndexError) as exc:
+        raise SourceIdentityError(
+            f"GIT_COMMAND_FAILED path=<repository> stage=parse-{stage}"
+        ) from exc
+    return rows
+
+
+def _is_production_path(path: str, inventory_paths: set[str]) -> bool:
+    return path in inventory_paths or _is_inventory_python_path(path)
+
+
+def validate_production_source_clean(
+    repo_root: Path = ROOT,
+    *,
+    fixed_paths: Sequence[str] = FIXED_PRODUCTION_PATHS,
+    expected_count: int = EXPECTED_PRODUCTION_SOURCE_COUNT,
+) -> None:
+    inventory_paths = {
+        path
+        for path, _ in build_head_production_inventory(
+            repo_root,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count,
+        )
+    }
+    defects: list[str] = []
+    diff_specs = (
+        (
+            "staged",
+            ["diff", "--cached", "--name-status", "-z", "-M", "HEAD"],
+            "STAGED_PRODUCTION_SOURCE",
+        ),
+        (
+            "unstaged",
+            ["diff", "--name-status", "-z", "-M"],
+            "UNSTAGED_PRODUCTION_SOURCE",
+        ),
+    )
+    for stage, args, modification_code in diff_specs:
+        rows = _parse_name_status(
+            _run_git_bytes(repo_root, args, stage=f"production-{stage}-diff"),
+            stage=stage,
+        )
+        for status, paths in rows:
+            if not any(_is_production_path(path, inventory_paths) for path in paths):
+                continue
+            if status.startswith("R"):
+                code = "RENAMED_PRODUCTION_SOURCE"
+            elif status.startswith("D"):
+                code = "DELETED_PRODUCTION_SOURCE"
+            else:
+                code = modification_code
+            defects.append(
+                f"{code} stage={stage} path={' -> '.join(paths)} status={status}"
+            )
+
+    untracked = _run_git_bytes(
+        repo_root,
+        [
+            "ls-files",
+            "--others",
+            "--exclude-standard",
+            "-z",
+            "--",
+            PYTHON_SOURCE_PREFIX.rstrip("/"),
+        ],
+        stage="production-untracked-sources",
+    )
+    for raw_path in untracked.split(b"\0"):
+        if not raw_path:
+            continue
+        try:
+            path = raw_path.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise SourceIdentityError(
+                "GIT_COMMAND_FAILED path=<unknown> stage=decode-untracked-source"
+            ) from exc
+        if _is_inventory_python_path(path):
+            defects.append(
+                f"UNTRACKED_PRODUCTION_SOURCE stage=untracked path={path} status=?"
+            )
+    if defects:
+        raise ProductionSourceDirtyError(defects)
+
+
+def validate_current_source_contract(
+    baseline_manifest: dict[str, Any],
+    repo_root: Path = ROOT,
+) -> dict[str, Any]:
+    validate_production_source_clean(repo_root)
+    canonical_source = build_canonical_source_identity(repo_root)
+    validate_source_identity_schema(baseline_manifest)
+    if baseline_manifest["source_identity"] != canonical_source["source_identity"]:
+        raise SourceIdentityError(
+            "SOURCE_IDENTITY_MISMATCH path=<manifest> stage=official-comparison"
+        )
+    if baseline_manifest["source_hashes_sha256"] != canonical_source["source_hashes_sha256"]:
+        raise SourceIdentityError(
+            "SOURCE_HASH_MAP_MISMATCH path=<manifest> stage=official-comparison"
+        )
+    return canonical_source
 
 
 def sha256(path: Path) -> str:
@@ -172,17 +616,6 @@ def verify_artifact_hashes(
         )
 
     return not errors, errors
-
-
-def source_files() -> list[Path]:
-    files = [
-        RUNNER,
-        VEHICLE, CASE, SAMPLING,
-        ROOT / "new_spec" / "htv2_0628.stl",
-        ROOT / "new_spec" / "outline_xz_right_0629.csv",
-    ]
-    files.extend(sorted((ROOT / "src" / "ref_enthalpy_method").rglob("*.py")))
-    return files
 
 
 def formal_command(case_id: str, run_dir: Path) -> list[str]:
@@ -489,10 +922,7 @@ def build_candidate_manifest(
         mask_w = np.asarray(fields["mask_w"]).astype(bool)
         endpoint = endpoint_from_fields(fields)
 
-    source_hashes = {
-        str(path.relative_to(ROOT)).replace("\\", "/"): sha256(path)
-        for path in source_files()
-    }
+    canonical_source = build_canonical_source_identity(ROOT)
     return {
         "manifest_schema": CANDIDATE_MANIFEST_SCHEMA,
         "provenance": CANDIDATE_PROVENANCE,
@@ -533,7 +963,8 @@ def build_candidate_manifest(
         "endpoint_metadata": endpoint,
         "local_incidence": LOCAL_INCIDENCE_METADATA,
         "fields_schema": schema,
-        "source_hashes_sha256": source_hashes,
+        "source_identity": canonical_source["source_identity"],
+        "source_hashes_sha256": canonical_source["source_hashes_sha256"],
         "artifact_hashes_sha256": {
             name: sha256(candidate_dir / name) for name in ("fields.npz", "summary.json")
         },
@@ -620,6 +1051,286 @@ def _write_candidate_manifest_atomically(
             temporary_path.unlink(missing_ok=True)
 
 
+def validate_source_migration_preflight(
+    repo_root: Path = ROOT,
+    *,
+    fixed_paths: Sequence[str] = FIXED_PRODUCTION_PATHS,
+    expected_count: int = EXPECTED_PRODUCTION_SOURCE_COUNT,
+) -> str:
+    head = resolve_head_commit(repo_root)
+    branch = _run_git_bytes(
+        repo_root,
+        ["symbolic-ref", "--quiet", "--short", "HEAD"],
+        stage="migration-branch",
+    ).strip()
+    if not branch:
+        raise SourceIdentityError(
+            "MIGRATION_PREFLIGHT_FAILED path=<repository> stage=detached-head"
+        )
+
+    unmerged = _run_git_bytes(
+        repo_root,
+        ["diff", "--name-only", "--diff-filter=U", "-z"],
+        stage="migration-unmerged",
+    )
+    if unmerged:
+        raise SourceIdentityError(
+            "MIGRATION_PREFLIGHT_FAILED path=<repository> stage=unmerged"
+        )
+    staged = _run_git_bytes(
+        repo_root,
+        ["diff", "--cached", "--name-status", "-z", "HEAD"],
+        stage="migration-staged",
+    )
+    unstaged = _run_git_bytes(
+        repo_root,
+        ["diff", "--name-status", "-z"],
+        stage="migration-unstaged",
+    )
+    if staged or unstaged:
+        raise SourceIdentityError(
+            "MIGRATION_PREFLIGHT_FAILED path=<repository> stage=tracked-dirty"
+        )
+
+    validate_production_source_clean(
+        repo_root,
+        fixed_paths=fixed_paths,
+        expected_count=expected_count,
+    )
+    operation_names = (
+        "MERGE_HEAD",
+        "CHERRY_PICK_HEAD",
+        "REVERT_HEAD",
+        "BISECT_LOG",
+        "rebase-merge",
+        "rebase-apply",
+        "sequencer",
+    )
+    for name in operation_names:
+        raw_path = _run_git_bytes(
+            repo_root,
+            ["rev-parse", "--git-path", name],
+            stage="migration-git-operation",
+        ).strip()
+        operation_path = Path(raw_path.decode("utf-8"))
+        if not operation_path.is_absolute():
+            operation_path = repo_root / operation_path
+        if operation_path.exists():
+            raise SourceIdentityError(
+                "MIGRATION_PREFLIGHT_FAILED "
+                f"path=<repository> stage=git-operation operation={name}"
+            )
+
+    worktrees = _run_git_bytes(
+        repo_root,
+        ["worktree", "list", "--porcelain", "-z"],
+        stage="migration-worktrees",
+    )
+    worktree_count = sum(
+        1 for token in worktrees.split(b"\0") if token.startswith(b"worktree ")
+    )
+    if worktree_count != 1:
+        raise SourceIdentityError(
+            "MIGRATION_PREFLIGHT_FAILED path=<repository> stage=additional-worktree "
+            f"count={worktree_count}"
+        )
+    return head
+
+
+def _manifest_with_source_identity(
+    manifest: dict[str, Any],
+    canonical_source: dict[str, Any],
+) -> dict[str, Any]:
+    updated: dict[str, Any] = {}
+    inserted = False
+    for key, value in manifest.items():
+        if key in SOURCE_IDENTITY_MUTABLE_FIELDS:
+            if not inserted:
+                updated["source_identity"] = canonical_source["source_identity"]
+                updated["source_hashes_sha256"] = canonical_source["source_hashes_sha256"]
+                inserted = True
+            continue
+        updated[key] = value
+    if not inserted:
+        updated["source_identity"] = canonical_source["source_identity"]
+        updated["source_hashes_sha256"] = canonical_source["source_hashes_sha256"]
+    return updated
+
+
+def _validate_source_only_change(
+    original: dict[str, Any],
+    updated: dict[str, Any],
+) -> None:
+    original_stable = {
+        key: value
+        for key, value in original.items()
+        if key not in SOURCE_IDENTITY_MUTABLE_FIELDS
+    }
+    updated_stable = {
+        key: value
+        for key, value in updated.items()
+        if key not in SOURCE_IDENTITY_MUTABLE_FIELDS
+    }
+    if original_stable != updated_stable:
+        raise SourceIdentityError(
+            "MIGRATION_FIELD_SCOPE_VIOLATION path=<manifest> stage=source-only-diff"
+        )
+
+
+def _serialize_manifest(manifest: dict[str, Any]) -> bytes:
+    return (
+        json.dumps(manifest, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
+    ).encode("utf-8")
+
+
+def _prepare_fsynced_file(path: Path, payload: bytes, *, require_json: bool) -> Path:
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="xb",
+            dir=path.parent,
+            prefix=f".{path.name}.source-identity-",
+            suffix=".tmp",
+            delete=False,
+        ) as stream:
+            temporary_path = Path(stream.name)
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if temporary_path.read_bytes() != payload:
+            raise SourceIdentityError(
+                f"MIGRATION_TEMP_VERIFY_FAILED path={path} stage=byte-roundtrip"
+            )
+        if require_json:
+            parsed = json.loads(payload.decode("utf-8"))
+            if not isinstance(parsed, dict):
+                raise SourceIdentityError(
+                    f"MIGRATION_TEMP_VERIFY_FAILED path={path} stage=json-object"
+                )
+        return temporary_path
+    except Exception:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+        raise
+
+
+def migrate_source_identity(
+    manifest_paths: Sequence[Path],
+    *,
+    repo_root: Path = ROOT,
+    fixed_paths: Sequence[str] = FIXED_PRODUCTION_PATHS,
+    expected_count: int = EXPECTED_PRODUCTION_SOURCE_COUNT,
+) -> dict[str, Any]:
+    paths = tuple(Path(path) for path in manifest_paths)
+    resolved_paths = tuple(path.resolve(strict=False) for path in paths)
+    if len(paths) != 2 or len(set(resolved_paths)) != 2:
+        raise SourceIdentityError(
+            "MIGRATION_MANIFEST_SET_INVALID path=<manifests> stage=manifest-count"
+        )
+    validate_source_migration_preflight(
+        repo_root,
+        fixed_paths=fixed_paths,
+        expected_count=expected_count,
+    )
+
+    original_bytes: dict[Path, bytes] = {}
+    originals: dict[Path, dict[str, Any]] = {}
+    for path in paths:
+        try:
+            raw = path.read_bytes()
+            manifest = json.loads(raw.decode("utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise SourceIdentityError(
+                f"MIGRATION_MANIFEST_INVALID path={path} stage=read-original"
+            ) from exc
+        if not isinstance(manifest, dict) or manifest.get("manifest_schema") != MANIFEST_SCHEMA:
+            raise SourceIdentityError(
+                f"MIGRATION_MANIFEST_INVALID path={path} stage=manifest-schema"
+            )
+        source_map = manifest.get("source_hashes_sha256")
+        if not isinstance(source_map, dict) or not source_map:
+            raise SourceIdentityError(
+                f"MIGRATION_MANIFEST_INVALID path={path} stage=legacy-source-map"
+            )
+        original_bytes[path] = raw
+        originals[path] = manifest
+    first_map = originals[paths[0]]["source_hashes_sha256"]
+    if originals[paths[1]]["source_hashes_sha256"] != first_map:
+        raise SourceIdentityError(
+            "LEGACY_SOURCE_MAP_MISMATCH path=<manifests> stage=precompute"
+        )
+
+    canonical_source = build_canonical_source_identity(
+        repo_root,
+        fixed_paths=fixed_paths,
+        expected_count=expected_count,
+    )
+    updated = {
+        path: _manifest_with_source_identity(originals[path], canonical_source)
+        for path in paths
+    }
+    for path in paths:
+        _validate_source_only_change(originals[path], updated[path])
+        validate_source_identity_schema(
+            updated[path],
+            expected_count=expected_count,
+            fixed_paths=fixed_paths,
+        )
+
+    prepared: dict[Path, Path] = {}
+    try:
+        for path in paths:
+            prepared[path] = _prepare_fsynced_file(
+                path,
+                _serialize_manifest(updated[path]),
+                require_json=True,
+            )
+        for path in paths:
+            os.replace(prepared[path], path)
+            prepared.pop(path, None)
+
+        for path in paths:
+            persisted = json.loads(path.read_text(encoding="utf-8"))
+            _validate_source_only_change(originals[path], persisted)
+            validate_source_identity_schema(
+                persisted,
+                expected_count=expected_count,
+                fixed_paths=fixed_paths,
+            )
+            if persisted != updated[path]:
+                raise SourceIdentityError(
+                    f"MIGRATION_POST_VALIDATION_FAILED path={path} stage=content-mismatch"
+                )
+        return canonical_source
+    except Exception as exc:
+        rollback_errors: list[str] = []
+        for path in paths:
+            rollback_temp: Path | None = None
+            try:
+                rollback_temp = _prepare_fsynced_file(
+                    path,
+                    original_bytes[path],
+                    require_json=False,
+                )
+                os.replace(rollback_temp, path)
+                rollback_temp = None
+                if path.read_bytes() != original_bytes[path]:
+                    raise OSError("restored bytes do not match original")
+            except Exception as rollback_exc:
+                rollback_errors.append(f"{path}: {rollback_exc}")
+            finally:
+                if rollback_temp is not None:
+                    rollback_temp.unlink(missing_ok=True)
+        if rollback_errors:
+            raise SourceIdentityError(
+                "MIGRATION_ROLLBACK_FAILED " + " | ".join(rollback_errors)
+            ) from exc
+        raise
+    finally:
+        for temporary_path in prepared.values():
+            temporary_path.unlink(missing_ok=True)
+
+
 def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str, Any]:
     summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
     with np.load(run_dir / "fields.npz", allow_pickle=False) as fields:
@@ -629,10 +1340,7 @@ def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str,
     freestream = summary.get("freestream", {})
     faceted3d = summary.get("faceted3d", {})
     mach, alpha, altitude = CASES[case_id]
-    source_hashes = {
-        str(path.relative_to(ROOT)).replace("\\", "/"): sha256(path)
-        for path in source_files()
-    }
+    canonical_source = build_canonical_source_identity(ROOT)
     return {
         "manifest_schema": "current-tpg-baseline-regression/v5",
         "provenance": "CURRENT TPG-only post-2026-07-14 official regression baseline with local-incidence and sheet-specific leeward freestream-recovery diagnostics; historical 0630 snapshot is a separate contract",
@@ -668,7 +1376,8 @@ def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str,
         "endpoint_metadata": endpoint,
         "local_incidence": LOCAL_INCIDENCE_METADATA,
         "fields_schema": schema,
-        "source_hashes_sha256": source_hashes,
+        "source_identity": canonical_source["source_identity"],
+        "source_hashes_sha256": canonical_source["source_hashes_sha256"],
         "artifact_hashes_sha256": {name: sha256(run_dir / name) for name in ("fields.npz", "summary.json")},
         "baseline_generator": "scripts/tools/current_baseline_regression_check.py --freeze",
         "generator_cli_template": subprocess.list2cmdline(formal_command(case_id, Path("<run_dir>"))),
@@ -712,6 +1421,7 @@ def _pre_freeze_gate(case_id: str, candidate_dir: Path) -> tuple[bool, dict[str,
 
 
 def freeze_all() -> bool:
+    validate_production_source_clean(ROOT)
     candidates: dict[str, Path] = {}
     gate_data: dict[str, dict[str, Any]] = {}
     with tempfile.TemporaryDirectory(prefix="baseline_v5_prefreeze_") as temp:
@@ -759,6 +1469,7 @@ def freeze_all() -> bool:
 
 
 def freeze_case(case_id: str) -> None:
+    validate_production_source_clean(ROOT)
     destination = SNAPSHOT / "tpg" / case_id
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=f"baseline_freeze_tpg_{case_id}_") as temp:
@@ -941,6 +1652,7 @@ def compare_case(case_id: str) -> bool:
         print(f"[tpg/{case_id}] FAIL mandatory baseline artifacts missing: {', '.join(missing_artifacts)}")
         return False
     baseline_manifest = json.loads((baseline_dir / "manifest.json").read_text(encoding="utf-8"))
+    validate_current_source_contract(baseline_manifest, ROOT)
     artifact_hashes_ok, artifact_hash_errors = verify_artifact_hashes(case_id, baseline_dir, baseline_manifest)
     print(f"  Artifact hashes: {'PASS' if artifact_hashes_ok else 'FAIL'}")
     for error in artifact_hash_errors:
@@ -1039,6 +1751,20 @@ def main() -> int:
         action="store_true",
         help="write identity-only manifest.json for an existing unregistered candidate run",
     )
+    mode.add_argument(
+        "--migrate-source-identity",
+        action="store_true",
+        help=(
+            "replace source identity fields in exactly two explicitly supplied v5 manifests; "
+            "requires a clean committed HEAD"
+        ),
+    )
+    parser.add_argument(
+        "--manifest-path",
+        action="append",
+        type=Path,
+        help="manifest path for --migrate-source-identity; provide exactly twice",
+    )
     parser.add_argument("--case-id")
     parser.add_argument("--mach", type=float)
     parser.add_argument("--alpha", type=float)
@@ -1062,17 +1788,38 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    required_candidate_values = {
+    candidate_values = {
         "--case-id": args.case_id,
         "--mach": args.mach,
         "--alpha": args.alpha,
         "--h-m": args.h_m,
         "--run-dir": args.run_dir,
-    }
-    candidate_values = {
-        **required_candidate_values,
         "--t-inf-k": args.t_inf_k,
         "--p-inf-pa": args.p_inf_pa,
+    }
+    supplied_candidate_values = [
+        name for name, value in candidate_values.items() if value is not None
+    ]
+    if args.migrate_source_identity:
+        if supplied_candidate_values:
+            parser.error(
+                "candidate arguments are not allowed with --migrate-source-identity: "
+                + ", ".join(supplied_candidate_values)
+            )
+        if len(args.manifest_path or ()) != 2:
+            parser.error(
+                "--migrate-source-identity requires exactly two --manifest-path values"
+            )
+        migrate_source_identity(args.manifest_path, repo_root=ROOT)
+        print("source identity migration completed for two explicit manifests")
+        return 0
+    if args.manifest_path:
+        parser.error("--manifest-path requires --migrate-source-identity")
+
+    required_candidate_values = {
+        name: value
+        for name, value in candidate_values.items()
+        if name in {"--case-id", "--mach", "--alpha", "--h-m", "--run-dir"}
     }
     if args.candidate_manifest:
         missing = [

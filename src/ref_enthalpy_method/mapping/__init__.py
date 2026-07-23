@@ -7,6 +7,10 @@ from .fluent_surface import (
     read_fluent_surface_geometry_csv,
     transform_fluent_xyz_to_solver,
 )
+from .fluent_lf_taw_comparison import (
+    FluentLfTawComparison,
+    build_fluent_lf_taw_comparison,
+)
 
 from .observation_binding import (
     FluentObservationBinding,
@@ -27,6 +31,8 @@ __all__ = [
     "compare_canonical_geometry",
     "read_fluent_surface_geometry_csv",
     "transform_fluent_xyz_to_solver",
+    "FluentLfTawComparison",
+    "build_fluent_lf_taw_comparison",
     "FluentObservationBinding",
     "build_m8h30_observation_binding",
     "validate_observation_binding",

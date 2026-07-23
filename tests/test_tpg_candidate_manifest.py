@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -34,6 +36,7 @@ CANDIDATE_KEYS = [
     "endpoint_metadata",
     "local_incidence",
     "fields_schema",
+    "source_identity",
     "source_hashes_sha256",
     "artifact_hashes_sha256",
     "manifest_generator",
@@ -42,10 +45,6 @@ CANDIDATE_KEYS = [
 EXPECTED_CASES = {
     "ma6_a5_h30km": (6.0, 5.0, 30000.0),
     "ma8_a5_h40km": (8.0, 5.0, 40000.0),
-}
-EXPECTED_V5_CANONICAL_HASHES = {
-    "ma6_a5_h30km": "71d86a8402b57665167e9cd1c47cdb40e5acefb6dff47317e9d8d0cb74806a2c",
-    "ma8_a5_h40km": "e28f4b3710775f8b2536a9fa0b626c3f22ce8e1f24389f8f21b8c528a931d698",
 }
 EXPECTED_V5_KEYS = [
     "manifest_schema",
@@ -62,6 +61,7 @@ EXPECTED_V5_KEYS = [
     "endpoint_metadata",
     "local_incidence",
     "fields_schema",
+    "source_identity",
     "source_hashes_sha256",
     "artifact_hashes_sha256",
     "baseline_generator",
@@ -233,10 +233,10 @@ def test_candidate_manifest_contract_and_identity(candidate_run: Path) -> None:
         name: manifest_tool.sha256(candidate_run / name)
         for name in ("fields.npz", "summary.json")
     }
-    assert manifest["source_hashes_sha256"] == {
-        str(path.relative_to(manifest_tool.ROOT)).replace("\\", "/"): manifest_tool.sha256(path)
-        for path in manifest_tool.source_files()
-    }
+    canonical_source = manifest_tool.build_canonical_source_identity(manifest_tool.ROOT)
+    assert manifest["source_identity"] == canonical_source["source_identity"]
+    assert manifest["source_hashes_sha256"] == canonical_source["source_hashes_sha256"]
+    manifest_tool.validate_source_identity_schema(manifest)
 
 
 def test_candidate_case_id_does_not_require_cases_membership(candidate_run: Path) -> None:
@@ -886,7 +886,6 @@ def test_candidate_cli_only_writes_manifest(
     monkeypatch.setattr(manifest_tool, "freeze_case", forbidden)
     monkeypatch.setattr(manifest_tool, "compare_case", forbidden)
     monkeypatch.setattr(manifest_tool, "run_formal", forbidden)
-    monkeypatch.setattr(manifest_tool.subprocess, "run", forbidden)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -960,17 +959,509 @@ def test_candidate_schema_is_not_treated_as_v5(candidate_run: Path) -> None:
     assert any("artifact=fields.npz" in error for error in v5_errors)
 
 
-def test_v5_builder_canonical_output_is_frozen() -> None:
-    for case_id, expected_hash in EXPECTED_V5_CANONICAL_HASHES.items():
-        run_dir = manifest_tool.SNAPSHOT / "tpg" / case_id
-        command = manifest_tool.formal_command(case_id, run_dir)
-        manifest = manifest_tool.build_manifest(case_id, run_dir, command)
-        assert list(manifest) == EXPECTED_V5_KEYS
-        assert manifest["manifest_schema"] == "current-tpg-baseline-regression/v5"
-        assert hashlib.sha256(_canonical(manifest)).hexdigest() == expected_hash
+def _git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
+    return subprocess.run(
+        ["git", *args],
+        cwd=repo,
+        input=input_bytes,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=True,
+    ).stdout
 
 
-def test_formal_command_cases_and_source_inventory_are_frozen() -> None:
+def _commit_all(repo: Path, message: str = "fixture") -> None:
+    _git(repo, "add", "--all")
+    _git(repo, "commit", "-m", message)
+
+
+def _init_source_repo(
+    root: Path,
+    *,
+    fixed_paths: tuple[str, ...] = ("fixed.txt",),
+    python_count: int = 1,
+) -> tuple[Path, tuple[str, ...], int]:
+    repo = root / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-b", "main")
+    _git(repo, "config", "user.name", "N3b Test")
+    _git(repo, "config", "user.email", "n3b@example.invalid")
+    for index, path in enumerate(fixed_paths):
+        target = repo / Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(f"fixed-{index}\n".encode())
+    for index in range(python_count):
+        target = repo / "src" / "ref_enthalpy_method" / f"module_{index:02d}.py"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(f"VALUE = {index}\n".encode())
+    (repo / ".gitattributes").write_text("*.py text eol=crlf\n", encoding="utf-8")
+    (repo / "notes.txt").write_text("clean\n", encoding="utf-8")
+    _commit_all(repo)
+    return repo, fixed_paths, len(fixed_paths) + python_count
+
+
+@pytest.fixture
+def source_repo(tmp_path: Path) -> tuple[Path, tuple[str, ...], int]:
+    return _init_source_repo(tmp_path)
+
+
+def _source_identity(
+    fixture: tuple[Path, tuple[str, ...], int],
+) -> dict[str, Any]:
+    repo, fixed_paths, expected_count = fixture
+    return manifest_tool.build_canonical_source_identity(
+        repo,
+        fixed_paths=fixed_paths,
+        expected_count=expected_count,
+    )
+
+
+def test_head_blob_identity_is_binary_exact_and_worktree_independent(
+    source_repo: tuple[Path, tuple[str, ...], int],
+) -> None:
+    repo, fixed_paths, expected_count = source_repo
+    before = _source_identity(source_repo)
+    path = "src/ref_enthalpy_method/module_00.py"
+    mode, object_type, object_id = manifest_tool.read_head_tree_entry(repo, path)
+    independent_blob = _git(repo, "cat-file", "blob", object_id)
+
+    assert (mode, object_type) == ("100644", "blob")
+    assert manifest_tool.read_git_blob_bytes(repo, path, object_id) == independent_blob
+    assert before["source_hashes_sha256"][path] == hashlib.sha256(independent_blob).hexdigest()
+
+    (repo / path).write_bytes(b"WORKTREE_ONLY = True\r\n")
+    assert _source_identity(source_repo) == before
+    with pytest.raises(manifest_tool.ProductionSourceDirtyError, match="UNSTAGED_PRODUCTION_SOURCE"):
+        manifest_tool.validate_production_source_clean(
+            repo,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count,
+        )
+
+
+def test_real_head_inventory_schema_order_and_aggregate_contract() -> None:
+    canonical = manifest_tool.build_canonical_source_identity(manifest_tool.ROOT)
+    paths = list(canonical["source_hashes_sha256"])
+    records = [[path, canonical["source_hashes_sha256"][path]] for path in paths]
+
+    assert len(paths) == len(set(paths)) == 65
+    assert paths[:6] == list(manifest_tool.FIXED_PRODUCTION_PATHS)
+    assert paths[6:] == sorted(paths[6:])
+    assert all("\\" not in path and not Path(path).is_absolute() for path in paths)
+    assert canonical["source_identity"]["inventory_paths_sha256"] == hashlib.sha256(
+        _canonical(paths)
+    ).hexdigest()
+    assert canonical["source_identity"]["aggregate_sha256"] == hashlib.sha256(
+        _canonical(records)
+    ).hexdigest()
+    assert not {
+        "commit_oid", "tree_oid", "branch", "checkout_path", "platform"
+    }.intersection(canonical["source_identity"])
+    manifest_tool.validate_source_identity_schema(canonical)
+
+
+def test_crlf_semantic_clean_checkout_preserves_identity(
+    source_repo: tuple[Path, tuple[str, ...], int],
+) -> None:
+    repo, fixed_paths, expected_count = source_repo
+    before = _source_identity(source_repo)
+    python_path = repo / "src" / "ref_enthalpy_method" / "module_00.py"
+    python_path.unlink()
+    _git(repo, "checkout-index", "--force", "--", "src/ref_enthalpy_method/module_00.py")
+
+    assert b"\r\n" in python_path.read_bytes()
+    assert _git(repo, "diff", "--name-only") == b""
+    manifest_tool.validate_production_source_clean(
+        repo,
+        fixed_paths=fixed_paths,
+        expected_count=expected_count,
+    )
+    assert _source_identity(source_repo) == before
+
+
+@pytest.mark.parametrize(
+    ("state", "expected_code"),
+    [
+        ("staged", "STAGED_PRODUCTION_SOURCE"),
+        ("unstaged", "UNSTAGED_PRODUCTION_SOURCE"),
+        ("both", "STAGED_PRODUCTION_SOURCE.*UNSTAGED_PRODUCTION_SOURCE"),
+        ("deleted", "DELETED_PRODUCTION_SOURCE"),
+        ("renamed", "RENAMED_PRODUCTION_SOURCE"),
+        ("untracked", "UNTRACKED_PRODUCTION_SOURCE"),
+    ],
+)
+def test_production_dirty_matrix_fails_closed(
+    tmp_path: Path,
+    state: str,
+    expected_code: str,
+) -> None:
+    repo, fixed_paths, expected_count = _init_source_repo(tmp_path)
+    relative = "src/ref_enthalpy_method/module_00.py"
+    source = repo / relative
+    if state == "staged":
+        source.write_text("VALUE = 10\n", encoding="utf-8")
+        _git(repo, "add", relative)
+    elif state == "unstaged":
+        source.write_text("VALUE = 11\n", encoding="utf-8")
+    elif state == "both":
+        source.write_text("VALUE = 12\n", encoding="utf-8")
+        _git(repo, "add", relative)
+        source.write_text("VALUE = 13\n", encoding="utf-8")
+    elif state == "deleted":
+        source.unlink()
+    elif state == "renamed":
+        _git(repo, "mv", relative, "src/ref_enthalpy_method/renamed.py")
+    else:
+        (repo / "src" / "ref_enthalpy_method" / "untracked.py").write_text(
+            "VALUE = 14\n", encoding="utf-8"
+        )
+
+    with pytest.raises(manifest_tool.ProductionSourceDirtyError, match=expected_code):
+        manifest_tool.validate_production_source_clean(
+            repo,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count,
+        )
+
+
+def test_nonproduction_and_ordinary_untracked_are_ignored_by_source_gate(
+    source_repo: tuple[Path, tuple[str, ...], int],
+) -> None:
+    repo, fixed_paths, expected_count = source_repo
+    (repo / "notes.txt").write_text("dirty\n", encoding="utf-8")
+    csv_path = repo / "ordinary.csv"
+    csv_path.write_bytes(b"must-not-be-read")
+
+    manifest_tool.validate_production_source_clean(
+        repo,
+        fixed_paths=fixed_paths,
+        expected_count=expected_count,
+    )
+    with pytest.raises(manifest_tool.SourceIdentityError, match="tracked-dirty"):
+        manifest_tool.validate_source_migration_preflight(
+            repo,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count,
+        )
+    assert csv_path.read_bytes() == b"must-not-be-read"
+
+
+def test_missing_invalid_tree_entries_and_count_drift_fail_closed(tmp_path: Path) -> None:
+    repo, fixed_paths, expected_count = _init_source_repo(tmp_path)
+    with pytest.raises(manifest_tool.SourceIdentityError, match="MISSING_HEAD_SOURCE"):
+        manifest_tool.build_head_production_inventory(
+            repo,
+            fixed_paths=("missing.txt",),
+            expected_count=expected_count,
+        )
+    with pytest.raises(manifest_tool.SourceIdentityError, match="INVENTORY_COUNT_DRIFT"):
+        manifest_tool.build_head_production_inventory(
+            repo,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count + 1,
+        )
+
+    tree_file = repo / "src" / "ref_enthalpy_method" / "tree.py" / "child.txt"
+    tree_file.parent.mkdir()
+    tree_file.write_text("child\n", encoding="utf-8")
+    _commit_all(repo, "tree-like py path")
+    with pytest.raises(manifest_tool.SourceIdentityError, match="INVALID_HEAD_TREE_ENTRY.*tree.py"):
+        manifest_tool.build_head_production_inventory(
+            repo,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count + 1,
+        )
+
+
+@pytest.mark.parametrize(("mode", "object_type"), [("120000", "blob"), ("160000", "commit")])
+def test_symlink_and_submodule_inventory_entries_fail_closed(
+    tmp_path: Path,
+    mode: str,
+    object_type: str,
+) -> None:
+    repo, fixed_paths, expected_count = _init_source_repo(tmp_path)
+    path = "src/ref_enthalpy_method/module_00.py"
+    if mode == "120000":
+        object_id = _git(repo, "hash-object", "-w", "--stdin", input_bytes=b"target").strip().decode()
+    else:
+        object_id = _git(repo, "rev-parse", "HEAD").strip().decode()
+    _git(repo, "update-index", "--add", "--cacheinfo", f"{mode},{object_id},{path}")
+    _git(repo, "commit", "-m", f"invalid {object_type}")
+
+    with pytest.raises(manifest_tool.SourceIdentityError, match="INVALID_HEAD_TREE_ENTRY"):
+        manifest_tool.build_head_production_inventory(
+            repo,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count,
+        )
+
+
+def test_git_plumbing_and_schema_corruption_fail_closed(
+    source_repo: tuple[Path, tuple[str, ...], int],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo, fixed_paths, expected_count = source_repo
+    canonical = _source_identity(source_repo)
+    broken = json.loads(json.dumps(canonical))
+    broken["source_identity"]["schema"] = "wrong"
+    with pytest.raises(manifest_tool.SourceIdentityError, match="SCHEMA_MISMATCH"):
+        manifest_tool.validate_source_identity_schema(
+            broken,
+            expected_count=expected_count,
+            fixed_paths=fixed_paths,
+        )
+
+    real_run = manifest_tool.subprocess.run
+
+    def fail_cat_file(*args: Any, **kwargs: Any) -> Any:
+        if args[0][1:3] == ["cat-file", "blob"]:
+            return subprocess.CompletedProcess(args[0], 1, b"", b"missing object")
+        return real_run(*args, **kwargs)
+
+    monkeypatch.setattr(manifest_tool.subprocess, "run", fail_cat_file)
+    with pytest.raises(manifest_tool.SourceIdentityError, match="GIT_COMMAND_FAILED.*read-git-blob"):
+        manifest_tool.build_canonical_source_identity(
+            repo,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count,
+        )
+
+
+def test_candidate_and_current_builder_share_canonical_source_contract(
+    candidate_run: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    canonical = manifest_tool.build_canonical_source_identity(manifest_tool.ROOT)
+    calls: list[Path] = []
+
+    def shared_builder(repo_root: Path, **kwargs: Any) -> dict[str, Any]:
+        calls.append(repo_root)
+        return canonical
+
+    monkeypatch.setattr(manifest_tool, "build_canonical_source_identity", shared_builder)
+    candidate = _build_candidate(candidate_run)
+    current = manifest_tool.build_manifest(
+        "ma6_a5_h30km",
+        candidate_run,
+        manifest_tool.formal_command("ma6_a5_h30km", candidate_run),
+    )
+    assert calls == [manifest_tool.ROOT, manifest_tool.ROOT]
+    assert candidate["source_identity"] is current["source_identity"]
+    assert candidate["source_hashes_sha256"] is current["source_hashes_sha256"]
+
+
+def test_official_source_contract_fails_before_solver(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    baseline = tmp_path / "snapshot" / "tpg" / "ma6_a5_h30km"
+    baseline.mkdir(parents=True)
+    for name in (*manifest_tool.FORMAL_INPUTS, "manifest.json"):
+        (baseline / name).write_text("{}\n", encoding="utf-8")
+
+    def source_failure(*args: Any, **kwargs: Any) -> Any:
+        raise manifest_tool.SourceIdentityError("SOURCE_IDENTITY_MISMATCH")
+
+    def forbidden_solver(*args: Any, **kwargs: Any) -> Any:
+        raise AssertionError("solver must not run after source preflight failure")
+
+    monkeypatch.setattr(manifest_tool, "SNAPSHOT", tmp_path / "snapshot")
+    monkeypatch.setattr(manifest_tool, "validate_current_source_contract", source_failure)
+    monkeypatch.setattr(manifest_tool, "run_formal", forbidden_solver)
+    with pytest.raises(manifest_tool.SourceIdentityError, match="SOURCE_IDENTITY_MISMATCH"):
+        manifest_tool.compare_case("ma6_a5_h30km")
+
+
+def _write_legacy_manifests(root: Path, count: int = 61) -> tuple[tuple[Path, Path], dict[Path, bytes]]:
+    source_map = {f"legacy/source_{index:02d}.py": f"{index:064x}" for index in range(count)}
+    paths = (root / "case-a" / "manifest.json", root / "case-b" / "manifest.json")
+    originals: dict[Path, bytes] = {}
+    for index, path in enumerate(paths):
+        path.parent.mkdir(parents=True)
+        manifest = {
+            "manifest_schema": manifest_tool.MANIFEST_SCHEMA,
+            "case_id": f"case-{index}",
+            "source_hashes_sha256": source_map,
+            "artifact_hashes_sha256": {
+                "fields.npz": "a" * 64,
+                "summary.json": "b" * 64,
+            },
+            "groups": {"count": 72},
+        }
+        raw = (json.dumps(manifest, indent=4) + "\n").encode()
+        path.write_bytes(raw)
+        (path.parent / "fields.npz").write_bytes(b"fields-fixture")
+        (path.parent / "summary.json").write_bytes(b"summary-fixture")
+        originals[path] = raw
+    return paths, originals
+
+
+@pytest.fixture
+def migration_repo(tmp_path: Path) -> tuple[Path, tuple[str, ...], int, tuple[Path, Path], dict[Path, bytes]]:
+    fixed_paths = tuple(f"fixed/source_{index}.txt" for index in range(6))
+    repo, fixed_paths, expected_count = _init_source_repo(
+        tmp_path,
+        fixed_paths=fixed_paths,
+        python_count=59,
+    )
+    paths, originals = _write_legacy_manifests(tmp_path / "manifests")
+    return repo, fixed_paths, expected_count, paths, originals
+
+
+def test_synthetic_61_to_65_source_only_migration_preserves_other_assets(
+    migration_repo: tuple[Path, tuple[str, ...], int, tuple[Path, Path], dict[Path, bytes]],
+) -> None:
+    repo, fixed_paths, expected_count, paths, originals = migration_repo
+    stable_assets = {
+        path.parent: (
+            (path.parent / "fields.npz").read_bytes(),
+            (path.parent / "summary.json").read_bytes(),
+        )
+        for path in paths
+    }
+    canonical = manifest_tool.migrate_source_identity(
+        paths,
+        repo_root=repo,
+        fixed_paths=fixed_paths,
+        expected_count=expected_count,
+    )
+
+    assert len(canonical["source_hashes_sha256"]) == 65
+    for path in paths:
+        before = json.loads(originals[path])
+        after = json.loads(path.read_text(encoding="utf-8"))
+        manifest_tool._validate_source_only_change(before, after)
+        manifest_tool.validate_source_identity_schema(
+            after,
+            expected_count=65,
+            fixed_paths=fixed_paths,
+        )
+        assert after["case_id"] == before["case_id"]
+        assert after["artifact_hashes_sha256"] == before["artifact_hashes_sha256"]
+        assert after["groups"] == before["groups"]
+        assert (
+            (path.parent / "fields.npz").read_bytes(),
+            (path.parent / "summary.json").read_bytes(),
+        ) == stable_assets[path.parent]
+
+
+def test_migration_rejects_mismatched_legacy_source_maps(
+    migration_repo: tuple[Path, tuple[str, ...], int, tuple[Path, Path], dict[Path, bytes]],
+) -> None:
+    repo, fixed_paths, expected_count, paths, originals = migration_repo
+    second = json.loads(paths[1].read_text(encoding="utf-8"))
+    second["source_hashes_sha256"]["legacy/source_00.py"] = "f" * 64
+    paths[1].write_text(json.dumps(second), encoding="utf-8")
+
+    with pytest.raises(manifest_tool.SourceIdentityError, match="LEGACY_SOURCE_MAP_MISMATCH"):
+        manifest_tool.migrate_source_identity(
+            paths,
+            repo_root=repo,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count,
+        )
+    assert paths[0].read_bytes() == originals[paths[0]]
+
+
+@pytest.mark.parametrize("failure", ["second-replace", "post-validation"])
+def test_migration_failure_restores_both_original_manifest_bytes(
+    migration_repo: tuple[Path, tuple[str, ...], int, tuple[Path, Path], dict[Path, bytes]],
+    monkeypatch: pytest.MonkeyPatch,
+    failure: str,
+) -> None:
+    repo, fixed_paths, expected_count, paths, originals = migration_repo
+    if failure == "second-replace":
+        real_replace = manifest_tool.os.replace
+        calls = 0
+
+        def fail_second_replace(source: Path, target: Path) -> None:
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise OSError("injected second replace failure")
+            real_replace(source, target)
+
+        monkeypatch.setattr(manifest_tool.os, "replace", fail_second_replace)
+    else:
+        real_validate = manifest_tool.validate_source_identity_schema
+        calls = 0
+
+        def fail_post_validation(*args: Any, **kwargs: Any) -> None:
+            nonlocal calls
+            calls += 1
+            if calls == 4:
+                raise manifest_tool.SourceIdentityError("injected post validation failure")
+            real_validate(*args, **kwargs)
+
+        monkeypatch.setattr(manifest_tool, "validate_source_identity_schema", fail_post_validation)
+
+    with pytest.raises((OSError, manifest_tool.SourceIdentityError)):
+        manifest_tool.migrate_source_identity(
+            paths,
+            repo_root=repo,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count,
+        )
+    assert {path: path.read_bytes() for path in paths} == originals
+    assert not list(paths[0].parent.glob(".*.source-identity-*.tmp"))
+    assert not list(paths[1].parent.glob(".*.source-identity-*.tmp"))
+
+
+def test_migration_cli_requires_two_explicit_paths(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["source-migration", "--migrate-source-identity"])
+    with pytest.raises(SystemExit) as exc_info:
+        manifest_tool.main()
+    assert exc_info.value.code == 2
+
+
+def test_migration_rejects_aliases_of_the_same_manifest(
+    migration_repo: tuple[Path, tuple[str, ...], int, tuple[Path, Path], dict[Path, bytes]],
+) -> None:
+    repo, fixed_paths, expected_count, paths, _ = migration_repo
+    alias = paths[0].parent / "." / paths[0].name
+    with pytest.raises(manifest_tool.SourceIdentityError, match="MANIFEST_SET_INVALID"):
+        manifest_tool.migrate_source_identity(
+            (paths[0], alias),
+            repo_root=repo,
+            fixed_paths=fixed_paths,
+            expected_count=expected_count,
+        )
+
+
+def test_migration_cli_rejects_candidate_arguments(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "source-migration",
+            "--migrate-source-identity",
+            "--manifest-path",
+            "a.json",
+            "--manifest-path",
+            "b.json",
+            "--case-id",
+            "forbidden",
+        ],
+    )
+    with pytest.raises(SystemExit) as exc_info:
+        manifest_tool.main()
+    assert exc_info.value.code == 2
+
+
+def test_truncated_name_status_output_fails_closed() -> None:
+    for output in (
+        b"R100\x00only-old-path\x00",
+        b"M\x00src/ref_enthalpy_method/module.py",
+    ):
+        with pytest.raises(manifest_tool.SourceIdentityError, match="parse-staged"):
+            manifest_tool._parse_name_status(output, stage="staged")
+
+
+def test_formal_command_cases_and_head_source_inventory_are_frozen() -> None:
     assert manifest_tool.CASES == EXPECTED_CASES
     for case_id, (mach, alpha, altitude) in EXPECTED_CASES.items():
         run_dir = manifest_tool.SNAPSHOT / "tpg" / case_id
@@ -996,9 +1487,10 @@ def test_formal_command_cases_and_source_inventory_are_frozen() -> None:
             "--no_plots",
         ]
 
-    source_paths = [
-        str(path.relative_to(manifest_tool.ROOT)).replace("\\", "/")
-        for path in manifest_tool.source_files()
-    ]
+    source_paths = list(
+        manifest_tool.build_canonical_source_identity(manifest_tool.ROOT)[
+            "source_hashes_sha256"
+        ]
+    )
     assert len(source_paths) == 65
     assert hashlib.sha256(_canonical(source_paths)).hexdigest() == EXPECTED_SOURCE_PATHS_HASH
