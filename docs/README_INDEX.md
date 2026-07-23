@@ -1,11 +1,11 @@
 # Faceted3D v2 — 文档索引
 
-> 更新：2026-07-20
+> 更新：2026-07-23
 > 用途：新接手 DS/GPT 快速定位
 
 ## 当前主线一句话
 
-Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。正式高度参数域 **20–40 km**。Taw 固定使用 fully turbulent `Pr^(1/3)` recovery。Fluent clean、LF clean、Phase 5C pairing、Phase 5D ingestion、Phase 5E source-level comparison，以及 Chapter 3.1–3.7A 均已完成；Package 0–12=`13/13 PASS`，N3 technical exit=`CERTIFIED SATISFIED`。GATE A 已完成，final branch=`A0`，当前战略节点为 N3a；这表示 case coverage 与变量控制仍不足，不表示 provider 失败、被否决或模型性能 FAIL。当前下一工作不是修改 provider，而是对候选 case 的数据可用性、Fluent adiabatic-wall observation 与 provenance 入口进行只读审计。冻结 comparison 口径仍为 direction=`Fluent→LF`、metric=`projected physical`、many-to-one allowed、no gate / no edge buffer；provider、comparison、pairing、ingestion 与 baseline 均未改变，且没有用户批准的统一性能 threshold。current regression 为 162 tests、117 subtests、schema v5、72 fields、Groups 1–8 zero drift；唯一命令是 `python scripts/tools/current_baseline_regression_check.py`，正式 registry 仍仅含 TPG 的 `ma6_a5_h30km` 与 `ma8_a5_h40km`。CPG runtime、current compatibility baseline 与 phase4a0 replay 均已删除；历史 CPG→TPG 改善只作为历史证据。
+Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。正式高度参数域、Taw、provider、comparison、pairing、ingestion、Groups 1–8 与 72-field contract 均保持冻结。GATE A 已完成，final branch=`A0`；主线仍为 N3a，但 N3b source-identity 技术链已完成：current-v5 pipeline 已改为以 committed Git HEAD tree 中 production path 对应的 Git blob bytes 为 canonical source identity，并完成 61→65 source-only migration、dirty-tree adversarial QA、full pytest 与 official current regression。当前正式 source inventory=`65`，schema=`git-head-tree-source-identity/v1`；authoritative full pytest=`419 passed, 125 subtests passed, 0 failed`，`CURRENT REGRESSION OVERALL: PASS`。N3b Git closeout 尚未完成；独立 fast-forward merge closeout 后返回 N3a.8，不自动进入 GATE A、provider 修改或 formal evidence。正式 registry 仍仅含 TPG 的 `ma6_a5_h30km` 与 `ma8_a5_h40km`，provider 与 comparison 数值/合同未改变，也没有用户批准的统一性能 threshold。历史 Fluent 对比工况中的 30、35、40、45 km 仅是 nominal / historical labels，对应历史自定义来流，不属于任何已验证大气模型；它们只能用于相同精确来流输入下的代码—Fluent 误差对比，本 N3b 未处理 case 扩展或大气模型归属。
 
 ---
 
@@ -46,16 +46,19 @@ scripts/run_case_rem.py
 
 ## 下一步
 
-- 正式参数域：20–40 km，30/35/40 km 标准大气（几何高度输入，内部位势换算）
+- 正式 CLI 默认大气参数域：20–40 km（几何高度输入，内部位势换算）；这只描述无 explicit override 的 CLI 运行配置，不把历史 30/35/40/45 km 自定义来流对比工况升级为已验证大气模型
 - 当前 diagnostic comparison：`runs/fluent_freestream_v2/comparison_table.json`（9 工况 30–40 km）
 - local-incidence classification 与 sheet-specific leeward freestream-recovery TPG Taw diagnostic 已正式收口；alpha-sign routing 不变
 - current baseline schema v5，Groups 1–8，official CLI `fields.npz` 共 72 字段
 - Phase 5A Fluent clean、Phase 5B1 LF clean、Phase 5B2 mapping contract audit、Phase 5C pairing、Phase 5D wall-temperature ingestion 与 Phase 5E source-level comparison：完成
 - comparison 口径：direction=`Fluent→LF`，metric=`projected physical`，many-to-one allowed，no gate / no edge buffer
 - Chapter 3.1–3.7A：已完成；Package 0–12=`13/13 PASS`；N3 technical exit=`CERTIFIED SATISFIED`
-- GATE A：已完成，final branch=`A0`；当前战略节点=`N3a`
-- N3a 当前只补可信 case 或必要诊断，不修改 provider；完成后返回 GATE A
-- 候选最小控制设计可审计 M6/40 km 与 M8/30 km，但二者不是已批准 registry，也未确认具备可信 observation
-- 当前第一步：只读认证候选 case 的数据可用性、Fluent adiabatic-wall observation 与 provenance；不得直接生成 2×2 evidence
+- GATE A：已完成，final branch=`A0`；主线仍为 `N3a`
+- N3b source-identity 技术工作：完成；Git closeout 尚未完成
+- current-v5 source identity：committed Git HEAD tree / Git blob bytes，schema=`git-head-tree-source-identity/v1`，inventory=`65`
+- N3b QA：full pytest=`419 passed, 125 subtests passed, 0 failed`；official current regression=`PASS`
+- N3b source-only migration 未改变 provider、comparison、Groups 1–8、72-field arrays 或数值资产
+- 下一步：独立 Git fast-forward merge closeout；完成后返回 N3a.8，不自动进入 GATE A、provider 修改或 formal evidence
+- 历史 30/35/40/45 km Fluent 对比工况均为自定义精确来流下的代码—Fluent 对比；高度仅为 nominal / historical label，不代表已验证大气模型
 - N3c 尚未正式启动；N4、N6 尚未进入；residual learning 尚未启动
 - 不做调参，不进 residual learning；除单独明确授权的审计证据外，不新增 closeout / manifest / audit / handoff md

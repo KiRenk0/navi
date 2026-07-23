@@ -449,3 +449,17 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - current production source count=`65`；唯一新增 source=`src/ref_enthalpy_method/mapping/m8h30_comparison_inputs.py`；source path-list SHA-256=`81f50d9015c3df397923352d3adb5b0d45dd85e01f3e9a66685c49a3fbf6a428`。current v5 identities 为 `ma6_a5_h30km=71d86a8402b57665167e9cd1c47cdb40e5acefb6dff47317e9d8d0cb74806a2c`、`ma8_a5_h40km=e28f4b3710775f8b2536a9fa0b626c3f22ce8e1f24389f8f21b8c528a931d698`；变化仅来自新增 production source identity。
 - eligibility=`ELIGIBLE_TO_REQUEST_PRODUCTION_COMPARISON` 只允许申请后续独立 production comparison，不等于 comparison/evidence 已完成。本阶段未修改 `CASES` / registry 或 provider，未 admission/promotion，未进入 formal baseline，未执行 production comparison 或 formal evidence；N3a 未完成，GATE A 未重新裁决。
 - historical 61-source candidate manifest、exact M8/30 CSV、candidate 四文件、exact projection cache、formal baseline artifacts、historical formal evidence、Groups 1–8 与 72-field serialization contract 均为 zero drift。
+
+---
+
+## 2026-07-23: N3b Git HEAD-tree / Blob Source Identity 技术闭环
+
+- 在 current-v5 source identity pipeline defect 被确认后，正式合同冻结为：authority=`committed Git HEAD tree`；canonical source bytes=`production path 对应 Git blob bytes`；per-source digest=`SHA-256(blob bytes)`；path=`repo-relative POSIX path`；schema=`git-head-tree-source-identity/v1`。commit SHA、whole-tree OID 与 branch 只作 provenance，不是 canonical identity 等值字段。
+- implementation checkpoint=`2ee3481b49a15aa7852c9793749edf05c560152d`；source-only migration commit=`6081f3ac6f0b9bcda5223d5c8fbed20a08c966ce`。两个 current-v5 manifest 从 legacy 61-source map 迁移为相同的 65-source Git blob identity。
+- 当前正式 source identity：inventory count=`65`；`inventory_paths_sha256=81f50d9015c3df397923352d3adb5b0d45dd85e01f3e9a66685c49a3fbf6a428`；`aggregate_sha256=221f9fc7926dcaf634410674681708847dc34f96c70e626fe1b4789061f99527`。
+- staged、unstaged、deleted、renamed 与 inventory-matching untracked production source 的 adversarial tests 均验证 fail closed；Git 语义 clean 的 Windows CRLF / Linux LF checkout materialization identity neutral；无关 ordinary untracked 不进入 source identity。source-only migration 只能来自 clean committed `HEAD`，不得写入 raw worktree 或 index-only hash。
+- focused source-identity suite=`106 passed, 11 subtests passed`；authoritative full pytest=`419 passed, 125 subtests passed, 0 failed`；official current regression 中 `ma6_a5_h30km` 与 `ma8_a5_h40km` 均 PASS，`CURRENT TPG OFFICIAL: PASS`，`CURRENT REGRESSION OVERALL: PASS`。
+- Windows 上过长 pytest basetemp 可能使 evidence PNG 完整输出路径超过传统路径长度边界；正式 full QA 使用短系统临时根后全部通过。未修改 evidence generator 或测试；该现象是既有 Windows QA/path-length 环境限制，不是 source identity、evidence generator 或 evidence publication defect。
+- source-only migration 的顶层语义变化仅限 `source_hashes_sha256` 与 `source_identity`；`fields.npz`、`summary.json`、`artifact_hashes_sha256`、provider、comparison、Groups 1–8、72-field arrays 与数值资产均为 zero drift。
+- 历史 30、35、40、45 km Fluent 对比工况继续只代表各自精确自定义来流，高度是 nominal / historical label，不属于任何已验证大气模型；45 km 与 30/35/40 km 在证据资格上同类。本 N3b 未处理 case 扩展或大气模型归属。
+- N3b 技术闭环完成；task branch 尚未合并 `main`，Git closeout 尚未完成。下一原子任务是独立 fast-forward merge closeout；完成后返回 N3a.8，不自动进入 GATE A、provider 修改、production comparison 或 formal evidence。
