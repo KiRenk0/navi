@@ -437,3 +437,15 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - current canonical hashes：`ma6_a5_h30km`=`50ea18fb56556b46fcef57fe5043c70f1770d7b36d7301fb11d9041a94f2d7c8`；`ma8_a5_h40km`=`00531b7ac10bdaef11638d80104705b96515f03ad8f4d910ef632905fc6a4698`。protected assets、baseline 与 existing evidence 均为 zero drift；historical candidate 未被改写。
 - N3a.6 已关闭 N3a.5a 所识别的 exact-CSV tracked binding 缺口；新的 comparison eligibility 决策尚未执行，comparison/evidence 仍未开始。没有执行 admission/promotion；M8/30 candidate 仍为 `unregistered_candidate`，N3a 尚未完成，M6/40 exact observation 仍缺失。
 - 三个 45 km CSV 仍未获准进入身份、comparison、evidence 或出图流程。prior `NOT_ELIGIBLE_PROVENANCE_INSUFFICIENT` 未被直接改写为 `ELIGIBLE`。
+
+---
+
+## 2026-07-23: N3a.7 M8/30 Comparison-Input Preparation 实现与独立 Formal QA
+
+- 新增正式 registry-free、fail-closed preparation entry `ref_enthalpy_method.mapping.build_m8h30_comparison_inputs`；公开 bundle 为 `M8H30ComparisonInputs`、`FluentLfTawComparisonInputs`，identity types 为 `M8H30CandidateIdentity`、`M8H30ProjectionCacheIdentity`。该入口只准备 comparison 输入，不调用 production comparison builder，不执行 comparison，不生成 evidence。
+- 输入链强制验证 exact observation binding 及 CSV path/size/raw SHA/header/row count，Mach=`8`、alpha=`+5 deg`、altitude=`30000 m`、`T_inf_K=226.509`、`p_inf_Pa=1197.0`、user-confirmed custom project input、adiabatic wall-temperature `K`、Fluent coordinate semantics 与 `x+0.030` transform；同时验证 candidate manifest 与四文件 identity、status=`unregistered_candidate`、existing exact projection cache identity，并固定 `write_cache=False`。
+- preparation 继续构造并核对 Fluent observation、Fluent clean、LF clean、Fluent→LF many-to-one pairing、canonical index 与 `Taw_tpg_leeward_<sheet>` prediction identity。upper source rows=`186`；lower source rows=`0` 且为正式 typed-empty；`Tw_l=300 K` 禁止作为 adiabatic prediction fallback。
+- formal QA 发现 cache identity 对外审计字段不完整并在批准范围内闭合：identity 直接绑定正式 `build_geometry_identity` 结果，没有复制第二套 geometry identity 算法。focused QA=`154/154 passed`，final full regression=`395/395 passed`，public import 与 `git diff --check` 均 PASS，production comparison calls=`0`。
+- current production source count=`65`；唯一新增 source=`src/ref_enthalpy_method/mapping/m8h30_comparison_inputs.py`；source path-list SHA-256=`81f50d9015c3df397923352d3adb5b0d45dd85e01f3e9a66685c49a3fbf6a428`。current v5 identities 为 `ma6_a5_h30km=71d86a8402b57665167e9cd1c47cdb40e5acefb6dff47317e9d8d0cb74806a2c`、`ma8_a5_h40km=e28f4b3710775f8b2536a9fa0b626c3f22ce8e1f24389f8f21b8c528a931d698`；变化仅来自新增 production source identity。
+- eligibility=`ELIGIBLE_TO_REQUEST_PRODUCTION_COMPARISON` 只允许申请后续独立 production comparison，不等于 comparison/evidence 已完成。本阶段未修改 `CASES` / registry 或 provider，未 admission/promotion，未进入 formal baseline，未执行 production comparison 或 formal evidence；N3a 未完成，GATE A 未重新裁决。
+- historical 61-source candidate manifest、exact M8/30 CSV、candidate 四文件、exact projection cache、formal baseline artifacts、historical formal evidence、Groups 1–8 与 72-field serialization contract 均为 zero drift。

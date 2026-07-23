@@ -13,6 +13,13 @@ from .observation_binding import (
     build_m8h30_observation_binding,
     validate_observation_binding,
 )
+from .m8h30_comparison_inputs import (
+    FluentLfTawComparisonInputs,
+    M8H30CandidateIdentity,
+    M8H30ComparisonInputs,
+    M8H30ProjectionCacheIdentity,
+    build_m8h30_comparison_inputs,
+)
 
 __all__ = [
     "CanonicalGeometryComparison",
@@ -23,4 +30,9 @@ __all__ = [
     "FluentObservationBinding",
     "build_m8h30_observation_binding",
     "validate_observation_binding",
+    "FluentLfTawComparisonInputs",
+    "M8H30CandidateIdentity",
+    "M8H30ComparisonInputs",
+    "M8H30ProjectionCacheIdentity",
+    "build_m8h30_comparison_inputs",
 ]
