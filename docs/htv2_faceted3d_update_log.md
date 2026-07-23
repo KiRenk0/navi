@@ -463,3 +463,17 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - source-only migration 的顶层语义变化仅限 `source_hashes_sha256` 与 `source_identity`；`fields.npz`、`summary.json`、`artifact_hashes_sha256`、provider、comparison、Groups 1–8、72-field arrays 与数值资产均为 zero drift。
 - 历史 30、35、40、45 km Fluent 对比工况继续只代表各自精确自定义来流，高度是 nominal / historical label，不属于任何已验证大气模型；45 km 与 30/35/40 km 在证据资格上同类。本 N3b 未处理 case 扩展或大气模型归属。
 - N3b 技术闭环完成；task branch 尚未合并 `main`，Git closeout 尚未完成。下一原子任务是独立 fast-forward merge closeout；完成后返回 N3a.8，不自动进入 GATE A、provider 修改、production comparison 或 formal evidence。
+
+---
+
+## 2026-07-23: N3a.8 M8/30 Production Comparison Final Formal QA 收口
+
+- N3b 完成并返回 N3a.8；最终在 `main@5348939e5a3c062a1b8ad7f78910abb25ce451ed` 重新执行 M8/30 production comparison formal QA。N3a.8-R1 QA base main=`5348939e5a3c062a1b8ad7f78910abb25ce451ed`。
+- 正式 public API 与调用链认证通过：`build_m8h30_comparison_inputs(...)` 产生 upper/lower preparation inputs，再由 public production comparison builder 构造内存 comparison；无 wrapper、手工 preparation/comparison 旁路或手工 row 构造，固定 `write_cache=False`。
+- upper preparation/comparison 均为 `186` 个 Fluent source rows，映射到 `80` 个 unique LF primary targets；many-to-one 完整保留，不做 source-row dedup/aggregation 或 LF target dedup。mutual 仅作 diagnostic，不参与过滤；无 accepted mask 或 distance gate。
+- lower preparation/comparison 均为 `0` rows，正式数值数组为 typed-empty `float64`；该状态不是 comparison failure。
+- prediction 唯一使用 `Taw_tpg_leeward_upper`，无 `Tw_l` fallback。upper prediction=`2466.390470233011 K`，observation mean=`2419.6771732741936 K`；signed error=`prediction - observation`，mean=`+46.71329695881745 K`；signed relative error=`100 * signed_error / observation`，mean=`+1.953465971180283 %`。逐元素独立复算最大差=`0.0`。
+- focused comparison tests=`10 passed`，并有 `11 subtests passed`；`CURRENT TPG OFFICIAL: PASS`，`CURRENT REGRESSION OVERALL: PASS`。
+- exact M8/30 CSV、candidate 四项资产、projection cache、两个 current-v5 baseline cases、source identity、Git HEAD 与 tracked status 均为 zero drift。
+- “30 km”仍仅为 historical / nominal label，`atmosphere_model=none / unverified`；数值只表示指定历史自定义来流输入下的 descriptive numerical difference，不构成标准大气、真实高度、provider 或统一性能 threshold 裁决。
+- comparison 仅产生内存对象，未生成 formal evidence 或持久 comparison asset；未 admission/promotion，provider 未修改。N3a.8 技术工作已完成，等待 docs commit/push 与独立 fast-forward merge；N3a 整体完成仍待监督 GPT 裁决，尚未返回或重开 GATE A。
