@@ -426,3 +426,14 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 两个独立冷启动 Python 进程均 cache hit，BVH/brute-force/compute fallback/cache writer calls 全为 `0`；formal projection validator、semantics、Fluent/LF clean、upper/lower pairing 与 observation 全部 PASS；两个进程的 deterministic result JSON SHA-256 均为 `709405e8871f0eb08625e404a58b8725db1b526bdf8963764a2fe499bfc31b44`。
 - 正式 cache 治理冻结为 ignored external frozen run artifact：不 tracked、不随普通 clone 分发、不绑定 CASE_REGISTRY、不 promotion 到 baseline/evidence，也不是 canonical source data、观测数据或 baseline；缺失时可由冻结输入与已提交实现重建，identity mismatch/corruption 必须 fail closed。
 - 本链未执行 comparison、未生成新 evidence、未处理 45 km、未 admission/promotion。下一步不是继续修改 projection，而是在独立 Git fast-forward merge closeout 后返回原 N3a 资格/治理主线。
+
+---
+
+## 2026-07-23: N3a.6 M8/30 Observation Binding 技术链收口
+
+- N3a.6a 完成 minimal-design read-only audit；N3a.6b 完成 exact CSV 与用户确认 case/custom-freestream 事实的 minimal tracked binding implementation。
+- formal QA 发现并修正 bool-as-number、negative altitude、Windows/POSIX/mixed path、source inventory closure 与 current canonical builder golden sync；final formal re-QA=`N3A_M8H30_BINDING_FINAL_FORMAL_REQA_PASS`。
+- unified tests=`167 passed`；inline validator adversarial matrix=`74 PASS / 0 FAIL`。current source count=`64`，source paths hash=`2e69d8a851e47418fd988063acf6a0ed5d6b1777477b4a43567cc62d303ec9e8`。
+- current canonical hashes：`ma6_a5_h30km`=`50ea18fb56556b46fcef57fe5043c70f1770d7b36d7301fb11d9041a94f2d7c8`；`ma8_a5_h40km`=`00531b7ac10bdaef11638d80104705b96515f03ad8f4d910ef632905fc6a4698`。protected assets、baseline 与 existing evidence 均为 zero drift；historical candidate 未被改写。
+- N3a.6 已关闭 N3a.5a 所识别的 exact-CSV tracked binding 缺口；新的 comparison eligibility 决策尚未执行，comparison/evidence 仍未开始。没有执行 admission/promotion；M8/30 candidate 仍为 `unregistered_candidate`，N3a 尚未完成，M6/40 exact observation 仍缺失。
+- 三个 45 km CSV 仍未获准进入身份、comparison、evidence 或出图流程。prior `NOT_ELIGIBLE_PROVENANCE_INSUFFICIENT` 未被直接改写为 `ELIGIBLE`。

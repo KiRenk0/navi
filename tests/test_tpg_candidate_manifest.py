@@ -44,8 +44,8 @@ EXPECTED_CASES = {
     "ma8_a5_h40km": (8.0, 5.0, 40000.0),
 }
 EXPECTED_V5_CANONICAL_HASHES = {
-    "ma6_a5_h30km": "67ae41058a997c076874f7fc6fad96cbd4b0b4bcb6c750eb282b175a0c2e2564",
-    "ma8_a5_h40km": "932c2bff9e5406f5d12faa72f397f23978eaf87ca74a847284886d91b1749b23",
+    "ma6_a5_h30km": "50ea18fb56556b46fcef57fe5043c70f1770d7b36d7301fb11d9041a94f2d7c8",
+    "ma8_a5_h40km": "00531b7ac10bdaef11638d80104705b96515f03ad8f4d910ef632905fc6a4698",
 }
 EXPECTED_V5_KEYS = [
     "manifest_schema",
@@ -68,7 +68,7 @@ EXPECTED_V5_KEYS = [
     "generator_cli_template",
 ]
 EXPECTED_SOURCE_PATHS_HASH = (
-    "cfe02f0f9ada5a464121b840297d1aa6d62d56b8619d3d9634c9cf1649b13fa1"
+    "2e69d8a851e47418fd988063acf6a0ed5d6b1777477b4a43567cc62d303ec9e8"
 )
 
 
@@ -1000,5 +1000,5 @@ def test_formal_command_cases_and_source_inventory_are_frozen() -> None:
         str(path.relative_to(manifest_tool.ROOT)).replace("\\", "/")
         for path in manifest_tool.source_files()
     ]
-    assert len(source_paths) == 61
+    assert len(source_paths) == 64
     assert hashlib.sha256(_canonical(source_paths)).hexdigest() == EXPECTED_SOURCE_PATHS_HASH
