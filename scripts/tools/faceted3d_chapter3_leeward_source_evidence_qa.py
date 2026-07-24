@@ -138,6 +138,7 @@ def _validate_png(path: Path, *, case_id: str, sheet: str, role: str, run_id: st
 
 
 def validate_run(run_dir: Path) -> dict[str, Any]:
+    run_dir = run_dir.resolve()
     manifest_path = run_dir / "manifest.json"
     detached_path = run_dir / "manifest.sha256"
     manifest = _load_json(manifest_path)
@@ -159,7 +160,7 @@ def validate_run(run_dir: Path) -> dict[str, Any]:
     for case_id, provenance in manifest["cases"].items():
         _require(provenance["case_id"] == case_id, f"{case_id}: provenance identity changed")
         for input_identity in provenance["inputs"].values():
-            path = ROOT / input_identity["path"]
+            path = (run_dir / input_identity["path"]).resolve()
             _require(path.is_file(), f"{case_id}: missing provenance input")
             _require(path.stat().st_size == input_identity["byte_size"], f"{case_id}: input size mismatch")
             _require(sha256_file(path) == input_identity["raw_sha256"], f"{case_id}: input hash mismatch")
