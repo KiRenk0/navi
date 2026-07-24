@@ -40,6 +40,13 @@ from ref_enthalpy_method.mapping.fluent_wall_temperature import (
     build_fluent_wall_temperature_observations,
 )
 from ref_enthalpy_method.mapping.lf_clean import build_lf_clean_leeward_masks
+from ref_enthalpy_method.mapping.observation_binding import (
+    APPROVED_FORMAL_OBSERVATION_REGISTRY,
+    build_approved_observation_binding,
+    validate_exact_freestream_manifest,
+    validate_exact_freestream_summary,
+    validate_observation_binding,
+)
 from scripts.tools.faceted3d_phase5c_fluent_lf_pairing_qa import (
     _build_fluent_integrations,
 )
@@ -56,7 +63,7 @@ CASE_REGISTRY: dict[str, dict[str, Any]] = {
         "mach": 6.0,
         "alpha_deg": 5.0,
         "geometric_altitude_m": 30000.0,
-        "fluent_csv": "fluent_export/adiabatic_wall_csv/30km_5alpha_6ma.csv",
+        "fluent_csv": APPROVED_FORMAL_OBSERVATION_REGISTRY["ma6_a5_h30km"],
         "lf_fields": "runs/current_baseline_snapshot/tpg/ma6_a5_h30km/fields.npz",
         "lf_summary": "runs/current_baseline_snapshot/tpg/ma6_a5_h30km/summary.json",
         "lf_manifest": "runs/current_baseline_snapshot/tpg/ma6_a5_h30km/manifest.json",
@@ -66,7 +73,7 @@ CASE_REGISTRY: dict[str, dict[str, Any]] = {
         "mach": 8.0,
         "alpha_deg": 5.0,
         "geometric_altitude_m": 40000.0,
-        "fluent_csv": "fluent_export/adiabatic_wall_csv/40km_5alpha_8ma.csv",
+        "fluent_csv": APPROVED_FORMAL_OBSERVATION_REGISTRY["ma8_a5_h40km"],
         "lf_fields": "runs/current_baseline_snapshot/tpg/ma8_a5_h40km/fields.npz",
         "lf_summary": "runs/current_baseline_snapshot/tpg/ma8_a5_h40km/summary.json",
         "lf_manifest": "runs/current_baseline_snapshot/tpg/ma8_a5_h40km/manifest.json",
@@ -106,6 +113,7 @@ SOURCE_MODULE_PATHS = (
     "src/ref_enthalpy_method/mapping/fluent_surface.py",
     "src/ref_enthalpy_method/mapping/fluent_projection.py",
     "src/ref_enthalpy_method/mapping/fluent_semantics.py",
+    "src/ref_enthalpy_method/mapping/observation_binding.py",
 )
 
 
@@ -354,12 +362,27 @@ def _artifact_entry(run_dir: Path, path: Path, *, role: str, media_type: str,
             "raw_sha256": sha256_file(path), "evidence_role": evidence_role}
 
 
+def validate_formal_case_freestream(
+    case_id: str,
+    summary: Mapping[str, Any],
+    manifest: Mapping[str, Any],
+) -> None:
+    binding = build_approved_observation_binding(case_id, ROOT)
+    passed, reason = validate_observation_binding(binding, repo_root=ROOT)
+    _require(passed, f"{case_id}: formal observation binding rejected: {reason}")
+    validate_exact_freestream_summary(binding, summary)
+    validate_exact_freestream_manifest(binding, manifest)
+
+
 def _load_case_inputs(case_id: str) -> tuple[dict[str, np.ndarray], dict[str, Any], dict[str, Any]]:
     entry = CASE_REGISTRY[case_id]
     fields_path, summary_path, manifest_path = (ROOT / entry[key] for key in ("lf_fields", "lf_summary", "lf_manifest"))
     with np.load(fields_path, allow_pickle=False) as loaded:
         fields = {name: np.array(loaded[name], copy=True) for name in loaded.files}
-    return fields, json.loads(summary_path.read_text(encoding="utf-8")), json.loads(manifest_path.read_text(encoding="utf-8"))
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    validate_formal_case_freestream(case_id, summary, manifest)
+    return fields, summary, manifest
 
 
 def _input_identity(relative: str) -> dict[str, Any]:

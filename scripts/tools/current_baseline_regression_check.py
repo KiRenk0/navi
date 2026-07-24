@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 from collections.abc import Sequence
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,12 @@ import numpy as np
 
 from ref_enthalpy_method.gas import make_fluent_tpg_thermo, mu_sutherland
 from ref_enthalpy_method.geometry.local_incidence import SURFACE_CLASS_LEEWARD
+from ref_enthalpy_method.mapping.observation_binding import (
+    build_approved_observation_binding,
+    exact_freestream_cli_arguments,
+    validate_exact_freestream_summary,
+    validate_observation_binding,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT = ROOT / "runs" / "current_baseline_snapshot"
@@ -618,12 +625,33 @@ def verify_artifact_hashes(
     return not errors, errors
 
 
+def _formal_observation_binding(case_id: str) -> Any:
+    binding = build_approved_observation_binding(case_id, ROOT)
+    passed, reason = validate_observation_binding(binding, repo_root=ROOT)
+    if not passed:
+        raise ValueError(f"formal observation binding rejected: {reason}")
+    return binding
+
+
 def formal_command(case_id: str, run_dir: Path) -> list[str]:
     mach, alpha, altitude = CASES[case_id]
+    binding = _formal_observation_binding(case_id)
+    if (
+        binding.mach != Decimal(str(mach))
+        or binding.alpha_deg != Decimal(str(alpha))
+        or binding.geometric_altitude_m != Decimal(str(altitude))
+    ):
+        raise ValueError("formal case tuple does not exactly match observation identity")
+    explicit_arguments = exact_freestream_cli_arguments(
+        binding,
+        T_inf_K=binding.T_inf_K,
+        p_inf_Pa=binding.p_inf_Pa,
+    )
     return [
         sys.executable, str(RUNNER), "--vehicle", str(VEHICLE), "--case", str(CASE),
         "--sampling", str(SAMPLING), "--run_dir", str(run_dir), "--mach", str(mach),
         "--alpha", str(alpha), "--h_m", str(altitude),
+        *explicit_arguments,
         "--transition_weighting", "step", "--no_plots",
     ]
 
@@ -748,7 +776,7 @@ def _require_requested_summary_value(
     expected: float,
 ) -> float:
     actual_value = _finite_float(name, actual, positive=True)
-    if not math.isclose(actual_value, expected, rel_tol=0.0, abs_tol=1e-12):
+    if Decimal(str(actual_value)) != Decimal(str(expected)):
         raise ValueError(
             f"{name} does not match requested explicit freestream value: "
             f"actual={actual_value!r} expected={expected!r}"
@@ -1333,6 +1361,11 @@ def migrate_source_identity(
 
 def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str, Any]:
     summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
+    binding = _formal_observation_binding(case_id)
+    expected_command = formal_command(case_id, run_dir)
+    if command != expected_command:
+        raise ValueError("formal generator command does not match exact observation binding")
+    validate_exact_freestream_summary(binding, summary)
     with np.load(run_dir / "fields.npz", allow_pickle=False) as fields:
         schema = {key: {"shape": list(fields[key].shape), "dtype": str(fields[key].dtype)} for key in sorted(fields.files)}
         mask_w = np.asarray(fields["mask_w"]).astype(bool)
@@ -1355,9 +1388,9 @@ def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str,
             "source": freestream.get("freestream_source"),
         },
         "atmosphere": {
-            "model": freestream.get("atmosphere_model"),
-            "altitude_semantics": "geometric altitude converted to geopotential altitude before 1976 layer evaluation",
-            "explicit_freestream_override": False,
+            "model": "none / unverified",
+            "altitude_semantics": "nominal historical label; no atmosphere qualification inferred",
+            "explicit_freestream_override": True,
         },
         "thermo": {
             "model": "tpg",
@@ -1589,7 +1622,20 @@ def compare_metadata(baseline: dict[str, Any], current: dict[str, Any]) -> list[
     }
     for (name, value), expected_value in zip(checks.items(), expected.values()):
         rows.append((name, value == expected_value, f"actual={value!r} expected={expected_value!r}"))
-    rows.append(("atmosphere.no_override", nested(current, "atmosphere", "explicit_freestream_override") is False, "must be false"))
+    rows.append(
+        (
+            "atmosphere.explicit_override",
+            nested(current, "atmosphere", "explicit_freestream_override") is True,
+            "must be true",
+        )
+    )
+    rows.append(
+        (
+            "atmosphere.unqualified_custom_pair",
+            nested(current, "atmosphere", "model") == "none / unverified",
+            "must not claim atmosphere qualification",
+        )
+    )
     return rows
 
 

@@ -31,7 +31,7 @@
 用法:
   python scripts/viz/plot_windward_error_vs_fluent.py \
     --lf_npz runs/ma6.5_a3_h30km_tpg/fields.npz \
-    --fluent_csv fluent_export/adiabatic_wall_csv/30km_3alpha_6.5ma.csv
+    --fluent_csv fluent_export/adiabatic_wall_csv/1197pa_226.509k_30km_3alpha_6.5ma.csv
 """
 
 from __future__ import annotations
@@ -275,7 +275,7 @@ def main() -> int:
     ap.add_argument("--summary", default=None,
                     help="summary.json 路径（默认取 lf_npz 同目录）")
     ap.add_argument("--fluent_csv",
-                    default="fluent_export/adiabatic_wall_csv/30km_5alpha_6ma.csv",
+                    default="fluent_export/adiabatic_wall_csv/1197pa_226.509k_30km_5alpha_6ma.csv",
                     help="Fluent 绝热壁面 CSV")
     ap.add_argument("--windward_z_sign", choices=["neg", "pos"], default="neg",
                     help="迎风面所在 z 半空间；neg=z<0 (默认，压缩侧)")

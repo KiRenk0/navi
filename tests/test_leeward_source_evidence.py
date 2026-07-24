@@ -113,6 +113,47 @@ def _generate(tmp_path, monkeypatch, **updates):
     return evidence.generate_evidence(**arguments)
 
 
+def test_formal_freestream_gate_accepts_exact_and_rejects_historical_isa_pair():
+    exact_summary = {
+        "inputs": {
+            "T_inf_K_override": 226.509,
+            "p_inf_Pa_override": 1197.0,
+        },
+        "freestream": {
+            "T_inf_K": 226.509,
+            "p_inf_Pa": 1197.0,
+            "freestream_source": "explicit_override",
+        },
+    }
+    exact_manifest = {
+        "freestream": {
+            "actual_T_inf_K": 226.509,
+            "actual_p_inf_Pa": 1197.0,
+            "source": "explicit_override",
+        },
+        "atmosphere": {"explicit_freestream_override": True},
+    }
+    evidence.validate_formal_case_freestream(
+        "ma6_a5_h30km", exact_summary, exact_manifest
+    )
+
+    historical_summary = {
+        "inputs": {
+            "T_inf_K_override": 226.50908361133003,
+            "p_inf_Pa_override": 1196.0495613543349,
+        },
+        "freestream": {
+            "T_inf_K": 226.50908361133003,
+            "p_inf_Pa": 1196.0495613543349,
+            "freestream_source": "explicit_override",
+        },
+    }
+    with pytest.raises(ValueError, match="exactly match"):
+        evidence.validate_formal_case_freestream(
+            "ma6_a5_h30km", historical_summary, exact_manifest
+        )
+
+
 def test_fields_order_scalars_and_per_row_contract():
     arrays = _arrays()
     assert tuple(arrays) == evidence.RAW_FIELD_NAMES

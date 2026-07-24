@@ -1240,6 +1240,7 @@ def test_candidate_and_current_builder_share_canonical_source_contract(
 
     monkeypatch.setattr(manifest_tool, "build_canonical_source_identity", shared_builder)
     candidate = _build_candidate(candidate_run)
+    _set_explicit_summary(candidate_run)
     current = manifest_tool.build_manifest(
         "ma6_a5_h30km",
         candidate_run,
@@ -1248,6 +1249,13 @@ def test_candidate_and_current_builder_share_canonical_source_contract(
     assert calls == [manifest_tool.ROOT, manifest_tool.ROOT]
     assert candidate["source_identity"] is current["source_identity"]
     assert candidate["source_hashes_sha256"] is current["source_hashes_sha256"]
+    assert current["atmosphere"] == {
+        "model": "none / unverified",
+        "altitude_semantics": (
+            "nominal historical label; no atmosphere qualification inferred"
+        ),
+        "explicit_freestream_override": True,
+    }
 
 
 def test_official_source_contract_fails_before_solver(
@@ -1482,6 +1490,10 @@ def test_formal_command_cases_and_head_source_inventory_are_frozen() -> None:
             str(alpha),
             "--h_m",
             str(altitude),
+            "--T_inf_K",
+            "226.509" if case_id == "ma6_a5_h30km" else "251",
+            "--p_inf_Pa",
+            "1197" if case_id == "ma6_a5_h30km" else "287",
             "--transition_weighting",
             "step",
             "--no_plots",

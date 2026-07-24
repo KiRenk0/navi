@@ -6,6 +6,7 @@ import hashlib
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
+from decimal import Decimal
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Literal
@@ -57,7 +58,9 @@ from ref_enthalpy_method.mapping.observation_binding import (
 )
 
 _REPO_ROOT = Path(r"E:\navi_clean")
-_CSV_RELATIVE_PATH = "fluent_export/adiabatic_wall_csv/30km_5alpha_8ma.csv"
+_CSV_RELATIVE_PATH = (
+    "fluent_export/adiabatic_wall_csv/1197pa_226.509k_30km_5alpha_8ma.csv"
+)
 _CANDIDATE_RELATIVE_PATH = "runs/ma8_a5_h30km_tpg_candidate_20260721"
 _CACHE_RELATIVE_PATH = (
     "runs/fluent_projection_cache/"
@@ -211,6 +214,17 @@ class M8H30ComparisonInputs:
     lower: FluentLfTawComparisonInputs
 
     def __post_init__(self) -> None:
+        if self.candidate_identity.case_id != self.observation_binding.case_key:
+            raise ValueError("M8/30 candidate and observation case identities differ")
+        if (
+            Decimal(str(self.candidate_identity.T_inf_K))
+            != self.observation_binding.T_inf_K
+            or Decimal(str(self.candidate_identity.p_inf_Pa))
+            != self.observation_binding.p_inf_Pa
+        ):
+            raise ValueError(
+                "M8/30 candidate and observation freestream identities differ"
+            )
         if self.upper.sheet != "upper" or self.lower.sheet != "lower":
             raise ValueError("upper/lower comparison inputs are not strictly separated")
         if self.upper.observation.source_canonical_index.size == 0:
@@ -260,6 +274,7 @@ def _validate_binding(root: Path) -> FluentObservationBinding:
         or binding.byte_size != _CSV_SIZE
         or binding.header != _CSV_HEADER
         or binding.row_count != _CSV_ROW_COUNT
+        or binding.case_key != "ma8_a5_h30km"
     ):
         raise ValueError("M8/30 observation binding does not match the exact CSV identity")
     return binding

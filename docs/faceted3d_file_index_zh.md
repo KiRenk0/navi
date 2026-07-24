@@ -52,17 +52,22 @@ Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CL
 
 ## 6. Fluent Adiabatic Wall CSV
 
-| 文件 | 工况 |
-|------|------|
-| `fluent_export/adiabatic_wall_csv/30km_3alpha_6.5ma.csv` | h=30km, α=3°, Ma=6.5 |
-| `fluent_export/adiabatic_wall_csv/30km_5alpha_6ma.csv` | h=30km, α=5°, Ma=6 |
-| `fluent_export/adiabatic_wall_csv/30km_5alpha_8ma.csv` | h=30km, α=5°, Ma=8 |
-| `fluent_export/adiabatic_wall_csv/35km_8alpha_6.5ma.csv` | h=35km, α=8°, Ma=6.5 |
-| `fluent_export/adiabatic_wall_csv/35km_8alpha_9ma.csv` | h=35km, α=8°, Ma=9 |
-| `fluent_export/adiabatic_wall_csv/40km_5alpha_8ma.csv` | h=40km, α=5°, Ma=8 |
-| `fluent_export/adiabatic_wall_csv/40km_10alpha_8ma.csv` | h=40km, α=10°, Ma=8 |
+| 文件 | Filename identity |
+|------|-------------------|
+| `fluent_export/adiabatic_wall_csv/1197pa_226.509k_30km_3alpha_6.5ma.csv` | p=1197 Pa, T=226.509 K, nominal h=30 km, α=3°, Ma=6.5 |
+| `fluent_export/adiabatic_wall_csv/1197pa_226.509k_30km_5alpha_6ma.csv` | p=1197 Pa, T=226.509 K, nominal h=30 km, α=5°, Ma=6；approved formal binding |
+| `fluent_export/adiabatic_wall_csv/1197pa_226.509k_30km_5alpha_8ma.csv` | p=1197 Pa, T=226.509 K, nominal h=30 km, α=5°, Ma=8；supplemental-only |
+| `fluent_export/adiabatic_wall_csv/558.9pa_237k_35km_8alpha_6.5ma.csv` | p=558.9 Pa, T=237 K, nominal h=35 km, α=8°, Ma=6.5 |
+| `fluent_export/adiabatic_wall_csv/558.9pa_237k_35km_8alpha_9ma.csv` | p=558.9 Pa, T=237 K, nominal h=35 km, α=8°, Ma=9 |
+| `fluent_export/adiabatic_wall_csv/287pa_251k_40km_10alpha_8ma.csv` | p=287 Pa, T=251 K, nominal h=40 km, α=10°, Ma=8 |
+| `fluent_export/adiabatic_wall_csv/287pa_251k_40km_5alpha_6.5ma.csv` | p=287 Pa, T=251 K, nominal h=40 km, α=5°, Ma=6.5 |
+| `fluent_export/adiabatic_wall_csv/287pa_251k_40km_5alpha_8ma.csv` | p=287 Pa, T=251 K, nominal h=40 km, α=5°, Ma=8；approved formal binding |
+| `fluent_export/adiabatic_wall_csv/287pa_251k_40km_5alpha_9ma.csv` | p=287 Pa, T=251 K, nominal h=40 km, α=5°, Ma=9 |
+| `fluent_export/adiabatic_wall_csv/131pa_241.65k_45km_10alpha_8ma.csv` | p=131 Pa, T=241.65 K, nominal h=45 km, α=10°, Ma=8；unregistered candidate |
+| `fluent_export/adiabatic_wall_csv/131pa_241.65k_45km_5alpha_8ma.csv` | p=131 Pa, T=241.65 K, nominal h=45 km, α=5°, Ma=8；unregistered candidate |
+| `fluent_export/adiabatic_wall_csv/131pa_241.65k_45km_5alpha_9ma.csv` | p=131 Pa, T=241.65 K, nominal h=45 km, α=5°, Ma=9；unregistered candidate |
 
-所有 CSV: 21250 faces, 9 columns, adiabatic wall (heat-flux ≈ 0)。使用 corrected air transport property。这 7 个均为 corrected seven-case comparison 工况。`ma8_a10_h50km` 为独立文件 `fluent_export/ma8_alpha10_h50km.csv`（formal 域外 reserved legacy stress/reference case，不用于拟合）。
+Filename 中的 P/T 是 historical user-defined comparison input；nominal altitude 仅为历史标签，`atmosphere_model=none / unverified`，不得由高度替换 P/T。Parser 成功只证明当前 filename schema 可解析，不产生 formal admission。正式 registry 仅显式包含 M6/30 与 M8/40；M8/30 仅 supplemental，三个 45 km 输入仅获准做 filename/raw identity 审计，不自动进入 N6.1 matrix 或 formal registry。N6.2 formal package 尚未执行。`ma8_a10_h50km` 仍为独立 legacy stress/reference 文件。
 
 ## 7. Thermodynamics / Taw Helper
 

@@ -22,6 +22,9 @@ if str(SRC) not in sys.path:
 from ref_enthalpy_method.geometry.faceted3d import load_outline_csv
 from ref_enthalpy_method.geometry.local_incidence import outward_normal_from_slopes
 from ref_enthalpy_method.geometry.stl_surface import AsciiStlMesh
+from ref_enthalpy_method.mapping.observation_binding import (
+    APPROVED_FORMAL_OBSERVATION_REGISTRY,
+)
 from ref_enthalpy_method.mapping.fluent_projection import (
     FluentSurfaceProjection,
     project_fluent_surface_exact,
@@ -37,9 +40,9 @@ from ref_enthalpy_method.mapping.fluent_surface import (
     read_fluent_surface_geometry_csv,
 )
 
-CASES = (
-    ("ma6_a5_h30km", ROOT / "fluent_export" / "adiabatic_wall_csv" / "30km_5alpha_6ma.csv"),
-    ("ma8_a5_h40km", ROOT / "fluent_export" / "adiabatic_wall_csv" / "40km_5alpha_8ma.csv"),
+CASES = tuple(
+    (case_id, ROOT / csv_path)
+    for case_id, csv_path in APPROVED_FORMAL_OBSERVATION_REGISTRY.items()
 )
 STL_PATH = ROOT / "new_spec" / "htv2_0628.stl"
 OUTLINE_PATH = ROOT / "new_spec" / "outline_xz_right_0629.csv"

@@ -48,7 +48,7 @@ _PROJECT = _THIS_DIR.parents[1]
 
 
 def _default_fluent_csv() -> Path:
-    return _PROJECT / "fluent_export/adiabatic_wall_csv/30km_5alpha_6ma.csv"
+    return _PROJECT / "fluent_export/adiabatic_wall_csv/1197pa_226.509k_30km_5alpha_6ma.csv"
 
 
 def _default_lf_npz() -> Path:
@@ -382,7 +382,7 @@ def main() -> int:
         "--fluent_csv",
         type=Path,
         default=None,
-        help="Path to Fluent wall CSV (default: adiabatic_wall_csv/30km_5alpha_6ma.csv)",
+        help="Path to Fluent wall CSV (default: adiabatic_wall_csv/1197pa_226.509k_30km_5alpha_6ma.csv)",
     )
     parser.add_argument(
         "--lf_npz",

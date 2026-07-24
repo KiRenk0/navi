@@ -518,7 +518,12 @@ class Htv2RegionalDifferentialTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         repo_root = Path(__file__).resolve().parent.parent
-        fluent_csv = repo_root / "fluent_export" / "adiabatic_wall_csv" / "30km_5alpha_8ma.csv"
+        fluent_csv = (
+            repo_root
+            / "fluent_export"
+            / "adiabatic_wall_csv"
+            / "1197pa_226.509k_30km_5alpha_8ma.csv"
+        )
         stl_path = repo_root / "new_spec" / "htv2_0628.stl"
         if not fluent_csv.is_file() or not stl_path.is_file():
             raise AssertionError(

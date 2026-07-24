@@ -1,759 +1,283 @@
-"""Unit tests for Fluent observation binding and fail-closed validator.
-
-Tests use the exact M8/30 CSV at the original repo root.  No solver,
-candidate generation, projection, cache, or evidence generation is run.
-"""
+"""Focused tests for strict CSV filename identity and observation binding."""
 
 from __future__ import annotations
 
-import copy
-import unittest
+from dataclasses import replace
+from decimal import Decimal
 from pathlib import Path
 
-import numpy as np
+import pytest
 
 from ref_enthalpy_method.mapping.observation_binding import (
-    FluentObservationBinding,
+    APPROVED_FORMAL_OBSERVATION_REGISTRY,
+    SUPPLEMENTAL_OBSERVATION_REGISTRY,
+    build_approved_observation_binding,
     build_m8h30_observation_binding,
+    exact_freestream_cli_arguments,
+    parse_observation_filename,
+    require_exact_freestream_pair,
+    validate_exact_freestream_manifest,
+    validate_exact_freestream_summary,
     validate_observation_binding,
+    validate_observation_identity_set,
 )
 
-# ---------------------------------------------------------------------------
-# The CSV lives in the original repo, not the worktree.
-# ---------------------------------------------------------------------------
-_REPO_ROOT = Path(r"E:\navi_clean")
-_CSV_PATH = "fluent_export/adiabatic_wall_csv/30km_5alpha_8ma.csv"
-
-# Expected canonical values
-_EXPECTED_RAW_SHA256 = (
-    "5dc84e2dea4dc49a5f6ce777e71b8121c148b9490afeb83c98bd5ce022b3b865"
+ROOT = Path(__file__).resolve().parents[1]
+CSV_DIRECTORY = "fluent_export/adiabatic_wall_csv"
+APPROVED_BASENAMES = (
+    "1197pa_226.509k_30km_3alpha_6.5ma.csv",
+    "1197pa_226.509k_30km_5alpha_6ma.csv",
+    "1197pa_226.509k_30km_5alpha_8ma.csv",
+    "558.9pa_237k_35km_8alpha_6.5ma.csv",
+    "558.9pa_237k_35km_8alpha_9ma.csv",
+    "287pa_251k_40km_10alpha_8ma.csv",
+    "287pa_251k_40km_5alpha_6.5ma.csv",
+    "287pa_251k_40km_5alpha_8ma.csv",
+    "287pa_251k_40km_5alpha_9ma.csv",
+    "131pa_241.65k_45km_10alpha_8ma.csv",
+    "131pa_241.65k_45km_5alpha_8ma.csv",
+    "131pa_241.65k_45km_5alpha_9ma.csv",
 )
-_EXPECTED_BYTE_SIZE = 3123901
-_EXPECTED_HEADER = (
-    "cellnumber",
-    "    x-coordinate",
-    "    y-coordinate",
-    "    z-coordinate",
-    "absolute-pressure",
-    "wall-temperature",
-    "          y-plus",
-    "       heat-flux",
-    "face-area-magnitude",
+
+
+def test_current_twelve_basenames_parse_without_admission() -> None:
+    identities = tuple(parse_observation_filename(name) for name in APPROVED_BASENAMES)
+
+    assert len(identities) == 12
+    assert {identity.basename for identity in identities} == set(APPROVED_BASENAMES)
+    assert set(APPROVED_FORMAL_OBSERVATION_REGISTRY) == {
+        "ma6_a5_h30km",
+        "ma8_a5_h40km",
+    }
+    assert all(
+        identity.case_key not in APPROVED_FORMAL_OBSERVATION_REGISTRY
+        for identity in identities
+        if identity.nominal_altitude_km == Decimal("45")
+    )
+
+
+@pytest.mark.parametrize(
+    "basename",
+    (
+        " 1197pa_226.509k_30km_5alpha_6ma.csv",
+        "1197pa_226.509k_30km_5alpha_6ma.csv ",
+        "1197PA_226.509k_30km_5alpha_6ma.csv",
+        "1197pa_226.509K_30km_5alpha_6ma.csv",
+        "folder/1197pa_226.509k_30km_5alpha_6ma.csv",
+        r"folder\1197pa_226.509k_30km_5alpha_6ma.csv",
+        "../1197pa_226.509k_30km_5alpha_6ma.csv",
+        "1197e0pa_226.509k_30km_5alpha_6ma.csv",
+        "nanpa_226.509k_30km_5alpha_6ma.csv",
+        "infpa_226.509k_30km_5alpha_6ma.csv",
+        "1197pa_226.509k_30km_5alpha.csv",
+        "1197pa_226.509k_30km_5alpha_6ma.txt",
+    ),
 )
-_EXPECTED_ROW_COUNT = 21250
+def test_parser_rejects_non_schema_input(basename: str) -> None:
+    with pytest.raises(ValueError):
+        parse_observation_filename(basename)
 
 
-class TestBuildBinding(unittest.TestCase):
-    """Tests for build_m8h30_observation_binding."""
-
-    def test_builds_valid_binding(self):
-        binding = build_m8h30_observation_binding(_REPO_ROOT, csv_path=_CSV_PATH)
-        self.assertIsInstance(binding, FluentObservationBinding)
-        self.assertEqual(binding.csv_path, _CSV_PATH)
-
-    def test_binding_csv_identity_exact(self):
-        binding = build_m8h30_observation_binding(_REPO_ROOT, csv_path=_CSV_PATH)
-        self.assertEqual(binding.raw_sha256, _EXPECTED_RAW_SHA256)
-        self.assertEqual(binding.byte_size, _EXPECTED_BYTE_SIZE)
-        self.assertEqual(binding.header, _EXPECTED_HEADER)
-        self.assertEqual(binding.row_count, _EXPECTED_ROW_COUNT)
-
-    def test_binding_parameters_exact(self):
-        binding = build_m8h30_observation_binding(_REPO_ROOT, csv_path=_CSV_PATH)
-        self.assertEqual(binding.mach, 8.0)
-        self.assertEqual(binding.alpha_deg, 5.0)
-        self.assertEqual(binding.geometric_altitude_m, 30000)
-        self.assertEqual(binding.T_inf_K, 226.509)
-        self.assertEqual(binding.p_inf_Pa, 1197.0)
-        self.assertEqual(
-            binding.freestream_provenance, "user-confirmed custom project input"
-        )
-        self.assertEqual(binding.wall_thermal_condition, "adiabatic")
-        self.assertEqual(binding.observation_field, "wall-temperature")
-        self.assertEqual(binding.observation_unit, "K")
-        self.assertEqual(binding.coordinate_unit, "m")
-        self.assertEqual(binding.fluent_source_convention, "(x,y,z)")
-        self.assertEqual(binding.solver_transform, "(x+0.030, span=y, up=z)")
-        self.assertEqual(binding.user_confirmation_date, "2026-07-22")
-        self.assertEqual(binding.validation_policy, "fail-closed")
+@pytest.mark.parametrize(
+    "basename",
+    (
+        "0pa_226.509k_30km_5alpha_6ma.csv",
+        "-1pa_226.509k_30km_5alpha_6ma.csv",
+        "1197pa_0k_30km_5alpha_6ma.csv",
+        "1197pa_-1k_30km_5alpha_6ma.csv",
+        "1197pa_226.509k_30km_5alpha_0ma.csv",
+        "1197pa_226.509k_30km_5alpha_-1ma.csv",
+    ),
+)
+def test_parser_rejects_nonpositive_freestream_or_mach(basename: str) -> None:
+    with pytest.raises(ValueError):
+        parse_observation_filename(basename)
 
 
-class TestValidatePass(unittest.TestCase):
-    """Tests where validate_observation_binding must PASS."""
+def test_parser_preserves_raw_tokens_decimal_values_and_case_key() -> None:
+    identity = parse_observation_filename(
+        "1197pa_226.509k_30km_5alpha_6ma.csv"
+    )
 
-    @classmethod
-    def setUpClass(cls):
-        cls.valid_binding = build_m8h30_observation_binding(
-            _REPO_ROOT, csv_path=_CSV_PATH
-        )
+    assert identity.p_inf_Pa_token == "1197"
+    assert identity.T_inf_K_token == "226.509"
+    assert identity.nominal_altitude_km_token == "30"
+    assert identity.alpha_deg_token == "5"
+    assert identity.mach_token == "6"
+    assert identity.p_inf_Pa == Decimal("1197")
+    assert identity.T_inf_K == Decimal("226.509")
+    assert identity.nominal_altitude_km == Decimal("30")
+    assert identity.alpha_deg == Decimal("5")
+    assert identity.mach == Decimal("6")
+    assert identity.case_key == "ma6_a5_h30km"
 
-    def test_valid_binding_passes(self):
-        ok, reason = validate_observation_binding(
-            self.valid_binding, repo_root=_REPO_ROOT
-        )
-        self.assertTrue(ok, f"expected PASS but got: {reason}")
 
-    def test_valid_dict_passes(self):
-        d = {
-            "schema": self.valid_binding.schema,
-            "csv_path": self.valid_binding.csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertTrue(ok, f"expected PASS but got: {reason}")
+def test_identity_set_rejects_conflicting_pair_for_same_case_key() -> None:
+    identities = (
+        parse_observation_filename("1197pa_226.509k_30km_5alpha_6ma.csv"),
+        parse_observation_filename("1200pa_227k_30km_5alpha_6ma.csv"),
+    )
 
-    def test_deterministic_repeatability(self):
-        results = []
-        for _ in range(5):
-            ok, reason = validate_observation_binding(
-                self.valid_binding, repo_root=_REPO_ROOT
-            )
-            results.append((ok, reason))
-        first = results[0]
-        for r in results[1:]:
-            self.assertEqual(r, first, "non-deterministic validation result")
+    with pytest.raises(ValueError, match="conflicting freestream pair"):
+        validate_observation_identity_set(identities)
 
-    def test_validator_does_not_modify_input(self):
-        d = {
-            "schema": self.valid_binding.schema,
-            "csv_path": self.valid_binding.csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
-        before = copy.deepcopy(d)
-        validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertEqual(
-            d, before, "validator must not modify the input dict"
+
+def test_identity_set_rejects_duplicate_complete_identity() -> None:
+    identity = parse_observation_filename("1197pa_226.509k_30km_5alpha_6ma.csv")
+
+    with pytest.raises(ValueError, match="duplicate complete observation identity"):
+        validate_observation_identity_set((identity, identity))
+
+
+def test_approved_bindings_are_exact_filename_authority() -> None:
+    m6 = build_approved_observation_binding("ma6_a5_h30km", ROOT)
+    m8 = build_approved_observation_binding("ma8_a5_h40km", ROOT)
+
+    assert (m6.T_inf_K, m6.p_inf_Pa) == (
+        Decimal("226.509"),
+        Decimal("1197"),
+    )
+    assert (m8.T_inf_K, m8.p_inf_Pa) == (Decimal("251"), Decimal("287"))
+    assert m6.case_key == "ma6_a5_h30km"
+    assert m8.case_key == "ma8_a5_h40km"
+    for binding in (m6, m8):
+        passed, reason = validate_observation_binding(binding, repo_root=ROOT)
+        assert passed, reason
+
+
+def test_m8h30_is_supplemental_only_and_uses_new_path() -> None:
+    binding = build_m8h30_observation_binding(ROOT)
+
+    assert binding.csv_path == (
+        f"{CSV_DIRECTORY}/1197pa_226.509k_30km_5alpha_8ma.csv"
+    )
+    assert binding.case_key == "ma8_a5_h30km"
+    assert binding.T_inf_K == Decimal("226.509")
+    assert binding.p_inf_Pa == Decimal("1197")
+    assert "ma8_a5_h30km" in SUPPLEMENTAL_OBSERVATION_REGISTRY
+    assert "ma8_a5_h30km" not in APPROVED_FORMAL_OBSERVATION_REGISTRY
+    with pytest.raises(ValueError, match="not in approved"):
+        build_approved_observation_binding("ma8_a5_h30km", ROOT)
+
+
+def test_binding_rejects_filename_identity_drift() -> None:
+    binding = build_approved_observation_binding("ma6_a5_h30km", ROOT)
+    wrong_identity = parse_observation_filename(
+        "1200pa_226.509k_30km_5alpha_6ma.csv"
+    )
+
+    with pytest.raises(ValueError, match="filename_identity"):
+        replace(binding, filename_identity=wrong_identity)
+
+
+def test_exact_gate_rejects_handcrafted_identity_as_parallel_authority() -> None:
+    parsed = parse_observation_filename(
+        "1197pa_226.509k_30km_5alpha_6ma.csv"
+    )
+    handcrafted = replace(parsed, p_inf_Pa=Decimal("1200"))
+
+    with pytest.raises(ValueError, match="parser-derived"):
+        require_exact_freestream_pair(
+            handcrafted,
+            T_inf_K=Decimal("226.509"),
+            p_inf_Pa=Decimal("1200"),
         )
 
 
-class TestValidateFailMissingField(unittest.TestCase):
-    """Tests for missing required fields."""
+@pytest.mark.parametrize(
+    ("T_inf_K", "p_inf_Pa"),
+    (
+        (None, Decimal("1197")),
+        (Decimal("226.509"), None),
+        (Decimal("226.5"), Decimal("1197")),
+        (Decimal("226.509"), Decimal("1196.0495613543349")),
+        (Decimal("226.50908361133003"), Decimal("1197")),
+    ),
+)
+def test_exact_pair_gate_rejects_missing_or_mismatched_values(
+    T_inf_K: Decimal | None,
+    p_inf_Pa: Decimal | None,
+) -> None:
+    binding = build_approved_observation_binding("ma6_a5_h30km", ROOT)
 
-    @classmethod
-    def setUpClass(cls):
-        cls.valid_binding = build_m8h30_observation_binding(
-            _REPO_ROOT, csv_path=_CSV_PATH
+    with pytest.raises(ValueError):
+        require_exact_freestream_pair(
+            binding,
+            T_inf_K=T_inf_K,
+            p_inf_Pa=p_inf_Pa,
         )
 
-    def _valid_dict(self):
-        return {
-            "schema": self.valid_binding.schema,
-            "csv_path": self.valid_binding.csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
 
-    def test_missing_raw_sha256(self):
-        d = self._valid_dict()
-        del d["raw_sha256"]
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("missing", reason.lower())
-
-    def test_missing_csv_path(self):
-        d = self._valid_dict()
-        del d["csv_path"]
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("missing", reason.lower())
-
-    def test_missing_mach(self):
-        d = self._valid_dict()
-        del d["mach"]
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("missing", reason.lower())
-
-
-class TestValidateFailWrongType(unittest.TestCase):
-    """Tests for wrong-type fields."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.valid_binding = build_m8h30_observation_binding(
-            _REPO_ROOT, csv_path=_CSV_PATH
-        )
-
-    def _valid_dict(self):
-        return {
-            "schema": self.valid_binding.schema,
-            "csv_path": self.valid_binding.csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
-
-    def test_mach_is_string(self):
-        d = self._valid_dict()
-        d["mach"] = "8.0"
-        ok, _ = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-
-    def test_byte_size_is_float(self):
-        d = self._valid_dict()
-        d["byte_size"] = 3123901.0
-        ok, _ = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-
-    def test_header_is_list_not_tuple(self):
-        d = self._valid_dict()
-        d["header"] = list(d["header"])
-        ok, _ = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-
-
-class TestValidateFailUnknownField(unittest.TestCase):
-    """Tests for unknown-field policy (fail-closed)."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.valid_binding = build_m8h30_observation_binding(
-            _REPO_ROOT, csv_path=_CSV_PATH
-        )
-
-    def _valid_dict(self):
-        return {
-            "schema": self.valid_binding.schema,
-            "csv_path": self.valid_binding.csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
-
-    def test_unknown_extra_field_rejected(self):
-        d = self._valid_dict()
-        d["extra_field"] = "should be rejected"
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("unknown", reason.lower())
-
-
-class TestValidateFailPathEscapes(unittest.TestCase):
-    """Tests for path-escape rejection."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.valid_binding = build_m8h30_observation_binding(
-            _REPO_ROOT, csv_path=_CSV_PATH
-        )
-
-    def _valid_dict(self):
-        return {
-            "schema": self.valid_binding.schema,
-            "csv_path": self.valid_binding.csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
-
-    def test_absolute_path_rejected(self):
-        d = self._valid_dict()
-        d["csv_path"] = str(_REPO_ROOT / _CSV_PATH)
-        ok, _ = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-
-    def test_dot_dot_escape_rejected(self):
-        d = self._valid_dict()
-        d["csv_path"] = "../../etc/passwd"
-        ok, _ = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-
-    def test_windows_absolute_rejected(self):
-        d = self._valid_dict()
-        d["csv_path"] = r"C:\temp\test.csv"
-        ok, _ = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-
-
-class TestValidateFailIdentityMismatches(unittest.TestCase):
-    """Tests for CSV identity mismatches."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.valid_binding = build_m8h30_observation_binding(
-            _REPO_ROOT, csv_path=_CSV_PATH
-        )
-
-    def _valid_dict(self):
-        return {
-            "schema": self.valid_binding.schema,
-            "csv_path": self.valid_binding.csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
-
-    def test_wrong_path(self):
-        d = self._valid_dict()
-        d["csv_path"] = "fluent_export/adiabatic_wall_csv/nonexistent.csv"
-        ok, _ = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-
-    def test_wrong_sha(self):
-        d = self._valid_dict()
-        d["raw_sha256"] = "0" * 64
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("raw_sha256", reason.lower())
-
-    def test_wrong_size(self):
-        d = self._valid_dict()
-        d["byte_size"] = 1
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("byte_size", reason.lower())
-
-    def test_header_mismatch(self):
-        d = self._valid_dict()
-        d["header"] = ("wrong", "header")
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("header", reason.lower())
-
-    def test_row_count_mismatch(self):
-        d = self._valid_dict()
-        d["row_count"] = 99999
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("row_count", reason.lower())
-
-
-class TestValidateFailParameterMismatches(unittest.TestCase):
-    """Tests for individual parameter mismatches."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.valid_binding = build_m8h30_observation_binding(
-            _REPO_ROOT, csv_path=_CSV_PATH
-        )
-
-    def _valid_dict(self):
-        return {
-            "schema": self.valid_binding.schema,
-            "csv_path": self.valid_binding.csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
-
-    def test_mach_mismatch(self):
-        d = self._valid_dict()
-        d["mach"] = 7.0
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("mach", reason.lower())
-
-    def test_alpha_mismatch(self):
-        d = self._valid_dict()
-        d["alpha_deg"] = 0.0
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("alpha_deg", reason.lower())
-
-    def test_altitude_mismatch(self):
-        d = self._valid_dict()
-        d["geometric_altitude_m"] = 20000
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("geometric_altitude_m", reason.lower())
-
-    def test_T_inf_mismatch(self):
-        d = self._valid_dict()
-        d["T_inf_K"] = 226.50
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("t_inf_k", reason.lower())
-
-    def test_p_inf_mismatch(self):
-        d = self._valid_dict()
-        d["p_inf_Pa"] = 1200.0
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("p_inf_pa", reason.lower())
-
-    def test_standard_atmosphere_substitution(self):
-        """ISA at 30 km is T~226.509 K, p~1197 Pa — our values happen to
-        match.  If someone substitutes standard-atmosphere values that differ
-        from the user-confirmed inputs (226.509, 1197.0), it must be rejected.
-        We test by using a nearby but different ISA value for 30 km."""
-        # ISA(30 km) ≈ 226.509 K, 1197 Pa per USSA 1976 — but our user input
-        # is explicitly NOT from standard atmosphere. Test a different ISA
-        # layer to ensure substitution is detected.
-        d = self._valid_dict()
-        d["T_inf_K"] = 227.0  # Not the user-confirmed value
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-
-    def test_wrong_provenance(self):
-        d = self._valid_dict()
-        d["freestream_provenance"] = "isa1976 standard atmosphere"
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("freestream_provenance", reason.lower())
-
-    def test_non_adiabatic_boundary(self):
-        d = self._valid_dict()
-        d["wall_thermal_condition"] = "isothermal"
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("wall_thermal_condition", reason.lower())
-
-    def test_wrong_observation_field(self):
-        d = self._valid_dict()
-        d["observation_field"] = "heat-flux"
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("observation_field", reason.lower())
-
-    def test_wrong_observation_unit(self):
-        d = self._valid_dict()
-        d["observation_unit"] = "Pa"
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("observation_unit", reason.lower())
-
-    def test_coordinate_mismatch(self):
-        d = self._valid_dict()
-        d["coordinate_unit"] = "mm"
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("coordinate_unit", reason.lower())
-
-    def test_transform_mismatch(self):
-        d = self._valid_dict()
-        d["solver_transform"] = "(x, span=y, up=z)"
-        ok, reason = validate_observation_binding(d, repo_root=_REPO_ROOT)
-        self.assertFalse(ok)
-        self.assertIn("solver_transform", reason.lower())
-
-
-class TestBoolRejectedForNumericFields(unittest.TestCase):
-    """Bool values must be explicitly rejected for all numeric fields."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.valid_binding = build_m8h30_observation_binding(
-            _REPO_ROOT, csv_path=_CSV_PATH
-        )
-
-    def _valid_dict(self):
-        return {
-            "schema": self.valid_binding.schema,
-            "csv_path": self.valid_binding.csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
-
-    def test_byte_size_true_rejected(self):
-        d = self._valid_dict()
-        d["byte_size"] = True
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_row_count_true_rejected(self):
-        d = self._valid_dict()
-        d["row_count"] = True
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_mach_true_rejected(self):
-        d = self._valid_dict()
-        d["mach"] = True
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_alpha_deg_false_rejected(self):
-        d = self._valid_dict()
-        d["alpha_deg"] = False
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_geometric_altitude_m_false_rejected(self):
-        d = self._valid_dict()
-        d["geometric_altitude_m"] = False
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_T_inf_K_true_rejected(self):
-        d = self._valid_dict()
-        d["T_inf_K"] = True
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_p_inf_Pa_false_rejected(self):
-        d = self._valid_dict()
-        d["p_inf_Pa"] = False
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-
-class TestAltitudeNonNegative(unittest.TestCase):
-    """geometric_altitude_m must be >= 0, bool rejected."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.valid_binding = build_m8h30_observation_binding(
-            _REPO_ROOT, csv_path=_CSV_PATH
-        )
-
-    def _valid_dict(self):
-        return {
-            "schema": self.valid_binding.schema,
-            "csv_path": self.valid_binding.csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
-
-    def test_altitude_negative_1_rejected(self):
-        d = self._valid_dict()
-        d["geometric_altitude_m"] = -1
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_altitude_negative_30000_rejected(self):
-        d = self._valid_dict()
-        d["geometric_altitude_m"] = -30000
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_altitude_zero_allowed(self):
-        """geometric_altitude_m=0 must pass the dataclass base type contract."""
-        d = self._valid_dict()
-        d["geometric_altitude_m"] = 0
-        binding = FluentObservationBinding(**d)
-        self.assertEqual(binding.geometric_altitude_m, 0)
-
-    def test_canonical_builder_altitude_30000_passes(self):
-        binding = build_m8h30_observation_binding(_REPO_ROOT, csv_path=_CSV_PATH)
-        self.assertEqual(binding.geometric_altitude_m, 30000)
-
-
-class TestPathCanonicalization(unittest.TestCase):
-    """csv_path must be canonical POSIX-style repo-relative; reject backslash, mixed slash."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.valid_binding = build_m8h30_observation_binding(
-            _REPO_ROOT, csv_path=_CSV_PATH
-        )
-
-    def _dict_with_path(self, csv_path):
-        return {
-            "schema": self.valid_binding.schema,
-            "csv_path": csv_path,
-            "raw_sha256": self.valid_binding.raw_sha256,
-            "byte_size": self.valid_binding.byte_size,
-            "header": self.valid_binding.header,
-            "row_count": self.valid_binding.row_count,
-            "mach": self.valid_binding.mach,
-            "alpha_deg": self.valid_binding.alpha_deg,
-            "geometric_altitude_m": self.valid_binding.geometric_altitude_m,
-            "T_inf_K": self.valid_binding.T_inf_K,
-            "p_inf_Pa": self.valid_binding.p_inf_Pa,
-            "freestream_provenance": self.valid_binding.freestream_provenance,
-            "wall_thermal_condition": self.valid_binding.wall_thermal_condition,
-            "observation_field": self.valid_binding.observation_field,
-            "observation_unit": self.valid_binding.observation_unit,
-            "coordinate_unit": self.valid_binding.coordinate_unit,
-            "fluent_source_convention": self.valid_binding.fluent_source_convention,
-            "solver_transform": self.valid_binding.solver_transform,
-            "user_confirmation_date": self.valid_binding.user_confirmation_date,
-            "validation_policy": self.valid_binding.validation_policy,
-        }
-
-    def test_mixed_slash_rejected_1(self):
-        d = self._dict_with_path(r"fluent_export\adiabatic_wall_csv/30km_5alpha_8ma.csv")
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_backslash_only_rejected(self):
-        d = self._dict_with_path(r"fluent_export\adiabatic_wall_csv\30km_5alpha_8ma.csv")
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_leading_dot_slash_rejected(self):
-        d = self._dict_with_path(r".\fluent_export/adiabatic_wall_csv/30km_5alpha_8ma.csv")
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_posix_absolute_etc_passwd_rejected(self):
-        d = self._dict_with_path("/etc/passwd")
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_posix_absolute_tmp_csv_rejected(self):
-        d = self._dict_with_path("/tmp/test.csv")
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_posix_absolute_repo_like_path_rejected(self):
-        d = self._dict_with_path("/fluent_export/adiabatic_wall_csv/30km_5alpha_8ma.csv")
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_double_slash_rejected(self):
-        d = self._dict_with_path("//server/share/test.csv")
-        with self.assertRaises((ValueError, TypeError)):
-            FluentObservationBinding(**d)
-
-    def test_canonical_forward_slash_passes(self):
-        d = self._dict_with_path("fluent_export/adiabatic_wall_csv/30km_5alpha_8ma.csv")
-        binding = FluentObservationBinding(**d)
-        self.assertEqual(binding.csv_path, "fluent_export/adiabatic_wall_csv/30km_5alpha_8ma.csv")
+def test_exact_cli_preserves_approved_decimal_tokens() -> None:
+    m6 = build_approved_observation_binding("ma6_a5_h30km", ROOT)
+    m8 = build_approved_observation_binding("ma8_a5_h40km", ROOT)
+
+    assert exact_freestream_cli_arguments(
+        m6, T_inf_K=Decimal("226.509"), p_inf_Pa=Decimal("1197")
+    ) == ("--T_inf_K", "226.509", "--p_inf_Pa", "1197")
+    assert exact_freestream_cli_arguments(
+        m8, T_inf_K=Decimal("251"), p_inf_Pa=Decimal("287")
+    ) == ("--T_inf_K", "251", "--p_inf_Pa", "287")
+
+
+def _exact_summary(T_inf_K: object, p_inf_Pa: object, *, source: str) -> dict:
+    return {
+        "inputs": {
+            "T_inf_K_override": T_inf_K,
+            "p_inf_Pa_override": p_inf_Pa,
+        },
+        "freestream": {
+            "T_inf_K": T_inf_K,
+            "p_inf_Pa": p_inf_Pa,
+            "freestream_source": source,
+        },
+    }
+
+
+def test_summary_and_manifest_accept_only_exact_explicit_pair() -> None:
+    binding = build_approved_observation_binding("ma8_a5_h40km", ROOT)
+    summary = _exact_summary(251.0, 287.0, source="explicit_override")
+    manifest = {
+        "freestream": {
+            "actual_T_inf_K": 251.0,
+            "actual_p_inf_Pa": 287.0,
+            "source": "explicit_override",
+        },
+        "atmosphere": {"explicit_freestream_override": True},
+    }
+
+    validate_exact_freestream_summary(binding, summary)
+    validate_exact_freestream_manifest(binding, manifest)
+
+
+@pytest.mark.parametrize(
+    "summary",
+    (
+        _exact_summary(226.509, 1197.0, source="atmosphere"),
+        _exact_summary(226.50908361133003, 1196.0495613543349, source="explicit_override"),
+        {"freestream": {"T_inf_K": 226.509, "p_inf_Pa": 1197.0, "freestream_source": "explicit_override"}},
+    ),
+)
+def test_summary_rejects_nonexplicit_historical_or_missing_override(
+    summary: dict,
+) -> None:
+    binding = build_approved_observation_binding("ma6_a5_h30km", ROOT)
+
+    with pytest.raises(ValueError):
+        validate_exact_freestream_summary(binding, summary)
+
+
+def test_parser_and_binding_do_not_modify_historical_manifest_bytes() -> None:
+    manifest_path = (
+        ROOT
+        / "runs"
+        / "leeward_source_evidence"
+        / "20260720T055647Z_af1f1f5395a9"
+        / "manifest.json"
+    )
+    before = manifest_path.read_bytes()
+
+    parse_observation_filename(APPROVED_BASENAMES[0])
+    build_m8h30_observation_binding(ROOT)
+
+    assert manifest_path.read_bytes() == before
