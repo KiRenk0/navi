@@ -67,7 +67,7 @@ Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CL
 | `fluent_export/adiabatic_wall_csv/131pa_241.65k_45km_5alpha_8ma.csv` | p=131 Pa, T=241.65 K, nominal h=45 km, α=5°, Ma=8；unregistered candidate |
 | `fluent_export/adiabatic_wall_csv/131pa_241.65k_45km_5alpha_9ma.csv` | p=131 Pa, T=241.65 K, nominal h=45 km, α=5°, Ma=9；unregistered candidate |
 
-Filename 中的 P/T 是 historical user-defined comparison input；nominal altitude 仅为历史标签，`atmosphere_model=none / unverified`，不得由高度替换 P/T。Parser 成功只证明当前 filename schema 可解析，不产生 formal admission。正式 registry 仅显式包含 M6/30 与 M8/40；M8/30 仅 supplemental，三个 45 km 输入仅获准做 filename/raw identity 审计，不自动进入 N6.1 matrix 或 formal registry。N6.2 formal package 尚未执行。`ma8_a10_h50km` 仍为独立 legacy stress/reference 文件。
+Filename 中的 P/T 是 historical user-defined comparison input；nominal altitude 仅为历史标签，`atmosphere_model=none / unverified`，不得由高度替换 P/T。Parser 成功只证明当前 filename schema 可解析，不产生 formal admission。正式 registry 仅显式包含 M6/30 与 M8/40；M8/30 仅 supplemental，三个 45 km 输入仅获准做 filename/raw identity 审计，不自动进入 N6.1 matrix 或 formal registry。N6.2b canonical exact-custom formal package 已完成并 tracked；正式 package 仅包含 `ma6_a5_h30km` 与 `ma8_a5_h40km`；M8/30、45 km 与 windward 均不在该 formal package 中。`ma8_a10_h50km` 仍为独立 legacy stress/reference 文件。
 
 ## 7. Thermodynamics / Taw Helper
 

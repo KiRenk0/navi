@@ -152,6 +152,18 @@ atmosphere qualification = none / unverified
 | 45 km candidates | unregistered；exact freestream/provenance qualification not approved；historical atmosphere semantics inconsistent | governance boundary / future evidence qualification | no | reliable exact-input provenance、approved binding、admission and formal package process | record exclusion；do not repair or admit |
 | Windward diagnostic | population、mapping identity、weighting and statistics contract differ from formal leeward source-row evidence | governance boundary | no | separate source-level formal contract and qualification | keep independent tier；do not merge |
 | Lower typed-empty | formal clean lower observation rows = 0 | known limitation | no | obtain qualified formal lower observations through a separately approved evidence process | record limitation；do not manufacture data |
+| external candidate artifacts / projection cache | ignored external frozen run artifact；不随 clean checkout 构成正式可分发 evidence；不属于 formal-core package，也不得作为 source identity 或 baseline identity | third-party reproducibility boundary | formal-core defect = no；evidence-chain defect = no | tracked immutable artifact，或经批准的可重复生成合同；并明确 input identity、generation entry、hash / provenance，完成独立资格审查 | record exclusion / reproducibility boundary；do not supplement package、recompute or admit |
+
+### External candidate artifacts / projection cache
+
+- **Identity**：schema=`exact-projection-cache/v1`；authority 记录的正式 cache 位置为 `runs/fluent_projection_cache/f8e831b08dd86283bb69dc2f5be5fdb636e160a801ce97ec4d9382098b611c23/projection_cache.npz`，size=`786,521 bytes`，SHA-256=`a82d7d56b01aaae8067cdfa2c3ba439f4d3cc7fcd537c0dedbb573cf4d6be3a7`；该位置是 ignored external frozen run artifact identity，不是 tracked formal package、baseline、formal registry、N6.3 formal portrait 或 current official source identity。
+- **Evidence tier**：`excluded / not_applicable`。
+- **Exclusion / non-admission reason**：该 cache 是外部或 ignored candidate artifact，不随 clean checkout 构成正式可分发 evidence，不属于 formal-core package，不得作为 source identity 或 baseline identity。
+- **Classification**：`third-party reproducibility boundary`；`formal-core defect = no`；`evidence-chain defect = no`。
+- **Future release condition**：若未来升级为 supplemental replay 资产或申请正式资格，必须提供 tracked immutable artifact，或经批准的可重复生成合同；同时明确 input identity、generation entry、hash / provenance，并完成独立资格审查。本轮不实现这些条件。
+- **Required N6.4 action**：记录 exclusion / reproducibility boundary；不要求补包、不要求重算、不要求 admission。
+- **Allowed conclusion**：可以说明该 external/ignored artifact 的治理位置、它不属于 clean-checkout formal-core evidence，以及 formal core 不依赖该 cache 才能复核。
+- **Prohibited conclusion**：不得将其解释为 formal package、baseline identity 或 clean-checkout 必须存在的 source；不得因其未跟踪而判定 formal-core evidence defect；不得用其替代正式 package 或 manifest。
 
 三个 45 km cases 不是因为数字标签而永久排除。未来若建立可靠 exact-input provenance、approved observation binding 与正式 package，它们可以作为新的资格工作包重新审查；本轮不修复、不 admission。
 
@@ -201,6 +213,7 @@ atmosphere qualification = none / unverified
 | M8/30 supplemental replay | PARTIAL | exact observation/binding、candidate、production runtime fact 与 final formal QA 可定位 | 无 persistent formal comparison/evidence package；不要求本轮重算 |
 | Windward numerical zero-recompute replay | PARTIAL | 12-case summary、per-case metadata 与 plotting implementation 可定位 | provenance/population 不等同 formal leeward；本轮不重算 |
 | 45 km qualification | PARTIAL | 三个 tracked CSV 的 filename/raw identity 可审计 | exact-input provenance 与 admission 未批准 |
+| projection cache external artifact | PARTIAL | tracked authority 记录 frozen cache identity、正式输入 identity、generation/load entry 与 hash / provenance | ignored external frozen run artifact；不随 clean checkout 分发、不属于 formal-core evidence；formal core 的复核不依赖该 cache |
 | unified N6 limitations register | PASS | 本文已实现 tracked candidate | final authority issuance 仍待 independent QA |
 
 ```text
