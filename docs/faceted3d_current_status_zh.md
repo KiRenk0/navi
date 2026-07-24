@@ -1,15 +1,15 @@
 # Faceted3D 当前工程状态
 
-> 更新：2026-07-21（N3a.4d/e candidate explicit-freestream provenance 修复与 QA 完成）
+> 更新：2026-07-25（N6.3 canonical 分层误差画像完成）
 
 ---
 
 ## 1. 正式工作区与源码身份
 
 - 正式远端：`https://github.com/KiRenk0/navi.git`。
-- 当前正式本地活动工作区：`E:\navi_clean`。
-- GitHub `main` 是当前 source of truth。Phase 5B1 实现落地主线的代码提交为 `3a7922518cb05533c779a11eb0eb3a4d3f653f32`；后续 docs-only 提交不改变该实现身份或数值合同。
-- `E:\Faceted3D_recovery_hold_20260715`、`E:\Faceted3D_recovery_work_20260715` 仅为只读恢复证据，`D:\ref\reference-enthalpy_03_12_26-main` 仅为历史资料；三者都不是活动工作区或正式来源。
+- 当前正式活动工作区必须是该远端仓库经 Git 身份认证的 checkout root。
+- 既有只读恢复证据与历史资料不是活动工作区或正式来源。
+- 当前 production source identity：schema=`git-head-tree-source-identity/v1`，count=`68`，`inventory_paths_sha256=31b47f1998348b9e82d702b517e14e1a2d2828596c665fb79af3466f0e7fd2f0`，`aggregate_sha256=fb9f8cb3a7c641cd526113c88bce465299ced8cd1e3b86b604e7e91f8cf5b609`。
 
 活动 Python、Markdown、YAML 等文本按 `.gitattributes` 使用 LF。`runs/**`、`fluent_export/**`、CSV、STL、NPZ 与其他 binary artifact 保持原始字节，不执行无差别 normalization；未经单独授权不得执行全仓库 renormalize。
 
@@ -186,7 +186,7 @@ Phase 4A 后仓库卫生审计已完成：删除 3 份已被 canonical docs 替�
 - 不调整冻结物理合同，不用 manifest 更新掩盖源码或数值漂移。
 - 不将现有 source-level comparison 或 integrity PASS 扩张为统一性能 threshold、provider route decision 或背风模型 validation complete。
 
-## 8. N3a.4 Candidate Explicit-Freestream Provenance 当前状态（2026-07-21）
+## 8. N3a.4 Candidate Explicit-Freestream Provenance 历史快照（2026-07-21）
 
 - N3a.3a exact-LF restoration=`complete`；N3a.3b contract/design audit=`complete`；N3a.3c candidate manifest tooling=`complete`。
 - candidate freestream provenance repair=`implemented`；independent QA=`complete`。`tpg-candidate-manifest/v1` 已支持 candidate-only 显式 freestream provenance，candidate manifest CLI 新增成对可选 `--t-inf-k` / `--p-inf-pa`；二者必须同时提供或同时省略，且拒绝非有限、零值或负值。
@@ -196,3 +196,14 @@ Phase 4A 后仓库卫生审计已完成：删除 3 份已被 canonical docs 替�
 - 下一次唯一 M8/30 candidate generation 的用户批准显式 override 为 `Mach=8`、`alpha=+5 deg`、几何高度 `30000 m`、`T_inf_K=226.509 K`、`p_inf_Pa=1197.0 Pa`，不得改写为仅依赖 ISA1976 高度推导。
 - M8/30 candidate generation=`not yet executed`；production candidate manifest asset=`not yet generated`；M8/30 admission/promotion=`not performed`；formal comparison/evidence=`not entered`。M8/30 未加入 `CASES`、registry 或 baseline。
 - provider=`unchanged`；N3a=`not exited`；GATE A=`not reopened`。strategy v1.2 与 current handoff 均不在本修复范围内。
+
+## 9. N6.3 当前状态（2026-07-25）
+
+- `N6.0/N6.1/N6.2a/N6.2b/N6.3 = completed`；`N6.4/GATE C/N7 = not entered`。整个 N6 尚未完成。
+- 正式入口：`scripts/tools/n6_3_layered_error_portrait.py`，支持 `--execute` 与 `--validate-existing`。
+- canonical source package：`runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom`；package/evidence manifest SHA-256 分别为 `dffd989a057c4481446482e0543e935209e8673f1a4468b343f1dfa5785bc314`、`b161086640e0e1c922fd2c02670f7e43f9b01363a797dfabb39c195f34157ac3`。
+- canonical analysis package：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`；generation SHA=`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`；analysis manifest SHA-256=`909436a7f96588ac35d9b8220ba984af07f3958a6194e3cf2c931e696bfb207d`；8 artifacts + manifest，且为唯一 canonical run。
+- formal core 仅含 M6/30、M8/40 upper/leeward source-row populations；每 case `186` rows → `80` unique LF targets，source-row 不去重，lower typed-empty。M8/30 为 supplemental-only，windward 为 independent diagnostic tier。
+- 独立 QA：160 focused tests + 11 subtests、460 full pytest + 125 subtests、CURRENT TPG OFFICIAL、CURRENT REGRESSION OVERALL、68/68 source identity 全部 PASS；Groups 1–8、72 fields、numerical assets 与 artifact hashes 零漂移。
+- QA/regression PASS 只表示 program、contract、asset 与 regression integrity，不等于 model performance PASS。provider unchanged；performance threshold none；causal attribution not supported；provider systematic bias conclusion not established。
+- historical custom freestream 与 nominal altitude label 不构成标准大气验证或真实高度趋势；Mach 与 P/T bundle 同时变化，不能作单变量因果归因。

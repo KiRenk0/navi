@@ -1,19 +1,19 @@
 # 当前 Faceted3D 冻结模型决策
 
-> 更新：2026-07-24（N6.1 正式覆盖矩阵、排除理由与 evidence tier 冻结）
+> 更新：2026-07-25（N6.3 canonical 分层误差画像与 68-source identity 收口）
 
 ---
 
 ## 0. 仓库、production source identity 与 artifact 语义（冻结）
 
-- `https://github.com/KiRenk0/navi.git` 的 GitHub `main` 是仓库 source of truth；正式本地活动工作区为 `E:\navi_clean`。恢复证据目录和历史目录不是活动开发入口。
+- `https://github.com/KiRenk0/navi.git` 的 GitHub `main` 是仓库 source of truth；正式活动工作区必须是该仓库经 Git 身份认证的 checkout root，恢复证据目录和历史目录不是活动开发入口。
 - Production source identity authority 冻结为 committed Git `HEAD` tree；canonical source bytes 是 production path 在该 tree 中对应的 Git blob bytes，逐源 digest 为 `SHA-256(blob bytes)`，path 为 repo-relative POSIX path，schema=`git-head-tree-source-identity/v1`。
 - commit SHA、whole-tree OID 与 branch 只用于 provenance/定位，不是 canonical source identity 的等值字段，也不得替代逐源 blob identity、inventory path identity 或 aggregate identity。
 - Git 语义 clean 时，Windows CRLF 与 Linux LF checkout materialization 对 identity 中性；identity 读取 Git blob bytes，而不是 raw worktree bytes。
 - staged、unstaged、deleted、renamed 或 inventory-matching untracked production source 均 fail closed；无关 ordinary untracked 不进入 source identity。
 - source-only migration 只能来自 clean committed `HEAD`；禁止把 raw worktree hash 或 index-only hash 写入 baseline。
-- 当前正式 source identity：inventory count=`65`；`inventory_paths_sha256=81f50d9015c3df397923352d3adb5b0d45dd85e01f3e9a66685c49a3fbf6a428`；`aggregate_sha256=221f9fc7926dcaf634410674681708847dc34f96c70e626fe1b4789061f99527`。
-- 两个 current-v5 manifest 已完成 61→65 source-only migration；顶层仅 `source_hashes_sha256` 与 `source_identity` 发生语义变化。provider、comparison、Groups 1–8、72-field arrays、`fields.npz`、`summary.json`、`artifact_hashes_sha256` 与其他数值资产均未改变。
+- 当前正式 source identity：inventory count=`68`；`inventory_paths_sha256=31b47f1998348b9e82d702b517e14e1a2d2828596c665fb79af3466f0e7fd2f0`；`aggregate_sha256=fb9f8cb3a7c641cd526113c88bce465299ced8cd1e3b86b604e7e91f8cf5b609`。
+- 两个 current-v5 manifest 已完成 66→68 source-only migration；新增仅 `src/ref_enthalpy_method/analysis/__init__.py` 与 `src/ref_enthalpy_method/analysis/n6_3_layered_error_portrait.py`。provider、comparison、fields、summary、Groups 1–8、72-field arrays、numerical assets 与 `artifact_hashes_sha256` 均未改变。
 - `runs/**`、`fluent_export/**`、CSV、STL、NPZ 与其他 binary artifact 保持原始字节；不得无授权执行全仓库 renormalize。
 - raw artifact hash、parsed semantic contract、数值与字段合同、provenance path 必须分别表述，不能相互替代。
 - baseline `summary.json` 当前只作为 legacy provenance；其 raw SHA-256 不进入 current regression overall gate。未来 summary v5 promotion 应冻结 parsed semantic contract，而不是跨环境 candidate raw hash。
@@ -382,7 +382,7 @@ N6.2 official execution 前必须逐项满足以下七项门槛：
 
 - `provider = unchanged`
 - `performance threshold = none`
-- `N6.2 = not executed`
+- `N6.2 = not executed at this N6.1 freeze snapshot`；当前完成状态以第 35 节为准。
 - `formal registry = unchanged`
 - `baseline/manifest/summary/fields/hash = unchanged`
 - `new comparison/evidence = none`
@@ -394,4 +394,64 @@ N6.2 official execution 前必须逐项满足以下七项门槛：
 - 唯一 observation-side authority 是严格 basename parser 产生的不可变 identity：保留 basename、原始 numeric token、`Decimal` 数值和 case key。P/T 表示 historical user-defined comparison input；nominal altitude 只是历史标签，`atmosphere_model=none / unverified`，不得从高度或表面 `absolute-pressure` 替换 P/T。
 - Parser 与 admission 分离。Approved formal observation registry 仅显式包含 `ma6_a5_h30km` 和 `ma8_a5_h40km`；`ma8_a5_h30km` 保持 `unregistered_candidate`、supplemental-only；三个 45 km filename 可解析并可做 raw identity 审计，但不自动进入 formal registry 或 N6.1 matrix。
 - 正式命令必须从 binding 输出成对的 `--T_inf_K` / `--p_inf_Pa` 原始十进制 token：M6/30=`226.509 K / 1197 Pa`，M8/40=`251 K / 287 Pa`。命令构造前、summary/manifest 接收前均执行 exact、无 tolerance 的 pair/source gate；缺字段、非 `explicit_override` 或 pair 不一致一律 fail closed。
-- Historical/current-v5 的旧 atmosphere/ISA 数值及其 artifact/path/hash 保持历史事实，不被迁移改写；但这些旧 pair 不能通过新的 exact custom-pair evidence gate。N6.2 formal package 尚未执行。
+- Historical/current-v5 的旧 atmosphere/ISA 数值及其 artifact/path/hash 保持历史事实，不被迁移改写；但这些旧 pair 不能通过新的 exact custom-pair evidence gate。N6.2 formal package 在本历史时点尚未执行；当前完成状态以第 35 节为准。
+
+## 35. N6.3 Canonical 分层误差画像（2026-07-25）
+
+### 35.1 当前状态与入口
+
+- `N6.0 = completed`；`N6.1 = completed`；`N6.2a = completed`；`N6.2b = completed`；`N6.3 = completed`。
+- `N6.4 = not entered`；`GATE C = not entered`；`N7 = not entered`。不得将整个 N6 表述为完成。
+- 正式入口为 `scripts/tools/n6_3_layered_error_portrait.py`，互斥模式为 `--execute` 与 `--validate-existing`。
+- canonical validation：
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path .\src)
+$env:PYTHONDONTWRITEBYTECODE = "1"
+
+python -B scripts/tools/n6_3_layered_error_portrait.py `
+  --validate-existing `
+  --analysis-root runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait
+```
+
+- 现有 canonical run 不得重复执行或覆盖；任何新 `--execute` 必须使用新的 run ID，且不得 overwrite 已存在目录。
+
+### 35.2 Package identity
+
+- canonical source package：`runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom`；generation SHA=`79ed536fc8c1c7e19811ca744a14b78a732ff71a`；package manifest SHA-256=`dffd989a057c4481446482e0543e935209e8673f1a4468b343f1dfa5785bc314`；evidence manifest SHA-256=`b161086640e0e1c922fd2c02670f7e43f9b01363a797dfabb39c195f34157ac3`。
+- canonical analysis package：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`；run ID=`20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`；generation SHA=`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`；analysis manifest SHA-256=`909436a7f96588ac35d9b8220ba984af07f3958a6194e3cf2c931e696bfb207d`。
+- analysis package 含 8 项 artifact inventory 与 1 个 manifest，共 9 files；`runs/n6_3_layered_error_portrait/` 下唯一 canonical run count=`1`。
+
+### 35.3 Population、误差合同与描述性结果
+
+- `formal_core` 仅含 `ma6_a5_h30km`、`ma8_a5_h40km` 的 upper/leeward Fluent source rows；每 case `186` rows、`80` unique LF primary targets、one Fluent source row equal weight；many-to-one 保留，lower typed-empty。
+- `signed_error_K = Taw_tpg_leeward_K - wall_temperature_K`；`signed_relative_error_pct = 100 * signed_error_K / wall_temperature_K`；absolute metrics 取对应绝对值；standard deviation 使用 population `ddof=0`，quantile 使用 NumPy linear。
+- M6/30：mean signed error=`14.858881266621484 K`，MAE=`17.53607206396338 K`，RMSE=`25.524606371024667 K`，over/under/exact=`136/50/0`。
+- M8/40：mean signed error=`104.03134241675608 K`，MAE=`104.03134241675608 K`，RMSE=`104.4345380531835 K`，over/under/exact=`186/0/0`。
+- bounded case2-minus-case1：MAE=`86.49527035279269 K`，RMSE=`78.90993168215883 K`，mean signed error=`89.1724611501346 K`，mean signed relative error=`3.0129585504982304 %`。
+- 以上仅是指定 historical custom input bundles 下的 descriptive numerical and spatial facts，不是性能 PASS/FAIL，也不支持因果归因。
+- physical x 与 span 各 5 bins；edges 来自两个 formal upper populations 的 union，并在两个 case 复用；区间 left-closed/right-open，最后一 bin right-inclusive，out-of-range fail closed。x counts=`[14, 20, 29, 35, 88]`，span counts=`[8, 24, 34, 58, 62]`。
+
+### 35.4 Evidence tiers 与 canonical assets
+
+- `formal_core` machine-readable assets：`formal_core/source_profiles.json`、`formal_core/spatial_bin_profiles.json`、`formal_core/bounded_case_comparison.json`。
+- `formal_core` figures：`formal_core/figures/source_error_maps_fixed.png`、`formal_core/figures/error_distributions.png`、`formal_core/figures/coordinate_bin_profiles.png`。
+- `diagnostic_only`：`diagnostic_only/multiplicity_profiles.json`。每 case multiplicity 1/2/3/4 分别为 `20/52/66/48` source rows 与 `20/26/22/12` targets，总计 `186` source rows → `80` targets；`acceptance_gate=false`，`formal_core_aggregation=prohibited`。
+- formal source-row population 不去重；unique-target/multiplicity 仅作 diagnostic，不得以 unique-target weighting 替代 formal source-row weighting。
+- `diagnostic_context`：`diagnostic_context/tier_references.json`。M8/30 保持 `unregistered_candidate`、upper/leeward supplemental diagnostic only，不 admission、不进入 baseline identity、不聚合进 formal core、不形成 persistent formal evidence。Windward 仅为 independent diagnostic context；禁止与 leeward 联合 population、联合统计或直接排名。
+
+### 35.5 Source identity migration 与 QA
+
+- production source inventory 完成 `66 → 68` source-only migration；新增仅两个 N6.3 analysis library paths。correction commit=`3187d56ab6ea2ed22ca80ec6925d95dfa81348a6`，migration commit=`4f616c654138bb9823f756576ede05f7e527a264`。
+- current identity：count=`68`；`inventory_paths_sha256=31b47f1998348b9e82d702b517e14e1a2d2828596c665fb79af3466f0e7fd2f0`；`aggregate_sha256=fb9f8cb3a7c641cd526113c88bce465299ced8cd1e3b86b604e7e91f8cf5b609`。
+- fields、summary、Groups 1–8、72 fields、numerical assets 与 artifact hashes 零漂移。
+- independent QA：N6.3 `--validate-existing` PASS；160 focused tests + 11 subtests PASS；460 full pytest + 125 subtests PASS；failed/skipped/xfailed/xpassed/warnings 均为 0；CURRENT TPG OFFICIAL PASS；CURRENT REGRESSION OVERALL PASS；68/68 source identity PASS。统一裁决为 `N6_3_POST_MIGRATION_INDEPENDENT_QA_AND_FULL_REGRESSION_PASS`。
+- QA/regression PASS 仅表示 program、contract、asset 与 regression integrity 通过，不等于 model performance PASS。
+
+### 35.6 冻结解释与 known limitations
+
+- `provider = unchanged`；`performance threshold = none`；`model_performance_assessment = not_performed`；`causal_attribution = not_supported`；`provider_systematic_bias_conclusion = not_established`。
+- formal core 仅两个 case；freestream 为 historical user-defined comparison inputs；30/35/40/45 km 仅为 nominal / historical labels；`atmosphere_model = none / unverified`。
+- Mach 与 P/T bundle 同时变化，不能单独归因于 Mach、pressure、temperature 或 nominal altitude，不能作真实高度趋势、标准大气验证、跨高度外推或 provider performance PASS。
+- lower typed-empty；M8/30 supplemental-only；windward 是 independent diagnostic tier；无 performance threshold、无 causal attribution，provider systematic bias 未建立。
+- N6.3 合法结论仅为：在两个指定 exact-custom historical input bundles 下，当前 Faceted3D baseline 与 Fluent upper/leeward observations 之间的 source-row 描述性误差、空间结构、many-to-one mapping diagnostic 和可复现回归事实。

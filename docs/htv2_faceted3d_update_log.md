@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-07-25: N6.3 Canonical Layered Error Portrait 收口
+
+- N6.0、N6.1、N6.2a、N6.2b、N6.3 已完成；N6.4、GATE C、N7 未进入。
+- canonical analysis package 固定为 `runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`，generation SHA=`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`，analysis manifest SHA-256=`909436a7f96588ac35d9b8220ba984af07f3958a6194e3cf2c931e696bfb207d`。
+- formal core 仅含 `ma6_a5_h30km`、`ma8_a5_h40km` 的 upper/leeward Fluent source rows；每 case `186` rows → `80` unique LF targets，many-to-one 保留，lower typed-empty。M8/30 与 windward 继续保持独立 diagnostic tiers。
+- production source inventory 完成 66→68 source-only migration；Groups 1–8、72 fields、numerical assets 与 artifact hashes 零漂移。
+- 独立 QA：160 focused tests + 11 subtests、460 full pytest + 125 subtests、CURRENT TPG OFFICIAL、CURRENT REGRESSION OVERALL、68/68 source identity 均 PASS。该 PASS 仅证明 program、contract、asset 与 regression integrity，不是 model performance PASS。
+- provider 未修改；performance threshold 未建立；causal attribution 不受支持；provider systematic bias conclusion 未建立。
+
+---
+
 ## 初始：2D/2.5D → Faceted3D
 
 - 从 2D strip-theory 升级到 STL 三角片法向采样 + outline planform mask

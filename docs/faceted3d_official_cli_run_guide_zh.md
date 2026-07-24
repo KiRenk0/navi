@@ -1,4 +1,4 @@
-# Faceted3D Official CLI 运行指南
+# Faceted3D Official CLI 与 N6.3 验证运行指南
 
 ---
 
@@ -84,6 +84,23 @@ python scripts/tools/local_incidence_alpha_scan.py
 - 仅为 geometry/classification QA；不切换正式 solver routing；sheet-specific leeward recovery 由 official run 自动序列化，不由这些 QA 工具生成
 - `local_incidence_raw_facet_qa.py` 默认 stdout 输出，`--plots DIR` 可选生成诊断图
 - `local_incidence_alpha_scan.py` 默认生成 JSON + summary PNG，`--detailed-plots` 可选逐攻角图
+
+## N6.3 canonical validation
+
+正式入口：`scripts/tools/n6_3_layered_error_portrait.py`；模式为 `--execute` 与 `--validate-existing`。现有 canonical run 只允许验证，不得重复执行覆盖；任何新执行必须生成新 run ID，且不得 overwrite 已存在目录。
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path .\src)
+$env:PYTHONDONTWRITEBYTECODE = "1"
+
+python -B scripts/tools/n6_3_layered_error_portrait.py `
+  --validate-existing `
+  --analysis-root runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait
+```
+
+canonical source package：`runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom`。canonical analysis package：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`。
+
+该 validation PASS 证明 program、contract、asset 与 regression integrity，不表示 model performance PASS。N6.4、GATE C、N7 均未进入。
 
 ## Fluent 对比
 

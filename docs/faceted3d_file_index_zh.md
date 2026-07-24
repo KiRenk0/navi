@@ -1,6 +1,6 @@
 # Faceted3D 文件索引
 
-> 更新：2026-07-21（N3a candidate explicit-freestream provenance 工具与测试索引）
+> 更新：2026-07-25（N6.3 canonical 入口与资产索引）
 
 ---
 
@@ -20,7 +20,7 @@
 | `scripts/geometry/` | `prepare_geometry.py`（几何输入检查器）、`extract_outline_from_stl.py` |
 | `scripts/viz/` | `viz_error_cloud_readonly.py`（3D 误差散点）、`plot_windward_error_vs_fluent.py`（迎风面 `Taw_tpg_w` vs Fluent 绝热壁 Tw 相对误差%云图半模投影，弦向-展向，只读 diagnostic visualization；Fluent 迎风面按 z<0 压缩侧筛选，映射沿用 LF(x_w_m,span_w_m)→Fluent(x,y) 最近邻；**不替代 P2R2 corrected comparison canon、不代表 validation complete、不涉及 leeward temperature error**）、`plot_root_chord_temperature_from_run_rem.py`、`plot_wing_surface_temperature_from_run_rem.py` |
 | `scripts/pressure/` | `pressure_audit.py`、`pressure_audit_plots.py`、`edge_pressure_breakdown.py`、`cp_pressure_correction_sandbox.py`（pressure/Cp 审计） |
-| `scripts/tools/` | `current_baseline_regression_check.py`（两套严格隔离职责：formal baseline v5 freeze/check 与 candidate manifest v1 generation）、`faceted3d_phase4b_geometry_qa.py`（正式双工况 geometry-only QA；第二工况在 canonical identity 后复用 projection）、`faceted3d_phase5a_fluent_clean_qa.py`（Phase 5A Fluent clean 正式 geometry-only QA）、`local_incidence_raw_facet_qa.py`（local-incidence 数值 QA 工具）、`local_incidence_alpha_scan.py`（四攻角 alpha coverage 扫描工具）、`export_faceted3d_fields_to_table.py`（字段导出） |
+| `scripts/tools/` | `current_baseline_regression_check.py`（formal baseline v5 regression）、`n6_3_layered_error_portrait.py`（N6.3 canonical analysis 的 `--execute` / `--validate-existing` 入口）、`faceted3d_phase4b_geometry_qa.py`、`faceted3d_phase5a_fluent_clean_qa.py`、`local_incidence_raw_facet_qa.py`、`local_incidence_alpha_scan.py`、`export_faceted3d_fields_to_table.py` |
 | `scripts/_archive/20260709_scripts_top_prune/` | 已完成阶段的 diagnostic / audit / ablation 脚本（非 active） |
 
 Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 无 thermo 选择。当前不声明 validation complete。
@@ -183,3 +183,14 @@ Phase 5B2 当前只有只读 audit 结论：正式方向为 Fluent clean → LF 
 | `tests/test_tpg_candidate_manifest.py` | candidate schema/case identity、显式 freestream pair/summary/runner command provenance、非显式兼容、hash 复用、路径隔离、拒绝覆盖、原子发布、v5 零漂移及 freeze/check/solver 隔离测试 |
 
 candidate CLI 必选参数为 `--candidate-manifest`、`--case-id`、`--mach`、`--alpha`、`--h-m`、`--run-dir`；成对可选 provenance 参数为 `--t-inf-k`、`--p-inf-pa`。两项必须同时提供或同时省略，且必须为有限正值。显式路径的 runner 复现命令使用正式 `--T_inf_K`、`--p_inf_Pa`，交叉校验 summary override/freestream/source 并记录 `atmosphere.explicit_freestream_override=true`；非显式路径保持 `false`。candidate 模式不运行 solver，不修改 `CASES`，不触碰 `current_baseline_snapshot` 或 `leeward_source_evidence`；只处理已存在 run，并拒绝覆盖既有 `manifest.json`。candidate 顶层字段与正式 v5 baseline、Groups 1–8、72-field contract 均未改变。
+
+## 19. N6.3 Canonical Layered Error Portrait
+
+| 路径 | 说明 |
+|------|------|
+| `scripts/tools/n6_3_layered_error_portrait.py` | 正式 orchestration 入口；互斥模式 `--execute` / `--validate-existing` |
+| `src/ref_enthalpy_method/analysis/n6_3_layered_error_portrait.py` | 分层误差画像 analysis library；production source inventory 的 N6.3 新增路径之一 |
+| `runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom/` | N6.2b canonical source package；package/evidence manifest SHA-256=`dffd989a057c4481446482e0543e935209e8673f1a4468b343f1dfa5785bc314` / `b161086640e0e1c922fd2c02670f7e43f9b01363a797dfabb39c195f34157ac3` |
+| `runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait/` | 唯一 N6.3 canonical analysis run；generation SHA=`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`，analysis manifest SHA-256=`909436a7f96588ac35d9b8220ba984af07f3958a6194e3cf2c931e696bfb207d`，8 artifacts + manifest |
+
+analysis package 内 `formal_core/` 保存 source profiles、spatial bins、bounded case comparison 与三幅 figures；`diagnostic_only/` 保存 multiplicity profiles；`diagnostic_context/` 保存 tier references。formal core 仅为 M6/30 与 M8/40 upper/leeward source rows；M8/30 与 windward 不进入 formal core。

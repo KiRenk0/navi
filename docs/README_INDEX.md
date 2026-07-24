@@ -1,11 +1,11 @@
 # Faceted3D v2 — 文档索引
 
-> 更新：2026-07-23
+> 更新：2026-07-25
 > 用途：新接手 DS/GPT 快速定位
 
 ## 当前主线一句话
 
-Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。正式高度参数域、Taw、provider、comparison、pairing、ingestion、Groups 1–8 与 72-field contract 均保持冻结。GATE A 已完成，final branch=`A0`；主线仍为 N3a。N3b source-identity 修复与 Git closeout 已完成：current-v5 pipeline 以 committed Git HEAD tree 中 production path 对应的 Git blob bytes 为 canonical source identity，当前正式 source inventory=`65`，schema=`git-head-tree-source-identity/v1`。N3a.8 M8/30 production comparison final formal QA 已通过，技术工作已完成；docs / Git closeout 正在进行。当前尚未由监督 GPT 裁决 N3a 整体完成，尚未返回或重开 GATE A。正式 registry 仍仅含 TPG 的 `ma6_a5_h30km` 与 `ma8_a5_h40km`，provider 未修改，也没有用户批准的统一性能 threshold。历史 Fluent 对比工况中的 30、35、40、45 km 仅是 nominal / historical labels，对应历史自定义来流，不属于任何已验证大气模型；它们只能用于相同精确来流输入下的代码—Fluent descriptive numerical comparison。
+Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。N6.0、N6.1、N6.2a、N6.2b 与 N6.3 已完成；N6.4、GATE C 与 N7 未进入，整个 N6 不得表述为完成。N6.3 canonical analysis package 为 `runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`，正式入口为 `scripts/tools/n6_3_layered_error_portrait.py`。current-v5 source identity 使用 committed Git HEAD tree / Git blob bytes，schema=`git-head-tree-source-identity/v1`，inventory=`68`。正式 registry 仍仅含 `ma6_a5_h30km` 与 `ma8_a5_h40km`；provider 未修改、无统一 performance threshold、无 model performance PASS/FAIL。历史 30、35、40、45 km 仅为 nominal / historical labels，对应 historical custom freestream，不属于已验证大气模型。
 
 ---
 
@@ -44,6 +44,14 @@ scripts/run_case_rem.py
 - Taw fixed fully turbulent `Pr^(1/3)`，与 q-chain transition 解耦
 - validation complete 未声明
 
+## 当前 N6.3 状态
+
+- N6.0、N6.1、N6.2a、N6.2b、N6.3：completed
+- N6.4、GATE C、N7：not entered
+- canonical analysis：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`
+- current-v5 source identity：68 sources；Groups 1–8、72 fields、numerical assets、artifact hashes zero drift
+- QA/regression PASS 不是 model performance PASS；provider unchanged，无 performance threshold 与 causal attribution
+
 ## 下一步
 
 - 正式 CLI 默认大气参数域：20–40 km（几何高度输入，内部位势换算）；这只描述无 explicit override 的 CLI 运行配置，不把历史 30/35/40/45 km 自定义来流对比工况升级为已验证大气模型
@@ -55,11 +63,7 @@ scripts/run_case_rem.py
 - Chapter 3.1–3.7A：已完成；Package 0–12=`13/13 PASS`；N3 technical exit=`CERTIFIED SATISFIED`
 - GATE A：已完成，final branch=`A0`；主线仍为 `N3a`
 - N3b source-identity 修复与 Git closeout：已完成
-- current-v5 source identity：committed Git HEAD tree / Git blob bytes，schema=`git-head-tree-source-identity/v1`，inventory=`65`
-- N3b QA：full pytest=`419 passed, 125 subtests passed, 0 failed`；official current regression=`PASS`
-- N3b source-only migration 未改变 provider、comparison、Groups 1–8、72-field arrays 或数值资产
-- N3a.8 M8/30 production comparison final formal QA：已通过；技术工作已完成，docs / Git closeout 正在进行
-- 当前尚未由监督 GPT 裁决 N3a 整体完成；尚未返回或重开 GATE A
-- 历史 30/35/40/45 km Fluent 对比工况均为自定义精确来流下的代码—Fluent 对比；高度仅为 nominal / historical label，不代表已验证大气模型
-- N3c 尚未正式启动；N4、N6 尚未进入；residual learning 尚未启动
+- current-v5 source identity：committed Git HEAD tree / Git blob bytes，schema=`git-head-tree-source-identity/v1`，inventory=`68`
+- N6.0、N6.1、N6.2a、N6.2b、N6.3 已完成；N6.4、GATE C、N7 未进入
+- N6.3 independent QA 与 full regression 已通过；provider、formal registry、performance threshold 均未改变
 - 不做调参，不进 residual learning；除单独明确授权的审计证据外，不新增 closeout / manifest / audit / handoff md
