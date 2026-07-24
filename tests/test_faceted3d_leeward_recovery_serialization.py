@@ -13,7 +13,7 @@ import numpy as np
 
 from ref_enthalpy_method.gas import make_fluent_tpg_thermo, mu_sutherland
 from ref_enthalpy_method.geometry.local_incidence import SURFACE_CLASS_LEEWARD
-from scripts.tools.current_baseline_regression_check import formal_command
+from scripts.tools.current_baseline_regression_check import baseline_replay_command
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -90,7 +90,7 @@ class Faceted3DLeewardRecoverySerializationTest(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls._temporary_directory = tempfile.TemporaryDirectory(prefix="faceted3d_leeward_serialization_")
         cls.run_dir = Path(cls._temporary_directory.name) / "ma6_a5_h30km"
-        cls.command = formal_command(CASE_ID, cls.run_dir)
+        cls.command = baseline_replay_command(CASE_ID, cls.run_dir)
         cls.completed = subprocess.run(
             cls.command,
             cwd=ROOT,

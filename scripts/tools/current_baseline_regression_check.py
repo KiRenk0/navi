@@ -665,6 +665,25 @@ def run_formal(case_id: str, out: Path) -> list[str]:
     return command
 
 
+def baseline_replay_command(case_id: str, run_dir: Path) -> list[str]:
+    mach, alpha, altitude = CASES[case_id]
+    return [
+        sys.executable, str(RUNNER), "--vehicle", str(VEHICLE), "--case", str(CASE),
+        "--sampling", str(SAMPLING), "--run_dir", str(run_dir), "--mach", str(mach),
+        "--alpha", str(alpha), "--h_m", str(altitude),
+        "--transition_weighting", "step", "--no_plots",
+    ]
+
+
+def run_baseline_replay(case_id: str, out: Path) -> list[str]:
+    command = baseline_replay_command(case_id, out)
+    subprocess.run(command, cwd=ROOT, check=True)
+    for name in ("fields.npz", "summary.json"):
+        if not (out / name).is_file():
+            raise RuntimeError(f"baseline replay did not produce {out / name}")
+    return command
+
+
 def nested(obj: Any, *keys: str, default: Any = None) -> Any:
     for key in keys:
         if not isinstance(obj, dict) or key not in obj:
@@ -1359,13 +1378,26 @@ def migrate_source_identity(
             temporary_path.unlink(missing_ok=True)
 
 
-def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str, Any]:
+def _build_current_manifest(
+    case_id: str,
+    run_dir: Path,
+    command: list[str],
+    *,
+    exact_observation_freestream: bool,
+) -> dict[str, Any]:
     summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
-    binding = _formal_observation_binding(case_id)
-    expected_command = formal_command(case_id, run_dir)
+    expected_command = (
+        formal_command(case_id, run_dir)
+        if exact_observation_freestream
+        else baseline_replay_command(case_id, run_dir)
+    )
     if command != expected_command:
-        raise ValueError("formal generator command does not match exact observation binding")
-    validate_exact_freestream_summary(binding, summary)
+        role = "formal" if exact_observation_freestream else "baseline replay"
+        raise ValueError(f"{role} generator command does not match its input contract")
+    if exact_observation_freestream:
+        binding = _formal_observation_binding(case_id)
+        validate_exact_freestream_summary(binding, summary)
+
     with np.load(run_dir / "fields.npz", allow_pickle=False) as fields:
         schema = {key: {"shape": list(fields[key].shape), "dtype": str(fields[key].dtype)} for key in sorted(fields.files)}
         mask_w = np.asarray(fields["mask_w"]).astype(bool)
@@ -1374,6 +1406,24 @@ def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str,
     faceted3d = summary.get("faceted3d", {})
     mach, alpha, altitude = CASES[case_id]
     canonical_source = build_canonical_source_identity(ROOT)
+    atmosphere = (
+        {
+            "model": "none / unverified",
+            "altitude_semantics": "nominal historical label; no atmosphere qualification inferred",
+            "explicit_freestream_override": True,
+        }
+        if exact_observation_freestream
+        else {
+            "model": freestream.get("atmosphere_model"),
+            "altitude_semantics": "geometric altitude converted to geopotential altitude before 1976 layer evaluation",
+            "explicit_freestream_override": False,
+        }
+    )
+    command_template = (
+        formal_command(case_id, Path("<run_dir>"))
+        if exact_observation_freestream
+        else baseline_replay_command(case_id, Path("<run_dir>"))
+    )
     return {
         "manifest_schema": "current-tpg-baseline-regression/v5",
         "provenance": "CURRENT TPG-only post-2026-07-14 official regression baseline with local-incidence and sheet-specific leeward freestream-recovery diagnostics; historical 0630 snapshot is a separate contract",
@@ -1387,11 +1437,7 @@ def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str,
             "actual_rho_inf_kg_m3": freestream.get("rho_inf_kg_m3"),
             "source": freestream.get("freestream_source"),
         },
-        "atmosphere": {
-            "model": "none / unverified",
-            "altitude_semantics": "nominal historical label; no atmosphere qualification inferred",
-            "explicit_freestream_override": True,
-        },
+        "atmosphere": atmosphere,
         "thermo": {
             "model": "tpg",
             "Taw_recovery": "fixed fully turbulent Pr^(1/3)",
@@ -1413,8 +1459,30 @@ def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str,
         "source_hashes_sha256": canonical_source["source_hashes_sha256"],
         "artifact_hashes_sha256": {name: sha256(run_dir / name) for name in ("fields.npz", "summary.json")},
         "baseline_generator": "scripts/tools/current_baseline_regression_check.py --freeze",
-        "generator_cli_template": subprocess.list2cmdline(formal_command(case_id, Path("<run_dir>"))),
+        "generator_cli_template": subprocess.list2cmdline(command_template),
     }
+
+
+def build_manifest(case_id: str, run_dir: Path, command: list[str]) -> dict[str, Any]:
+    return _build_current_manifest(
+        case_id,
+        run_dir,
+        command,
+        exact_observation_freestream=True,
+    )
+
+
+def build_baseline_replay_manifest(
+    case_id: str,
+    run_dir: Path,
+    command: list[str],
+) -> dict[str, Any]:
+    return _build_current_manifest(
+        case_id,
+        run_dir,
+        command,
+        exact_observation_freestream=False,
+    )
 
 
 def _pre_freeze_gate(case_id: str, candidate_dir: Path) -> tuple[bool, dict[str, Any]]:
@@ -1624,16 +1692,9 @@ def compare_metadata(baseline: dict[str, Any], current: dict[str, Any]) -> list[
         rows.append((name, value == expected_value, f"actual={value!r} expected={expected_value!r}"))
     rows.append(
         (
-            "atmosphere.explicit_override",
-            nested(current, "atmosphere", "explicit_freestream_override") is True,
-            "must be true",
-        )
-    )
-    rows.append(
-        (
-            "atmosphere.unqualified_custom_pair",
-            nested(current, "atmosphere", "model") == "none / unverified",
-            "must not claim atmosphere qualification",
+            "atmosphere.no_override",
+            nested(current, "atmosphere", "explicit_freestream_override") is False,
+            "must be false for historical baseline replay",
         )
     )
     return rows
@@ -1708,8 +1769,12 @@ def compare_case(case_id: str) -> bool:
         return False
     with tempfile.TemporaryDirectory(prefix=f"baseline_compare_tpg_{case_id}_") as temp:
         current_dir = Path(temp)
-        command = run_formal(case_id, current_dir)
-        current_manifest = build_manifest(case_id, current_dir, command)
+        command = run_baseline_replay(case_id, current_dir)
+        current_manifest = build_baseline_replay_manifest(
+            case_id,
+            current_dir,
+            command,
+        )
         groups = GROUPS
         overall = True
         all_contract_fields = set().union(*(set(fields) for fields in groups.values()))

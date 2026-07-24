@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import replace
+from decimal import Decimal
 from pathlib import Path
 from types import MappingProxyType
 
@@ -175,6 +176,16 @@ def test_binding_and_csv_mismatches_fail_closed(
     replacement: object,
 ) -> None:
     valid = preparation.build_m8h30_observation_binding(_REPO_ROOT)
+    if field in {"T_inf_K", "p_inf_Pa"}:
+        identity_field = field
+        identity = replace(
+            valid.filename_identity,
+            **{identity_field: Decimal(str(replacement))},
+        )
+        with pytest.raises(ValueError, match="filename_identity"):
+            replace(valid, filename_identity=identity)
+        return
+
     invalid = replace(valid, **{field: replacement})
     monkeypatch.setattr(preparation, "build_m8h30_observation_binding", lambda *args, **kwargs: invalid)
     with pytest.raises(ValueError, match="observation binding rejected|exact CSV identity"):
