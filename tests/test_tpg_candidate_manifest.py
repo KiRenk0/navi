@@ -68,7 +68,7 @@ EXPECTED_V5_KEYS = [
     "generator_cli_template",
 ]
 EXPECTED_SOURCE_PATHS_HASH = (
-    "f855856dd2442faae2039d32e8de7be4fc6ebfa5d661d4c6de7807a4fccae998"
+    "31b47f1998348b9e82d702b517e14e1a2d2828596c665fb79af3466f0e7fd2f0"
 )
 
 
@@ -1044,7 +1044,7 @@ def test_real_head_inventory_schema_order_and_aggregate_contract() -> None:
     paths = list(canonical["source_hashes_sha256"])
     records = [[path, canonical["source_hashes_sha256"][path]] for path in paths]
 
-    assert len(paths) == len(set(paths)) == 66
+    assert len(paths) == len(set(paths)) == 68
     fixed_count = len(manifest_tool.FIXED_PRODUCTION_PATHS)
     assert paths[:fixed_count] == list(manifest_tool.FIXED_PRODUCTION_PATHS)
     assert paths[fixed_count:] == sorted(paths[fixed_count:])
@@ -1505,6 +1505,6 @@ def test_formal_command_cases_and_head_source_inventory_are_frozen() -> None:
             "source_hashes_sha256"
         ]
     )
-    assert len(source_paths) == 66
+    assert len(source_paths) == 68
     assert source_paths[1] == "scripts/tools/n6_exact_custom_formal_entry.py"
     assert hashlib.sha256(_canonical(source_paths)).hexdigest() == EXPECTED_SOURCE_PATHS_HASH

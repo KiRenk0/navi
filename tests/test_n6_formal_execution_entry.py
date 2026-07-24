@@ -33,7 +33,7 @@ def _source_contract() -> dict[str, Any]:
             "inventory_paths_sha256": "b" * 64,
             "aggregate_sha256": "c" * 64,
         },
-        "source_hashes_sha256": {f"source-{index:02d}": "d" * 64 for index in range(66)},
+        "source_hashes_sha256": {f"source-{index:02d}": "d" * 64 for index in range(68)},
     }
 
 
