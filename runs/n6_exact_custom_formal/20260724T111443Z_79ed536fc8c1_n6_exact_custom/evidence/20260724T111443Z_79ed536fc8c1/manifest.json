@@ -1,0 +1,309 @@
+{
+  "manifest_schema": "faceted3d-leeward-source-evidence-manifest/v1",
+  "run_id": "20260724T111443Z_79ed536fc8c1",
+  "created_utc": "2026-07-24T11:14:43Z",
+  "git_sha": "79ed536fc8c1c7e19811ca744a14b78a732ff71a",
+  "generator": {
+    "scripts/tools/generate_leeward_source_evidence.py": {
+      "path": "scripts/tools/generate_leeward_source_evidence.py",
+      "raw_sha256": "e3d84eb7b98f74e4d3cc22d665421f66b1d22aa7ad99f2909bb3d3266f5ffcea"
+    },
+    "src/ref_enthalpy_method/mapping/fluent_lf_taw_comparison.py": {
+      "path": "src/ref_enthalpy_method/mapping/fluent_lf_taw_comparison.py",
+      "raw_sha256": "2361537c32189d74a037a741889b5620a2dc17dee6665d05bf983ec1cf64de87"
+    },
+    "src/ref_enthalpy_method/mapping/fluent_wall_temperature.py": {
+      "path": "src/ref_enthalpy_method/mapping/fluent_wall_temperature.py",
+      "raw_sha256": "45ed9115af2d0ba390c26483200d96fd4452682dc7db8d6506f3b9b061219ff0"
+    },
+    "src/ref_enthalpy_method/mapping/fluent_lf_pairing.py": {
+      "path": "src/ref_enthalpy_method/mapping/fluent_lf_pairing.py",
+      "raw_sha256": "b6a6ef1a14b0038335802084e7d07bdb17331831275739e6216fd4228d603620"
+    },
+    "src/ref_enthalpy_method/mapping/fluent_clean.py": {
+      "path": "src/ref_enthalpy_method/mapping/fluent_clean.py",
+      "raw_sha256": "9338df87b369c04362184a82e99ec09fba6f75e7c187d02a747c1db1ce770a97"
+    },
+    "src/ref_enthalpy_method/mapping/lf_clean.py": {
+      "path": "src/ref_enthalpy_method/mapping/lf_clean.py",
+      "raw_sha256": "4d3b1c00555f99e70a724b90f51578eb503e4d633e5ddfdde90080eeceed3cea"
+    },
+    "src/ref_enthalpy_method/mapping/fluent_surface.py": {
+      "path": "src/ref_enthalpy_method/mapping/fluent_surface.py",
+      "raw_sha256": "877ef2f2cdef0fe2c54384bed0f2ca5d55425c39aa71085bf49208071062ea43"
+    },
+    "src/ref_enthalpy_method/mapping/fluent_projection.py": {
+      "path": "src/ref_enthalpy_method/mapping/fluent_projection.py",
+      "raw_sha256": "89cc695685632903f44677257c74c243ee9e6a48eac76e629478f04e28e1b872"
+    },
+    "src/ref_enthalpy_method/mapping/fluent_semantics.py": {
+      "path": "src/ref_enthalpy_method/mapping/fluent_semantics.py",
+      "raw_sha256": "a250205f7dde103d75dc614448a42c13637e11d40d8bf01453b28740c1d39e66"
+    },
+    "src/ref_enthalpy_method/mapping/observation_binding.py": {
+      "path": "src/ref_enthalpy_method/mapping/observation_binding.py",
+      "raw_sha256": "f31ded1c551d32f1dfc0c6dce8b34f55ab04be1db9aa6a00a4720cfeb2a797fd"
+    }
+  },
+  "case_registry": {
+    "ma6_a5_h30km": {
+      "mach": 6.0,
+      "alpha_deg": 5.0,
+      "geometric_altitude_m": 30000.0,
+      "fluent_csv": "fluent_export/adiabatic_wall_csv/1197pa_226.509k_30km_5alpha_6ma.csv",
+      "lf_input_mode": "explicit_bundle",
+      "expectation": {
+        "upper_source_rows": 186,
+        "upper_unique_targets": 80,
+        "lower_typed_empty": true
+      }
+    },
+    "ma8_a5_h40km": {
+      "mach": 8.0,
+      "alpha_deg": 5.0,
+      "geometric_altitude_m": 40000.0,
+      "fluent_csv": "fluent_export/adiabatic_wall_csv/287pa_251k_40km_5alpha_8ma.csv",
+      "lf_input_mode": "explicit_bundle",
+      "expectation": {
+        "upper_source_rows": 186,
+        "upper_unique_targets": 80,
+        "lower_typed_empty": true
+      }
+    }
+  },
+  "cases": {
+    "ma6_a5_h30km": {
+      "case_id": "ma6_a5_h30km",
+      "mach": 6.0,
+      "alpha_deg": 5.0,
+      "geometric_altitude_m": 30000.0,
+      "inputs": {
+        "fluent_csv": {
+          "path": "../../../../../fluent_export/adiabatic_wall_csv/1197pa_226.509k_30km_5alpha_6ma.csv",
+          "raw_sha256": "210b4a94fae57d6b7701ed76d2c07a9e9a3d276bf94c330f7ae363fcc8cb2000",
+          "byte_size": 3123901
+        },
+        "lf_fields": {
+          "path": "../../lf/ma6_a5_h30km/fields.npz",
+          "raw_sha256": "90818c2232da4aea56917c4b656bca9e6f817eacefb1e4faa110a8c933a88732",
+          "byte_size": 473331
+        },
+        "lf_summary": {
+          "path": "../../lf/ma6_a5_h30km/summary.json",
+          "raw_sha256": "187a0c7b92578ca281bc2e7b5b8949fdf52815c4144890e6daae0c704600b290",
+          "byte_size": 22778
+        },
+        "lf_manifest": {
+          "path": "../../lf/ma6_a5_h30km/manifest.json",
+          "raw_sha256": "86d1593f5b642f142a5974133ac826f490d5b829aab409a2f176b9b463213172",
+          "byte_size": 12041
+        }
+      },
+      "lf_input_mode": "explicit_bundle",
+      "baseline_artifact_hashes_sha256": {
+        "fields.npz": "90818c2232da4aea56917c4b656bca9e6f817eacefb1e4faa110a8c933a88732",
+        "summary.json": "187a0c7b92578ca281bc2e7b5b8949fdf52815c4144890e6daae0c704600b290"
+      },
+      "comparison_api": {
+        "type": "FluentLfTawComparison",
+        "builder": "build_fluent_lf_taw_comparison",
+        "contract_id": "fluent-lf-taw-comparison/v1"
+      },
+      "sheets": {
+        "upper": {
+          "sheet": "upper",
+          "source_row_count": 186,
+          "unique_target_count": 80,
+          "typed_empty": false,
+          "observation_field": "wall-temperature",
+          "prediction_field": "Taw_tpg_leeward_upper",
+          "prediction_provider": "ref_enthalpy_method.aero.leeward_recovery.build_leeward_freestream_recovery",
+          "pairing_metric": "projected_physical_x_span_euclidean_m"
+        },
+        "lower": {
+          "sheet": "lower",
+          "source_row_count": 0,
+          "unique_target_count": 0,
+          "typed_empty": true,
+          "observation_field": "wall-temperature",
+          "prediction_field": "Taw_tpg_leeward_lower",
+          "prediction_provider": "ref_enthalpy_method.aero.leeward_recovery.build_leeward_freestream_recovery",
+          "pairing_metric": "projected_physical_x_span_euclidean_m"
+        }
+      }
+    },
+    "ma8_a5_h40km": {
+      "case_id": "ma8_a5_h40km",
+      "mach": 8.0,
+      "alpha_deg": 5.0,
+      "geometric_altitude_m": 40000.0,
+      "inputs": {
+        "fluent_csv": {
+          "path": "../../../../../fluent_export/adiabatic_wall_csv/287pa_251k_40km_5alpha_8ma.csv",
+          "raw_sha256": "74d7097f8bb5bbca500f7ffd3e091f77899920bc1ef4c2074706fbb848e31e62",
+          "byte_size": 3123901
+        },
+        "lf_fields": {
+          "path": "../../lf/ma8_a5_h40km/fields.npz",
+          "raw_sha256": "7e4b0ac9a43dd7036691822633bf0a914999e878d51e2e11753cc005b11c8479",
+          "byte_size": 473657
+        },
+        "lf_summary": {
+          "path": "../../lf/ma8_a5_h40km/summary.json",
+          "raw_sha256": "6e8dc06dd081e5c1521dfba32686d1c438c405a58ff34384e01188b25f8927d0",
+          "byte_size": 22580
+        },
+        "lf_manifest": {
+          "path": "../../lf/ma8_a5_h40km/manifest.json",
+          "raw_sha256": "12861aaa92a4d8b27bf502c647f3256c236dd6284b4b17a9c1c944cb684cb240",
+          "byte_size": 12006
+        }
+      },
+      "lf_input_mode": "explicit_bundle",
+      "baseline_artifact_hashes_sha256": {
+        "fields.npz": "7e4b0ac9a43dd7036691822633bf0a914999e878d51e2e11753cc005b11c8479",
+        "summary.json": "6e8dc06dd081e5c1521dfba32686d1c438c405a58ff34384e01188b25f8927d0"
+      },
+      "comparison_api": {
+        "type": "FluentLfTawComparison",
+        "builder": "build_fluent_lf_taw_comparison",
+        "contract_id": "fluent-lf-taw-comparison/v1"
+      },
+      "sheets": {
+        "upper": {
+          "sheet": "upper",
+          "source_row_count": 186,
+          "unique_target_count": 80,
+          "typed_empty": false,
+          "observation_field": "wall-temperature",
+          "prediction_field": "Taw_tpg_leeward_upper",
+          "prediction_provider": "ref_enthalpy_method.aero.leeward_recovery.build_leeward_freestream_recovery",
+          "pairing_metric": "projected_physical_x_span_euclidean_m"
+        },
+        "lower": {
+          "sheet": "lower",
+          "source_row_count": 0,
+          "unique_target_count": 0,
+          "typed_empty": true,
+          "observation_field": "wall-temperature",
+          "prediction_field": "Taw_tpg_leeward_lower",
+          "prediction_provider": "ref_enthalpy_method.aero.leeward_recovery.build_leeward_freestream_recovery",
+          "pairing_metric": "projected_physical_x_span_euclidean_m"
+        }
+      }
+    }
+  },
+  "artifact_hashes_sha256": [
+    {
+      "filename": "cases/ma6_a5_h30km/sheets/upper/raw_evidence.npz",
+      "role": "raw_source_evidence",
+      "media_type": "application/x-npz",
+      "schema_or_figure_identity": "faceted3d-leeward-source-raw/v1",
+      "byte_size": 21617,
+      "raw_sha256": "56e8feaf49904d1214d2350fa08c1a0753dcc9061d492e8ef154e1bdc3f1b01b",
+      "evidence_role": "formal_evidence"
+    },
+    {
+      "filename": "cases/ma6_a5_h30km/sheets/upper/figures/source_errors_fixed.png",
+      "role": "source_error_figure",
+      "media_type": "image/png",
+      "schema_or_figure_identity": "source-errors-fixed/v1",
+      "byte_size": 236360,
+      "raw_sha256": "589ed4b5507f522d7ce9c2becd22fcb7faf27afb1a04a7ff368fd831eec2a95e",
+      "evidence_role": "formal_evidence"
+    },
+    {
+      "filename": "cases/ma6_a5_h30km/sheets/upper/figures/source_errors_adaptive.png",
+      "role": "source_error_figure",
+      "media_type": "image/png",
+      "schema_or_figure_identity": "source-errors-adaptive/v1",
+      "byte_size": 258589,
+      "raw_sha256": "8300dd3ff3397812062164876ed1c30ba0b5a4f3c70314be9276992adc54ddd0",
+      "evidence_role": "formal_evidence"
+    },
+    {
+      "filename": "cases/ma6_a5_h30km/sheets/upper/figures/diagnostic_source_target_multiplicity.png",
+      "role": "source_target_multiplicity",
+      "media_type": "image/png",
+      "schema_or_figure_identity": "diagnostic-source-target-multiplicity/v1",
+      "byte_size": 85896,
+      "raw_sha256": "b4dd9171a4a8892f5379309cc289776b527b9c01f7b95fc4605758468c0ba525",
+      "evidence_role": "diagnostic_only"
+    },
+    {
+      "filename": "cases/ma6_a5_h30km/sheets/lower/raw_evidence.npz",
+      "role": "raw_source_evidence",
+      "media_type": "application/x-npz",
+      "schema_or_figure_identity": "faceted3d-leeward-source-raw/v1",
+      "byte_size": 5055,
+      "raw_sha256": "a1487dff880d0200ff3bedb74f2e37eb8f798b5a216ba88761ed2ea2eec8e923",
+      "evidence_role": "formal_evidence"
+    },
+    {
+      "filename": "cases/ma6_a5_h30km/summary.json",
+      "role": "case_summary",
+      "media_type": "application/json",
+      "schema_or_figure_identity": "faceted3d-leeward-source-summary/v1",
+      "byte_size": 3501,
+      "raw_sha256": "9e3539e34a0afa2516c5dc8ea38d4a036058db33a8409988e072a28bf1ac8f3d",
+      "evidence_role": "formal_evidence"
+    },
+    {
+      "filename": "cases/ma8_a5_h40km/sheets/upper/raw_evidence.npz",
+      "role": "raw_source_evidence",
+      "media_type": "application/x-npz",
+      "schema_or_figure_identity": "faceted3d-leeward-source-raw/v1",
+      "byte_size": 21345,
+      "raw_sha256": "208374a66dfa8445cc63c854d8174eefd2cb7d932013798624d41aac2fbf22a8",
+      "evidence_role": "formal_evidence"
+    },
+    {
+      "filename": "cases/ma8_a5_h40km/sheets/upper/figures/source_errors_fixed.png",
+      "role": "source_error_figure",
+      "media_type": "image/png",
+      "schema_or_figure_identity": "source-errors-fixed/v1",
+      "byte_size": 243807,
+      "raw_sha256": "5f8bcf15f26edae17d2dab59ddad2409d5db1fb99cbc39da09c9e4b9943cda9c",
+      "evidence_role": "formal_evidence"
+    },
+    {
+      "filename": "cases/ma8_a5_h40km/sheets/upper/figures/source_errors_adaptive.png",
+      "role": "source_error_figure",
+      "media_type": "image/png",
+      "schema_or_figure_identity": "source-errors-adaptive/v1",
+      "byte_size": 263918,
+      "raw_sha256": "955d7b51f5bc30ca81278638ebeb9cec9500144cc458f72c6909653829cd2a12",
+      "evidence_role": "formal_evidence"
+    },
+    {
+      "filename": "cases/ma8_a5_h40km/sheets/upper/figures/diagnostic_source_target_multiplicity.png",
+      "role": "source_target_multiplicity",
+      "media_type": "image/png",
+      "schema_or_figure_identity": "diagnostic-source-target-multiplicity/v1",
+      "byte_size": 85896,
+      "raw_sha256": "9d751418eb4f05d672782d43f96f8cc826cfab71304202648a6506b7732b95c2",
+      "evidence_role": "diagnostic_only"
+    },
+    {
+      "filename": "cases/ma8_a5_h40km/sheets/lower/raw_evidence.npz",
+      "role": "raw_source_evidence",
+      "media_type": "application/x-npz",
+      "schema_or_figure_identity": "faceted3d-leeward-source-raw/v1",
+      "byte_size": 5053,
+      "raw_sha256": "e97b8b9e342908d4787e53bfc339d54947a5e2a3570f1e503ffc1e8172c10c3c",
+      "evidence_role": "formal_evidence"
+    },
+    {
+      "filename": "cases/ma8_a5_h40km/summary.json",
+      "role": "case_summary",
+      "media_type": "application/json",
+      "schema_or_figure_identity": "faceted3d-leeward-source-summary/v1",
+      "byte_size": 3461,
+      "raw_sha256": "13a62e5f51b2adcc356e7be8ef185df13139b1008b06740ca656d9584eec3ff2",
+      "evidence_role": "formal_evidence"
+    }
+  ],
+  "run_status": "PASS",
+  "status_semantics": "program_contract_asset_integrity_only",
+  "model_performance_assessment": "not_performed"
+}
