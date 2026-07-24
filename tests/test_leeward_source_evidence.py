@@ -83,7 +83,7 @@ def _arrays(count=186, *, sheet="upper"):
     )
 
 
-def _fake_case(case_id, _integration):
+def _fake_case(case_id, _integration, **_kwargs):
     upper = _arrays()
     upper["case_id"] = np.asarray(case_id, dtype="<U16")
     lower = _arrays(0, sheet="lower")
@@ -322,7 +322,7 @@ def test_existing_run_and_existing_staging_fail_closed(tmp_path, monkeypatch):
 
 
 def test_handled_failure_does_not_publish_and_removes_only_own_staging(tmp_path, monkeypatch):
-    def fail(*_args):
+    def fail(*_args, **_kwargs):
         raise RuntimeError("injected")
     monkeypatch.setattr(evidence, "_build_formal_case", fail)
     monkeypatch.setattr(evidence, "SOURCE_MODULE_PATHS", ("scripts/tools/generate_leeward_source_evidence.py",))
@@ -337,6 +337,68 @@ def test_handled_failure_does_not_publish_and_removes_only_own_staging(tmp_path,
     assert not (tmp_path / "20260720T010203Z_111111111111").exists()
     assert unknown.is_dir()
     assert list(tmp_path.glob(".20260720T010203Z_111111111111.staging-*")) == []
+
+
+def test_explicit_lf_bundle_is_injected_without_legacy_path_access(tmp_path, monkeypatch):
+    case_id = "ma6_a5_h30km"
+    bundle_root = tmp_path / "lf"
+    bundle_root.mkdir()
+    bundle = evidence.LFInputBundle(
+        case_id=case_id,
+        fields_path=(bundle_root / "fields.npz").resolve(),
+        summary_path=(bundle_root / "summary.json").resolve(),
+        manifest_path=(bundle_root / "manifest.json").resolve(),
+    )
+    captured = {}
+
+    def explicit_case(selected, integration, *, lf_input=None, evidence_target=None):
+        captured["selected"] = selected
+        captured["integration"] = integration
+        captured["lf_input"] = lf_input
+        captured["evidence_target"] = evidence_target
+        return _fake_case(selected, integration)
+
+    class LegacyTrap(dict):
+        def __getitem__(self, key):
+            if key.startswith("lf_"):
+                raise AssertionError("legacy LF path was accessed")
+            return super().__getitem__(key)
+
+    monkeypatch.setattr(evidence, "_build_formal_case", explicit_case)
+    monkeypatch.setattr(evidence, "SOURCE_MODULE_PATHS", ("scripts/tools/generate_leeward_source_evidence.py",))
+    monkeypatch.setitem(evidence.CASE_REGISTRY, case_id, LegacyTrap(evidence.CASE_REGISTRY[case_id]))
+    published = evidence.generate_evidence(
+        output_root=tmp_path / "output",
+        case_ids=(case_id,),
+        created_utc=datetime(2026, 7, 20, 1, 2, 3, tzinfo=timezone.utc),
+        git_sha="1" * 40,
+        integrations={case_id: object()},
+        lf_inputs={case_id: bundle},
+    )
+
+    assert published.is_dir()
+    assert captured["selected"] == case_id
+    assert captured["lf_input"] is bundle
+    manifest = json.loads((published / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["case_registry"][case_id]["lf_input_mode"] == "explicit_bundle"
+    assert "lf_fields" not in manifest["case_registry"][case_id]
+
+
+def test_input_preflight_failure_creates_no_output_root(tmp_path, monkeypatch):
+    output_root = tmp_path / "never-created"
+
+    def fail_preflight(*_args, **_kwargs):
+        raise RuntimeError("input gate rejected")
+
+    monkeypatch.setattr(evidence, "_build_formal_case", fail_preflight)
+    with pytest.raises(RuntimeError, match="input gate rejected"):
+        evidence.generate_evidence(
+            output_root=output_root,
+            case_ids=("ma6_a5_h30km",),
+            git_sha="1" * 40,
+            integrations={"ma6_a5_h30km": object()},
+        )
+    assert not output_root.exists()
 
 
 def test_registry_fail_closed_before_publication(tmp_path):

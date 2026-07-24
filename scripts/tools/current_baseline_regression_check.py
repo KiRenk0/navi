@@ -128,6 +128,7 @@ SOURCE_IDENTITY_KEYS = (
 )
 FIXED_PRODUCTION_PATHS = (
     "scripts/run_case_rem.py",
+    "scripts/tools/n6_exact_custom_formal_entry.py",
     "specs/vehicles/htv2_faceted3d_0629.yaml",
     "specs/cases/doc_ma6_alpha5_h30km_faceted3d.yaml",
     "specs/sampling/engineering_full_wing_surface_grid_81x41.yaml",
@@ -135,7 +136,7 @@ FIXED_PRODUCTION_PATHS = (
     "new_spec/outline_xz_right_0629.csv",
 )
 PYTHON_SOURCE_PREFIX = "src/ref_enthalpy_method/"
-EXPECTED_PRODUCTION_SOURCE_COUNT = 65
+EXPECTED_PRODUCTION_SOURCE_COUNT = 66
 SOURCE_IDENTITY_MUTABLE_FIELDS = frozenset(
     {"source_hashes_sha256", "source_identity"}
 )

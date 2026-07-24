@@ -14,6 +14,7 @@ import sys
 import uuid
 import zipfile
 from collections import OrderedDict
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping
@@ -80,6 +81,25 @@ CASE_REGISTRY: dict[str, dict[str, Any]] = {
         "expectation": {"upper_source_rows": 186, "upper_unique_targets": 80, "lower_typed_empty": True},
     },
 }
+
+
+@dataclass(frozen=True)
+class LFInputBundle:
+    """Explicit immutable LF artifacts for one approved formal case."""
+
+    case_id: str
+    fields_path: Path
+    summary_path: Path
+    manifest_path: Path
+
+    def __post_init__(self) -> None:
+        if self.case_id not in CASE_REGISTRY:
+            raise ValueError(f"case outside formal LF input registry: {self.case_id}")
+        for name in ("fields_path", "summary_path", "manifest_path"):
+            path = getattr(self, name)
+            if not isinstance(path, Path) or not path.is_absolute():
+                raise ValueError(f"{name} must be an explicit absolute Path")
+
 
 RAW_FIELD_DTYPES: tuple[tuple[str, str], ...] = (
     ("case_id", "<U16"), ("sheet", "<U5"),
@@ -374,21 +394,50 @@ def validate_formal_case_freestream(
     validate_exact_freestream_manifest(binding, manifest)
 
 
-def _load_case_inputs(case_id: str) -> tuple[dict[str, np.ndarray], dict[str, Any], dict[str, Any]]:
-    entry = CASE_REGISTRY[case_id]
-    fields_path, summary_path, manifest_path = (ROOT / entry[key] for key in ("lf_fields", "lf_summary", "lf_manifest"))
+def _load_case_inputs(
+    case_id: str,
+    lf_input: LFInputBundle | None = None,
+) -> tuple[dict[str, np.ndarray], dict[str, Any], dict[str, Any]]:
+    if lf_input is None:
+        entry = CASE_REGISTRY[case_id]
+        fields_path, summary_path, manifest_path = (
+            ROOT / entry[key] for key in ("lf_fields", "lf_summary", "lf_manifest")
+        )
+    else:
+        _require(lf_input.case_id == case_id, f"{case_id}: explicit LF bundle case mismatch")
+        fields_path, summary_path, manifest_path = (
+            lf_input.fields_path,
+            lf_input.summary_path,
+            lf_input.manifest_path,
+        )
+    for label, path in (
+        ("fields", fields_path),
+        ("summary", summary_path),
+        ("manifest", manifest_path),
+    ):
+        _require(path.is_file(), f"{case_id}: missing explicit LF {label}: {path}")
     with np.load(fields_path, allow_pickle=False) as loaded:
         fields = {name: np.array(loaded[name], copy=True) for name in loaded.files}
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    _require(isinstance(summary, dict), f"{case_id}: LF summary must be an object")
+    _require(isinstance(manifest, dict), f"{case_id}: LF manifest must be an object")
     validate_formal_case_freestream(case_id, summary, manifest)
     return fields, summary, manifest
 
 
-def _input_identity(relative: str) -> dict[str, Any]:
-    path = ROOT / relative
-    _require(path.is_file(), f"missing registered input: {relative}")
-    return {"path": relative, "raw_sha256": sha256_file(path), "byte_size": path.stat().st_size}
+def _input_identity(path: str | Path, *, reference_dir: Path | None = None) -> dict[str, Any]:
+    full_path = ROOT / path if isinstance(path, str) else path
+    _require(full_path.is_file(), f"missing registered input: {path}")
+    if reference_dir is None:
+        display_path = str(path).replace("\\", "/")
+    else:
+        display_path = os.path.relpath(full_path, start=reference_dir).replace("\\", "/")
+    return {
+        "path": display_path,
+        "raw_sha256": sha256_file(full_path),
+        "byte_size": full_path.stat().st_size,
+    }
 
 
 def _validate_projection(integration: Any) -> np.ndarray:
@@ -401,9 +450,15 @@ def _validate_projection(integration: Any) -> np.ndarray:
     return xyz
 
 
-def _build_formal_case(case_id: str, integration: Any) -> tuple[dict[str, OrderedDict[str, np.ndarray]], dict[str, Any]]:
+def _build_formal_case(
+    case_id: str,
+    integration: Any,
+    *,
+    lf_input: LFInputBundle | None = None,
+    evidence_target: Path | None = None,
+) -> tuple[dict[str, OrderedDict[str, np.ndarray]], dict[str, Any]]:
     entry = CASE_REGISTRY[case_id]
-    fields, _baseline_summary, baseline_manifest = _load_case_inputs(case_id)
+    fields, _baseline_summary, baseline_manifest = _load_case_inputs(case_id, lf_input)
     lf_masks = build_lf_clean_leeward_masks(fields)
     fluent_masks = build_fluent_clean_leeward_masks(integration)
     projected_xyz = _validate_projection(integration)
@@ -431,10 +486,28 @@ def _build_formal_case(case_id: str, integration: Any) -> tuple[dict[str, Ordere
     _require(sheet_provenance["upper"]["source_row_count"] == expected["upper_source_rows"], f"{case_id}: upper source rows changed")
     _require(sheet_provenance["upper"]["unique_target_count"] == expected["upper_unique_targets"], f"{case_id}: upper unique targets changed")
     _require(sheet_provenance["lower"]["typed_empty"] is expected["lower_typed_empty"], f"{case_id}: lower typed-empty changed")
+    if lf_input is None:
+        input_paths: dict[str, str | Path] = {
+            name: entry[name] for name in ("fluent_csv", "lf_fields", "lf_summary", "lf_manifest")
+        }
+    else:
+        input_paths = {
+            "fluent_csv": entry["fluent_csv"],
+            "lf_fields": lf_input.fields_path,
+            "lf_summary": lf_input.summary_path,
+            "lf_manifest": lf_input.manifest_path,
+        }
     provenance = {
         "case_id": case_id, "mach": entry["mach"], "alpha_deg": entry["alpha_deg"],
         "geometric_altitude_m": entry["geometric_altitude_m"],
-        "inputs": {name: _input_identity(entry[name]) for name in ("fluent_csv", "lf_fields", "lf_summary", "lf_manifest")},
+        "inputs": {
+            name: _input_identity(
+                path,
+                reference_dir=evidence_target if lf_input is not None else None,
+            )
+            for name, path in input_paths.items()
+        },
+        "lf_input_mode": "explicit_bundle" if lf_input is not None else "legacy_registered",
         "baseline_artifact_hashes_sha256": baseline_manifest.get("artifact_hashes_sha256", {}),
         "comparison_api": {"type": "FluentLfTawComparison", "builder": "build_fluent_lf_taw_comparison",
                            "contract_id": COMPARISON_CONTRACT_ID},
@@ -459,30 +532,50 @@ def create_run_id(*, created_utc: datetime | None = None, git_sha: str | None = 
 def generate_evidence(*, output_root: str | Path = DEFAULT_OUTPUT_ROOT,
                       case_ids: Iterable[str] = tuple(CASE_REGISTRY),
                       run_id: str | None = None, created_utc: datetime | None = None,
-                      git_sha: str | None = None, integrations: Mapping[str, Any] | None = None) -> Path:
+                      git_sha: str | None = None, integrations: Mapping[str, Any] | None = None,
+                      lf_inputs: Mapping[str, LFInputBundle] | None = None) -> Path:
     selected = tuple(case_ids)
     _require(selected and len(selected) == len(set(selected)), "case selection must be nonempty and unique")
     for case_id in selected:
         _require(case_id in CASE_REGISTRY, f"case outside registry: {case_id}")
+    explicit_inputs: dict[str, LFInputBundle] | None = None
+    if lf_inputs is not None:
+        explicit_inputs = dict(lf_inputs)
+        _require(set(explicit_inputs) == set(selected), "explicit LF inputs must exactly match selected formal cases")
+        for case_id, bundle in explicit_inputs.items():
+            _require(isinstance(bundle, LFInputBundle), f"{case_id}: explicit LF input must be LFInputBundle")
+            _require(bundle.case_id == case_id, f"{case_id}: explicit LF input mapping key mismatch")
+
     generated_id, created_text, actual_sha = create_run_id(created_utc=created_utc, git_sha=git_sha)
     if run_id is not None:
         _require(run_id == generated_id, "explicit run_id does not match UTC/Git identity")
     run_id = generated_id
     root = Path(output_root).resolve()
-    root.mkdir(parents=True, exist_ok=True)
     target = root / run_id
     _require(not target.exists(), f"run target already exists: {target}")
     if any(root.glob(f".{run_id}.staging-*")):
         raise RuntimeError(f"staging for run id already exists: {run_id}")
+
+    formal_integrations = dict(integrations) if integrations is not None else _build_fluent_integrations()
+    _require(set(selected).issubset(formal_integrations), "missing registered Fluent integration")
+    prepared_cases: dict[str, tuple[dict[str, OrderedDict[str, np.ndarray]], dict[str, Any]]] = {}
+    for case_id in selected:
+        prepared_cases[case_id] = _build_formal_case(
+            case_id,
+            formal_integrations[case_id],
+            lf_input=None if explicit_inputs is None else explicit_inputs[case_id],
+            evidence_target=target,
+        )
+
+    root_created = not root.exists()
+    root.mkdir(parents=True, exist_ok=True)
     staging = root / f".{run_id}.staging-{uuid.uuid4().hex}"
     staging.mkdir()
     try:
-        formal_integrations = dict(integrations) if integrations is not None else _build_fluent_integrations()
-        _require(set(selected).issubset(formal_integrations), "missing registered Fluent integration")
         artifacts: list[dict[str, Any]] = []
         case_provenance: dict[str, Any] = {}
         for case_id in selected:
-            sheets, provenance = _build_formal_case(case_id, formal_integrations[case_id])
+            sheets, provenance = prepared_cases[case_id]
             case_provenance[case_id] = provenance
             case_dir = staging / "cases" / case_id
             for sheet, arrays in sheets.items():
@@ -508,10 +601,24 @@ def generate_evidence(*, output_root: str | Path = DEFAULT_OUTPUT_ROOT,
             artifacts.append(_artifact_entry(staging, summary_path, role="case_summary", media_type="application/json",
                 identity=SUMMARY_SCHEMA, evidence_role="formal_evidence"))
         generator = {path: {"path": path, "raw_sha256": sha256_file(ROOT / path)} for path in SOURCE_MODULE_PATHS}
+        if explicit_inputs is None:
+            manifest_registry = {case_id: CASE_REGISTRY[case_id] for case_id in selected}
+        else:
+            manifest_registry = {
+                case_id: {
+                    "mach": CASE_REGISTRY[case_id]["mach"],
+                    "alpha_deg": CASE_REGISTRY[case_id]["alpha_deg"],
+                    "geometric_altitude_m": CASE_REGISTRY[case_id]["geometric_altitude_m"],
+                    "fluent_csv": CASE_REGISTRY[case_id]["fluent_csv"],
+                    "lf_input_mode": "explicit_bundle",
+                    "expectation": CASE_REGISTRY[case_id]["expectation"],
+                }
+                for case_id in selected
+            }
         manifest = {
             "manifest_schema": MANIFEST_SCHEMA, "run_id": run_id, "created_utc": created_text,
             "git_sha": actual_sha, "generator": generator,
-            "case_registry": {case_id: CASE_REGISTRY[case_id] for case_id in selected},
+            "case_registry": manifest_registry,
             "cases": case_provenance, "artifact_hashes_sha256": artifacts,
             "run_status": "PASS", "status_semantics": STATUS_SEMANTICS,
             "model_performance_assessment": "not_performed",
@@ -530,6 +637,8 @@ def generate_evidence(*, output_root: str | Path = DEFAULT_OUTPUT_ROOT,
     except Exception:
         if staging.exists():
             shutil.rmtree(staging)
+        if root_created and root.exists() and not any(root.iterdir()):
+            root.rmdir()
         raise
 
 
