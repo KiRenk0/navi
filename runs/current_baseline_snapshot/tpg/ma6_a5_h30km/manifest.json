@@ -496,11 +496,12 @@
     "path_format": "repo-relative-posix",
     "inventory_rule": "production-source-inventory/v1",
     "ordering": "fixed-prefix-then-posix-lexicographic",
-    "inventory_paths_sha256": "81f50d9015c3df397923352d3adb5b0d45dd85e01f3e9a66685c49a3fbf6a428",
-    "aggregate_sha256": "d198835f8202f3be57dffe9fc826256fcd192dc27da8b0181637174fb8696af5"
+    "inventory_paths_sha256": "f855856dd2442faae2039d32e8de7be4fc6ebfa5d661d4c6de7807a4fccae998",
+    "aggregate_sha256": "ae1b242b8995db49ae208892d2a46651e727952ebfa6f1e1f68f2e05641ddb4e"
   },
   "source_hashes_sha256": {
     "scripts/run_case_rem.py": "ece6017618f9c3d1bbf4cfa3293094e99d53fcaf25b5b1668fec41fe96ec3397",
+    "scripts/tools/n6_exact_custom_formal_entry.py": "abc83802797bd82910f129b6d6caf95d2dcf443950c0273ab2ba4c48b2e78b72",
     "specs/vehicles/htv2_faceted3d_0629.yaml": "877c1994fbaa7eef570a89b9fae36e8cda6ef1b6072e733b3a6a51578b7074cf",
     "specs/cases/doc_ma6_alpha5_h30km_faceted3d.yaml": "3d483ed2d2ad5112549314cec604f01d848a109d6a43854a94da4e9fbea8b1d4",
     "specs/sampling/engineering_full_wing_surface_grid_81x41.yaml": "39bed4302c18d67acb5b2b4184ea84a5201b1b877da093d515933cca4ede624f",
