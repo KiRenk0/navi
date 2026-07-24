@@ -195,10 +195,10 @@ candidate CLI 必选参数为 `--candidate-manifest`、`--case-id`、`--mach`、
 
 analysis package 内 `formal_core/` 保存 source profiles、spatial bins、bounded case comparison 与三幅 figures；`diagnostic_only/` 保存 multiplicity profiles；`diagnostic_context/` 保存 tier references。formal core 仅为 M6/30 与 M8/40 upper/leeward source rows；M8/30 与 windward 不进入 formal core。
 
-## 20. N6.4 Exit Certification Candidate
+## 20. N6.4 Final Canonical Certification
 
 | 路径 | Authority role |
 |------|----------------|
-| `docs/n6_4_exit_certification_zh.md` | N6.4 coverage、evidence tier、exclusion / non-admission、engineering limitations、third-party reproducibility 与 N6 exit-condition 的 tracked canonical certification candidate；统一绑定 N6.1 approved matrix、N6.2b canonical source package、N6.3 canonical analysis package、current-v5、M8/30 supplemental、45 km candidates、windward diagnostic 与 lower typed-empty |
+| `docs/n6_4_exit_certification_zh.md` | N6.4 coverage、evidence tier、exclusion / non-admission、engineering limitations、third-party reproducibility 与 N6 exit-condition 的 final tracked canonical certification；统一绑定 N6.1 approved matrix、N6.2b canonical source package、N6.3 canonical analysis package、current-v5、M8/30 supplemental、45 km candidates、windward diagnostic 与 lower typed-empty |
 
-该文档当前状态为 `DOCS_ONLY_IMPLEMENTED_PENDING_INDEPENDENT_QA`。它是 authority 文档，不是 machine-readable package、baseline、evidence asset 或 GATE C decision；不表示 N6 final sign-off 已签发。
+该文档当前状态为 `N6.4 COMPLETE`、`N6 strategic exit SIGNED / COMPLETE`、`N6 final sign-off ISSUED`。它是 canonical authority 文档，不是 baseline，不是 formal package，不是 GATE C decision，也不是 release artifact；GATE C 保持 `NOT DECIDED`。

@@ -1,23 +1,39 @@
-# Faceted3D v2 N6.4 退出认证候选
+# Faceted3D v2 N6.4 最终退出认证
 
-> 文档类型：tracked canonical certification candidate
-> 审计基线：`main@5c6e0b56f20a33d431ec1e94e3aa216667983452`
-> 当前状态：pending independent QA
+> 文档类型：tracked final canonical N6 exit certification
+> implementation base：`main@5c6e0b56f20a33d431ec1e94e3aa216667983452`
+> initial certification commit：`3f818aa93c05baf79bc6e83d42b2610f375c9df9`
+> independently audited corrected HEAD：`f088d88eb409a5462451b81d27beac92bce528ae`
+> independent QA result：`N6_4_INDEPENDENT_QA_AND_FULL_REGRESSION_PASS`
+> 当前状态：`N6.4 COMPLETE`；`N6 strategic exit SIGNED / COMPLETE`
 
 ## 1. 文档身份与职责
 
 ```text
-document role = N6.4 tracked canonical coverage / exclusion / limitations / reproducibility / exit certification
-audit_base_sha = 5c6e0b56f20a33d431ec1e94e3aa216667983452
-final_main_identity = to be fixed by later independent QA and Git closeout
-current implementation status = DOCS_ONLY_IMPLEMENTED_PENDING_INDEPENDENT_QA
-GATE C = NOT DECIDED
+document role = N6.4 tracked final canonical coverage / exclusion / limitations / reproducibility / exit certification
+implementation base SHA = 5c6e0b56f20a33d431ec1e94e3aa216667983452
+initial certification commit = 3f818aa93c05baf79bc6e83d42b2610f375c9df9
+independently audited corrected HEAD = f088d88eb409a5462451b81d27beac92bce528ae
+independent QA result = N6_4_INDEPENDENT_QA_AND_FULL_REGRESSION_PASS
+N6.4 status = COMPLETE
+N6 strategic exit = SIGNED / COMPLETE
+N6 final sign-off = ISSUED
+formal bounded scope = ACCEPTED AS THE COMPLETED N6 EVIDENCE SCOPE
+GATE C entry evidence index = COMPLETE
+eligibility = ELIGIBLE_TO_REQUEST_GATE_C_REVIEW
+GATE C decision = NOT DECIDED
+GATE C approval = NOT ISSUED
+engineering freeze = NOT APPROVED
 N7 = NOT ENTERED
+release/tag = NOT CREATED
+final main identity = the Git commit containing this final certification,
+                      authenticated by the N6.4 Git closeout report
+                      and the subsequent current handoff
 ```
 
 本文是 N6.4 coverage、evidence tier、exclusion / non-admission、engineering limitations、third-party reproducibility 与 N6 exit-condition 的统一 tracked canonical 载体。本文绑定已有 N6.1、N6.2b、N6.3、current-v5 baseline、M8/30 supplemental、45 km candidates、windward diagnostic 与 formal lower typed-empty 事实，不生成新的数值证据、package、baseline、validator 或 generator。
 
-本文实施只建立可供独立 QA 审查的认证候选。它不作 GATE C 裁决，不批准工程冻结或发布，不进入 N7，也不作模型性能裁决。最终提交身份由 Git 历史提供；后续 independent QA 与 Git/main closeout 才能固定 `final_main_identity`。
+本文签发 bounded scope 下的 N6 final canonical certification。它不作 GATE C 裁决，不批准 engineering freeze 或 release，不进入 N7，也不作模型性能裁决。最终 main SHA 不作为本文自引用字段；其权威身份由 Git ref、真实远端认证、N6.4 Git closeout report 与后续 current handoff 固定。
 
 ## 2. 冻结范围与禁止边界
 
@@ -214,7 +230,7 @@ atmosphere qualification = none / unverified
 | Windward numerical zero-recompute replay | PARTIAL | 12-case summary、per-case metadata 与 plotting implementation 可定位 | provenance/population 不等同 formal leeward；本轮不重算 |
 | 45 km qualification | PARTIAL | 三个 tracked CSV 的 filename/raw identity 可审计 | exact-input provenance 与 admission 未批准 |
 | projection cache external artifact | PARTIAL | tracked authority 记录 frozen cache identity、正式输入 identity、generation/load entry 与 hash / provenance | ignored external frozen run artifact；不随 clean checkout 分发、不属于 formal-core evidence；formal core 的复核不依赖该 cache |
-| unified N6 limitations register | PASS | 本文已实现 tracked candidate | final authority issuance 仍待 independent QA |
+| unified N6 limitations register | PASS | 本文为 final tracked canonical authority | independent QA 已通过；final authority 已签发 |
 
 ```text
 formal-core reproducibility = PASS
@@ -223,7 +239,7 @@ supplemental/diagnostic reproducibility = PARTIAL
 
 Supplemental/diagnostic 的 `PARTIAL` 不构成 formal-core identity 或 evidence-chain defect，也不要求本轮重算。它表示第三方可以定位已有事实和边界，但不能从现有资产重建与 formal core 等价的完整资格链。
 
-## 8. N6 exit-condition candidate matrix
+## 8. N6 exit-condition final matrix
 
 本节状态只使用 `PASS`、`KNOWN_LIMITATION`、`NOT_APPLICABLE`、`BLOCKED`。
 
@@ -238,25 +254,53 @@ Supplemental/diagnostic 的 `PARTIAL` 不构成 formal-core identity 或 evidenc
 | windward evidence-tier status | PASS | independent diagnostic context 已明确，禁止跨 tier 合并 |
 | cross-case structure | PASS | 两 formal assets 的 recorded structure 与 bounded comparison 已登记 |
 | Mach/alpha/surface coverage | KNOWN_LIMITATION | 两 case、alpha +5°、upper/leeward；不能泛化 |
-| causal attribution | NOT_APPLICABLE | 当前 bounded descriptive contract 不承担因果识别 |
+| causal attribution | KNOWN_LIMITATION | 当前 bounded descriptive contract 不承担因果识别；causal attribution not supported |
 | formal CLI/assets/docs reproducibility | PASS | official CLI、N6.2b/N6.3 assets、本文索引与 validator 可定位 |
+| third-party formal-core reproducibility | PASS | clean checkout 可由 tracked source、formal packages、manifests 与 official validators 复核；不依赖 external projection cache |
 | formal coverage | PASS | N6.1 approved bounded matrix已完整映射到本文 |
 | exclusion reasons | PASS | M8/30、45 km、windward、lower 已登记分类与解除条件 |
 | engineering limitations | PASS | 本文统一 register 已建立 |
 | new evidence-chain defect | PASS | 当前审计输入未发现新的 identity/data/package-chain defect |
 | major provider systematic evidence | NOT_APPLICABLE | provider systematic bias conclusion = not established；无适用裁决 |
-| consolidated certification document | PASS | `IMPLEMENTED_PENDING_INDEPENDENT_QA` |
-| final N6 sign-off | BLOCKED | not yet issued；等待 independent QA 与 final Git/main closeout |
+| consolidated canonical certification | PASS | final canonical document issued；independent QA result=`N6_4_INDEPENDENT_QA_AND_FULL_REGRESSION_PASS` |
+| independent QA | PASS | independently audited corrected HEAD=`f088d88eb409a5462451b81d27beac92bce528ae` |
+| full pytest | PASS | independent QA=`460 passed + 125 subtests`；final closeout rerun required |
+| current regression | PASS | independent QA current TPG/regression PASS；final closeout rerun required |
+| production source identity | PASS | `git-head-tree-source-identity/v1`；68/68 PASS |
+| final N6 sign-off | PASS | ISSUED；bounded N6 strategic exit signed |
 
 ```text
-all technical evidence conditions = PASS / KNOWN_LIMITATION / NOT_APPLICABLE
-remaining procedural condition = independent QA and final Git/main closeout
-N6 exit certification status = CANDIDATE_READY_FOR_INDEPENDENT_QA
-consolidated certification document = IMPLEMENTED_PENDING_INDEPENDENT_QA
-final N6 sign-off = not yet issued
-```
+formal observation identity = PASS
+formal ingestion = PASS
+exact formal input identity = PASS
+formal provenance = PASS
+historical-custom / validated-atmosphere separation = PASS
+leeward formal error portrait = PASS
+windward evidence-tier separation = PASS
+exclusion reasons = PASS
+engineering limitations register = PASS
+third-party formal-core reproducibility = PASS
+canonical certification = PASS
+independent QA = PASS
+full pytest = PASS
+current regression = PASS
+production source identity = PASS
+new evidence-chain defect = none
+major provider systematic evidence = not established / NOT_APPLICABLE
+formal cases only 2 = KNOWN_LIMITATION
+formal surface only upper/leeward = KNOWN_LIMITATION
+lower typed-empty = KNOWN_LIMITATION
+M8/30 supplemental-only = KNOWN_LIMITATION
+causal attribution = KNOWN_LIMITATION
+performance threshold none = KNOWN_LIMITATION
+windward/leeward joint population = NOT_APPLICABLE
 
-上一轮唯一 blocker 是缺少 consolidated tracked N6.4 certification/sign-off。本文已实现 consolidated certification document，但只把该项推进到 `IMPLEMENTED_PENDING_INDEPENDENT_QA`；最终程序性 blocker 在 independent QA 前保留。
+不存在阻止 bounded N6 strategic exit 的 BLOCKED 项。
+N6.4 status = COMPLETE
+N6 strategic exit = SIGNED / COMPLETE
+N6 final sign-off = ISSUED
+formal bounded scope = ACCEPTED AS THE COMPLETED N6 EVIDENCE SCOPE
+```
 
 ## 9. GATE C entry evidence index
 
@@ -264,7 +308,7 @@ final N6 sign-off = not yet issued
 
 | # | evidence item | canonical location / status |
 |---:|---|---|
-| 1 | final main identity | pending later Git closeout |
+| 1 | final main identity | status=`to be authenticated by final Git closeout`；authority=closeout 后 local main、origin/main 与真实远端 `refs/heads/main` 指向包含本认证文档的同一提交；最终 SHA 不在本文自引用 |
 | 2 | N6.1 approved matrix | `docs/current_model_decisions_zh.md` 第 33 节 |
 | 3 | N6.2b package and manifests | `runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom/` |
 | 4 | N6.3 package and manifest | `runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait/` |
@@ -274,16 +318,16 @@ final N6 sign-off = not yet issued
 | 8 | engineering limitation register | 本文第 6 节 |
 | 9 | third-party reproducibility matrix | 本文第 7 节 |
 | 10 | N6 exit-condition matrix | 本文第 8 节 |
-| 11 | current regression evidence | current-v5 manifests 与 `scripts/tools/current_baseline_regression_check.py`；本轮未执行 |
+| 11 | current regression evidence | current-v5 manifests 与 `scripts/tools/current_baseline_regression_check.py`；independent QA PASS，final closeout rerun required |
 | 12 | source identity | 本文第 3.2 节；current-v5 manifests |
 | 13 | artifact identity | N6.2b package/evidence manifests 与 N6.3 analysis manifest |
-| 14 | canonical docs | 本文及 `docs/README_INDEX.md`、`docs/faceted3d_file_index_zh.md`；最终状态文档待后续 closeout |
+| 14 | canonical docs | 本文及 `docs/README_INDEX.md`、`docs/faceted3d_file_index_zh.md`、三个 final canonical status 文件 |
 | 15 | known limitations | 本文第 6 节 |
 | 16 | prohibited interpretations | 本文第 2、4、6、7 节 |
-| 17 | unresolved questions | 本文第 10 节 |
-| 18 | final N6 sign-off | pending independent QA and later canonical closeout |
+| 17 | unresolved questions | 本文第 10 节；均为未来独立决策，不阻断 bounded exit |
+| 18 | final N6 sign-off | `ISSUED`；N6 strategic exit=`SIGNED / COMPLETE` |
 
-当前仅建立 entry evidence index；GATE C 保持 `NOT DECIDED`，N7 保持 `NOT ENTERED`。
+GATE C entry evidence index 的 18 类证据已完整。其含义仅为证据已准备完成，具备请求 GATE C review 的资格；不表示 GATE C 已开始或已通过，不表示 engineering freeze 已批准，也不表示 N7 可自动进入。GATE C 保持 `NOT DECIDED`，N7 保持 `NOT ENTERED`。
 
 ## 10. Unresolved questions
 
@@ -296,14 +340,24 @@ final N6 sign-off = not yet issued
 5. 是否未来建立 validated-atmosphere case identity。
 6. 是否由 GATE C 接受当前 bounded formal scope。
 
-## 11. 当前认证候选边界
+## 11. 最终认证边界
 
 ```text
-current implementation status = DOCS_ONLY_IMPLEMENTED_PENDING_INDEPENDENT_QA
-N6.4 final independent QA = NOT YET PERFORMED
-N6 final sign-off = NOT YET ISSUED
-GATE C = NOT DECIDED
+N6.4 status = COMPLETE
+N6 strategic exit = SIGNED / COMPLETE
+N6 final sign-off = ISSUED
+formal bounded scope = ACCEPTED AS THE COMPLETED N6 EVIDENCE SCOPE
+GATE C entry evidence index = COMPLETE
+eligibility = ELIGIBLE_TO_REQUEST_GATE_C_REVIEW
+GATE C decision = NOT DECIDED
+GATE C approval = NOT ISSUED
+engineering freeze = NOT APPROVED
 N7 = NOT ENTERED
+release/tag = NOT CREATED
+performance threshold = none
+model performance assessment = not performed
+provider systematic bias conclusion = not established
+causal attribution = not supported
 ```
 
-本文完成后的允许结论仅为：N6.4 consolidated tracked certification candidate 已建立，全部技术证据条件可按 `PASS / KNOWN_LIMITATION / NOT_APPLICABLE` 提交 independent QA，剩余程序条件是 independent QA 与 final Git/main closeout。本文不自行签发最终 N6 状态。
+本文只认证冻结 bounded scope 内 N6.0–N6.4 的 observation identity、formal ingestion、exact-custom package、layered descriptive error portrait、coverage、exclusion、engineering limitations、third-party reproducibility 与 exit certification 已形成完整、tracked、经独立 QA 的证据链。它不认证模型性能达到阈值，不认证 provider 物理准确性，不建立 provider systematic bias，不消除既有工程局限，不扩充 formal surface/case，也不构成 GATE C、engineering freeze、N7、tag 或 release 决定。

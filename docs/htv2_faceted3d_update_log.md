@@ -2,9 +2,20 @@
 
 ---
 
+## 2026-07-25: N6.4 Final Canonical Closeout 与 N6 Strategic Exit
+
+- N6.4 independent QA 与 full regression 已通过，裁决=`N6_4_INDEPENDENT_QA_AND_FULL_REGRESSION_PASS`；已审计有界文档修正 HEAD=`f088d88eb409a5462451b81d27beac92bce528ae`。
+- 有界修正仅补充 external projection cache 的治理/复现边界，并修正 N6.2b canonical formal package 已完成且 tracked 的事实；该修正未改变 formal scope。
+- N6.4 final canonical closeout completed；N6 strategic exit=`SIGNED / COMPLETE`；N6 final sign-off=`ISSUED`。
+- provider、formal-core scope 与 numerical assets unchanged；baseline、manifest、fields、summary、artifact hashes 与 production source identity 保持冻结。
+- GATE C=`NOT DECIDED`；engineering freeze=`NOT APPROVED`；N7=`NOT ENTERED`；tag/release=`NOT CREATED`。
+- 包含本条最终文档的 commit SHA 不在 commit 内容中自引用，由 Git closeout report 与后续 current handoff 固定。
+
+---
+
 ## 2026-07-25: N6.4 Docs-only Certification Candidate 实施
 
-- N6.4 docs-only certification candidate implemented；base SHA=`5c6e0b56f20a33d431ec1e94e3aa216667983452`。
+- N6.4 docs-only certification candidate implemented；base SHA=`5c6e0b56f20a33d431ec1e94e3aa216667983452`。该段记录候选实施时点，当前状态已由上方 final canonical closeout 条目取代。
 - 新增 tracked canonical coverage / exclusion / engineering limitations / third-party reproducibility / N6 exit-condition 认证候选，当前状态为 pending independent QA；N6 final sign-off 尚未签发。
 - provider and numerical assets unchanged；未修改 solver、observation、clean、pairing、comparison、baseline、manifest、fields、summary 或 evidence asset。
 - GATE C not decided；N7 not entered。

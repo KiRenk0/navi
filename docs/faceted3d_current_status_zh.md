@@ -1,6 +1,6 @@
 # Faceted3D 当前工程状态
 
-> 更新：2026-07-25（N6.3 canonical 分层误差画像完成）
+> 更新：2026-07-25（N6.4 complete；N6 strategic exit signed）
 
 ---
 
@@ -197,13 +197,14 @@ Phase 4A 后仓库卫生审计已完成：删除 3 份已被 canonical docs 替�
 - M8/30 candidate generation=`not yet executed`；production candidate manifest asset=`not yet generated`；M8/30 admission/promotion=`not performed`；formal comparison/evidence=`not entered`。M8/30 未加入 `CASES`、registry 或 baseline。
 - provider=`unchanged`；N3a=`not exited`；GATE A=`not reopened`。strategy v1.2 与 current handoff 均不在本修复范围内。
 
-## 9. N6.3 当前状态（2026-07-25）
+## 9. N6 Final Canonical 当前状态（2026-07-25）
 
-- `N6.0/N6.1/N6.2a/N6.2b/N6.3 = completed`；`N6.4/GATE C/N7 = not entered`。整个 N6 尚未完成。
-- 正式入口：`scripts/tools/n6_3_layered_error_portrait.py`，支持 `--execute` 与 `--validate-existing`。
-- canonical source package：`runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom`；package/evidence manifest SHA-256 分别为 `dffd989a057c4481446482e0543e935209e8673f1a4468b343f1dfa5785bc314`、`b161086640e0e1c922fd2c02670f7e43f9b01363a797dfabb39c195f34157ac3`。
-- canonical analysis package：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`；generation SHA=`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`；analysis manifest SHA-256=`909436a7f96588ac35d9b8220ba984af07f3958a6194e3cf2c931e696bfb207d`；8 artifacts + manifest，且为唯一 canonical run。
-- formal core 仅含 M6/30、M8/40 upper/leeward source-row populations；每 case `186` rows → `80` unique LF targets，source-row 不去重，lower typed-empty。M8/30 为 supplemental-only，windward 为 independent diagnostic tier。
-- 独立 QA：160 focused tests + 11 subtests、460 full pytest + 125 subtests、CURRENT TPG OFFICIAL、CURRENT REGRESSION OVERALL、68/68 source identity 全部 PASS；Groups 1–8、72 fields、numerical assets 与 artifact hashes 零漂移。
-- QA/regression PASS 只表示 program、contract、asset 与 regression integrity，不等于 model performance PASS。provider unchanged；performance threshold none；causal attribution not supported；provider systematic bias conclusion not established。
-- historical custom freestream 与 nominal altitude label 不构成标准大气验证或真实高度趋势；Mach 与 P/T bundle 同时变化，不能作单变量因果归因。
+- `current completed node = N6`；`N6.0–N6.4 = complete`；`N6 strategic exit = signed / complete`；`final N6 sign-off = issued`。
+- 已通过独立 QA：`N6_4_INDEPENDENT_QA_AND_FULL_REGRESSION_PASS`；audited corrected HEAD=`f088d88eb409a5462451b81d27beac92bce528ae`。
+- N6.2b canonical package 与 N6.3 canonical package 均 available；N6.3 `--validate-existing` 与 current baseline regression 均为 official 验证入口。
+- formal core 仍仅含 M6/30、M8/40 upper/leeward source-row populations；每 case `186` rows → `80` unique LF targets，source-row 不去重，lower typed-empty。M8/30 为 supplemental-only，windward 为 independent diagnostic tier，45 km 不 auto-admit。
+- provider unchanged；formal-core scope unchanged；known limitations retained；performance threshold none；model performance assessment not performed；causal attribution not supported；provider systematic bias conclusion not established。
+- main closeout identity 在 Git 步骤完成前保持待认证；最终 main SHA 不在本文自引用，由 N6.4 Git closeout report 与后续 current handoff 固定。
+- `GATE C review eligibility = ELIGIBLE_TO_REQUEST`，但 `GATE C = NOT DECIDED`、`engineering freeze = NOT APPROVED`、`N7 = NOT ENTERED`、`tag/release = NOT CREATED`。
+- 下一项允许的战略动作仅为在独立授权下 request / conduct GATE C review；不得自动进入 GATE C 或 N7。
+- QA/regression PASS 只表示 program、contract、asset 与 regression integrity，不等于 model performance PASS。

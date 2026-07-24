@@ -1,4 +1,4 @@
-# Faceted3D Official CLI 与 N6.3 验证运行指南
+# Faceted3D Official CLI 与 N6 canonical 验证运行指南
 
 ---
 
@@ -98,9 +98,13 @@ python -B scripts/tools/n6_3_layered_error_portrait.py `
   --analysis-root runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait
 ```
 
-canonical source package：`runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom`。canonical analysis package：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`。
+N6.2b canonical package available：`runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom`。N6.3 canonical package available：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`。N6.3 `--validate-existing` 是 official 只读验证入口；`current_baseline_regression_check.py` 是 official current regression 入口；`docs/n6_4_exit_certification_zh.md` 是 official N6.4 certification document。
 
-该 validation PASS 证明 program、contract、asset 与 regression integrity，不表示 model performance PASS。N6.4、GATE C、N7 均未进入。
+该 validation PASS 证明 program、contract、asset 与 regression integrity，不表示 model performance PASS。N6.4 certification document 已正式签发；GATE C 保持 `NOT DECIDED`，N7 保持 `NOT ENTERED`。
+
+## N6.4 canonical certification
+
+正式文档：`docs/n6_4_exit_certification_zh.md`。其状态为 `N6.4 COMPLETE`、`N6 strategic exit SIGNED / COMPLETE`、`N6 final sign-off ISSUED`；GATE C 保持 `NOT DECIDED`，N7 保持 `NOT ENTERED`。该文档不是 solver、analysis 或 release 命令入口。
 
 ## Fluent 对比
 

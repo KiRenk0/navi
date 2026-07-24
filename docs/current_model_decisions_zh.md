@@ -1,6 +1,6 @@
 # 当前 Faceted3D 冻结模型决策
 
-> 更新：2026-07-25（N6.3 canonical 分层误差画像与 68-source identity 收口）
+> 更新：2026-07-25（N6.4 final canonical certification 与 N6 strategic exit）
 
 ---
 
@@ -400,8 +400,8 @@ N6.2 official execution 前必须逐项满足以下七项门槛：
 
 ### 35.1 当前状态与入口
 
-- `N6.0 = completed`；`N6.1 = completed`；`N6.2a = completed`；`N6.2b = completed`；`N6.3 = completed`。
-- `N6.4 = not entered`；`GATE C = not entered`；`N7 = not entered`。不得将整个 N6 表述为完成。
+- `N6.0 = completed`；`N6.1 = completed`；`N6.2a = completed`；`N6.2b = completed`；`N6.3 = completed`；`N6.4 = completed`。
+- `N6 strategic exit = signed / complete`；`N6 final sign-off = issued`；`GATE C = not decided`；`N7 = not entered`。N6 的完成含义以第 36 节的 bounded scope 为准。
 - 正式入口为 `scripts/tools/n6_3_layered_error_portrait.py`，互斥模式为 `--execute` 与 `--validate-existing`。
 - canonical validation：
 
@@ -455,3 +455,12 @@ python -B scripts/tools/n6_3_layered_error_portrait.py `
 - Mach 与 P/T bundle 同时变化，不能单独归因于 Mach、pressure、temperature 或 nominal altitude，不能作真实高度趋势、标准大气验证、跨高度外推或 provider performance PASS。
 - lower typed-empty；M8/30 supplemental-only；windward 是 independent diagnostic tier；无 performance threshold、无 causal attribution，provider systematic bias 未建立。
 - N6.3 合法结论仅为：在两个指定 exact-custom historical input bundles 下，当前 Faceted3D baseline 与 Fluent upper/leeward observations 之间的 source-row 描述性误差、空间结构、many-to-one mapping diagnostic 和可复现回归事实。
+
+## 36. N6.4 Final Canonical Certification 与战略出口（2026-07-25）
+
+- `N6.0–N6.4 = complete`；`N6 strategic exit = signed / complete`；`N6 final sign-off = issued`。formal bounded scope 已接受为 completed N6 evidence scope，GATE C entry evidence index 已完成。
+- provider unchanged；formal-core scope unchanged：仅 `ma6_a5_h30km` 与 `ma8_a5_h40km` 的 upper/leeward Fluent source-row populations；每 case `186` rows → `80` unique LF targets，many-to-one 保留。M8/30 supplemental-only、45 km tracked candidates、windward independent diagnostic context、lower typed-empty 与 external projection cache exclusion/reproducibility boundary 均不变。
+- known limitations retained：formal cases only 2、formal surface only upper/leeward、lower typed-empty、historical custom freestream / atmosphere none-unverified、变量混杂、performance threshold none、causal attribution not supported、provider systematic bias conclusion not established。
+- `GATE C decision = NOT DECIDED`；`GATE C approval = NOT ISSUED`；`engineering freeze = NOT APPROVED`；`N7 = NOT ENTERED`；`release/tag = NOT CREATED`。
+- 下一项允许的战略动作仅为在独立授权下 request / conduct GATE C review；N6 exit 不自动开始 GATE C，不自动批准 engineering freeze，也不自动进入 N7。
+- 包含最终认证文档的 main SHA 不在文档中自引用；其权威身份由 Git ref、真实远端认证、N6.4 Git closeout report 与后续 current handoff 固定。
