@@ -1,0 +1,62 @@
+{
+  "schema": "faceted3d-n6-3-diagnostic-context/v1",
+  "role": "metadata_reference_layer_only",
+  "m8_h30_supplemental": {
+    "case": "ma8_a5_h30km",
+    "status": "unregistered_candidate",
+    "role": "upper/leeward supplemental diagnostic only",
+    "formal_admission": false,
+    "baseline_identity": false,
+    "formal_core_aggregation": "prohibited",
+    "persistent_formal_evidence": false,
+    "references": [
+      {
+        "path": "src/ref_enthalpy_method/mapping/m8h30_comparison_inputs.py",
+        "raw_sha256": "29a6d5fa3a8f608e54a5dce5057f85c8a758e68a271c4f6d1c5097c78e67e876",
+        "byte_size": 22420
+      },
+      {
+        "path": "src/ref_enthalpy_method/mapping/observation_binding.py",
+        "raw_sha256": "f31ded1c551d32f1dfc0c6dce8b34f55ab04be1db9aa6a00a4720cfeb2a797fd",
+        "byte_size": 20004
+      },
+      {
+        "path": "tests/test_m8h30_comparison_inputs.py",
+        "raw_sha256": "84046e5774cac5e8d05ee87a8525f97adad2985e32afb60fe95501fe59b787e8",
+        "byte_size": 12706
+      }
+    ],
+    "excluded_actions": [
+      "comparison_execution",
+      "new_raw_evidence",
+      "persistent_comparison_asset",
+      "formal_admission",
+      "three_point_formal_trend"
+    ]
+  },
+  "windward": {
+    "role": "independent diagnostic context only",
+    "population": "valid LF windward grid points",
+    "joint_population_with_leeward": "prohibited",
+    "joint_statistics": "prohibited",
+    "direct_ranking": "prohibited",
+    "references": [
+      {
+        "path": "runs/20260714_12case_windward_error_rerun/12case_windward_error_summary.json",
+        "raw_sha256": "85a9fe4c4231f07f02b498b174f88fb96bd41e7d6c9bfc2b6d8f20fa012b8d38",
+        "byte_size": 9264
+      },
+      {
+        "path": "runs/20260714_12case_windward_error_rerun/ma8_a5_h30km__windward_error_stats.json",
+        "raw_sha256": "8d81bc1c7929288329fc6e4e7b05aa005a4574c754614cb15c6e77e310f03f66",
+        "byte_size": 2455
+      },
+      {
+        "path": "scripts/viz/plot_windward_error_vs_fluent.py",
+        "raw_sha256": "2863475e079d37dcb8e29c0c3836855794ff9e394c215b91d5eb9e2d226ab90d",
+        "byte_size": 20740
+      }
+    ],
+    "reference_semantics": "existing diagnostic assets only; no values recomputed"
+  }
+}

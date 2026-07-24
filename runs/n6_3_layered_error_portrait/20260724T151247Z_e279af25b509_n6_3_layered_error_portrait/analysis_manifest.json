@@ -1,0 +1,357 @@
+{
+  "schema": "faceted3d-n6-3-layered-error-portrait-manifest/v1",
+  "run_id": "20260724T151247Z_e279af25b509_n6_3_layered_error_portrait",
+  "created_at_utc": "2026-07-24T15:12:47Z",
+  "generation_git_sha": "e279af25b5090c0b95f04dfe9ccc9a16f7e43529",
+  "generation_source_identity": {
+    "schema": "git-head-tree-source-identity/v1",
+    "authority": "git-head-tree",
+    "canonical_bytes": "git-blob",
+    "digest_algorithm": "sha256",
+    "path_format": "repo-relative-posix",
+    "inventory_rule": "production-source-inventory/v1",
+    "ordering": "fixed-prefix-then-posix-lexicographic",
+    "inventory_paths_sha256": "0ac1d7f33493835f3abbd804f467b3bd1a4c7d4988577412d4a6ac2ed2a00861",
+    "aggregate_sha256": "41c49461d55849cd5aa3398f3cb96f67407757b9d3bf2e91bb74cc4c54cd8b60"
+  },
+  "generation_implementation_sources_sha256": {
+    "src/ref_enthalpy_method/analysis/__init__.py": "b556febb921d4166d0656b28cfab0c7b9e25f010b1846a2414625d8f24ee191b",
+    "src/ref_enthalpy_method/analysis/n6_3_layered_error_portrait.py": "ce021bf8f03dc0f5d6422b05aabdd6dd57f0f2ed3d2bb8913e48edcb51864b6e",
+    "scripts/tools/n6_3_layered_error_portrait.py": "dd57a57716161ae7c56f3d53ed6e54513908e69bcfe35b1b94fa993029d870d9"
+  },
+  "exact_execution_command": [
+    "python",
+    "-B",
+    "scripts/tools/n6_3_layered_error_portrait.py",
+    "--execute",
+    "--package-root",
+    "runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom",
+    "--output-root",
+    "runs/n6_3_layered_error_portrait"
+  ],
+  "run_status": "PASS",
+  "status_semantics": "program_contract_asset_integrity_only",
+  "model_performance_assessment": "not_performed",
+  "source_package_identity": {
+    "path": "runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom",
+    "package_id": "20260724T111443Z_79ed536fc8c1_n6_exact_custom",
+    "package_manifest_sha256": "dffd989a057c4481446482e0543e935209e8673f1a4468b343f1dfa5785bc314",
+    "evidence_manifest_sha256": "b161086640e0e1c922fd2c02670f7e43f9b01363a797dfabb39c195f34157ac3",
+    "source_package_generation_git_sha": "79ed536fc8c1c7e19811ca744a14b78a732ff71a"
+  },
+  "formal_cases": [
+    "ma6_a5_h30km",
+    "ma8_a5_h40km"
+  ],
+  "formal_population_identity": "formal upper Fluent source rows; lower typed-empty",
+  "weighting": "one_fluent_source_row_equal_weight",
+  "error_contract": {
+    "signed_error_K": "Taw_tpg_leeward_K - wall_temperature_K",
+    "signed_relative_error_pct": "100 * signed_error_K / wall_temperature_K",
+    "absolute_error_K": "abs(signed_error_K)",
+    "absolute_relative_error_pct": "abs(signed_relative_error_pct)"
+  },
+  "quantile_method": "numpy_linear",
+  "std_semantics": "population_std_ddof_0",
+  "spatial_bin_contract": {
+    "axes": [
+      "source_projected_x_m",
+      "source_projected_span_m"
+    ],
+    "bin_count_per_axis": 5,
+    "edge_source": "union_of_two_formal_upper_source_row_populations",
+    "interval_semantics": "left_closed_right_open_except_final_right_closed",
+    "x_edges_m": [
+      2.3963131998259675,
+      2.636115934278805,
+      2.8759186687316425,
+      3.11572140318448,
+      3.3555241376373175,
+      3.5953268720901552
+    ],
+    "span_edges_m": [
+      0.7529998202543218,
+      0.800817748152341,
+      0.8486356760503602,
+      0.8964536039483794,
+      0.9442715318463986,
+      0.9920894597444178
+    ]
+  },
+  "formal_core_artifacts": [
+    {
+      "path": "formal_core/bounded_case_comparison.json",
+      "role": "formal_core",
+      "byte_size": 6034,
+      "raw_sha256": "a649617f4613bf2f07d7664f71f8d16afe8983c2cb74e9296e88c58450385205"
+    },
+    {
+      "path": "formal_core/figures/coordinate_bin_profiles.png",
+      "role": "formal_physical_coordinate_bin_profiles",
+      "byte_size": 128654,
+      "raw_sha256": "966f835eff2dbeb33ea7071b6d4ba7e3a0a050a6f70868e7c48b9822518cc2cc",
+      "axes": [
+        "source_projected_x_m",
+        "source_projected_span_m"
+      ],
+      "units": {
+        "coordinates": "m",
+        "mean_signed_error": "K",
+        "MAE": "K"
+      },
+      "scale": {
+        "mode": "shared_edges_and_shared_axes",
+        "x_edges_m": [
+          2.3963131998259675,
+          2.636115934278805,
+          2.8759186687316425,
+          3.11572140318448,
+          3.3555241376373175,
+          3.5953268720901552
+        ],
+        "span_edges_m": [
+          0.7529998202543218,
+          0.800817748152341,
+          0.8486356760503602,
+          0.8964536039483794,
+          0.9442715318463986,
+          0.9920894597444178
+        ]
+      }
+    },
+    {
+      "path": "formal_core/figures/error_distributions.png",
+      "role": "formal_source_row_error_distributions",
+      "byte_size": 92415,
+      "raw_sha256": "cc853c4cb5f6db2e5fbf3569c3210d100e49a8dc3e7ceeb0662dc3c42fdfd332",
+      "axes": [
+        "signed_error_K",
+        "signed_relative_error_pct",
+        "absolute_error_K",
+        "absolute_relative_error_pct"
+      ],
+      "units": {
+        "temperature_error": "K",
+        "relative_error": "%",
+        "count": "source rows"
+      },
+      "scale": {
+        "signed_error_K": {
+          "mode": "shared_union_equal_width",
+          "edges": [
+            -13.674890443056029,
+            -6.027414067807354,
+            1.6200623074413212,
+            9.267538682689995,
+            16.91501505793867,
+            24.562491433187347,
+            32.20996780843602,
+            39.8574441836847,
+            47.50492055893337,
+            55.15239693418205,
+            62.79987330943072,
+            70.4473496846794,
+            78.09482605992807,
+            85.74230243517674,
+            93.38977881042543,
+            101.0372551856741,
+            108.68473156092277,
+            116.33220793617144,
+            123.97968431142013,
+            131.6271606866688,
+            139.27463706191747
+          ]
+        },
+        "signed_relative_error_pct": {
+          "mode": "shared_union_equal_width",
+          "edges": [
+            -0.8742928908150135,
+            -0.5592794611573866,
+            -0.24426603149975978,
+            0.07074739815786713,
+            0.3857608278154939,
+            0.7007742574731207,
+            1.0157876871307479,
+            1.3308011167883746,
+            1.6458145464460014,
+            1.9608279761036282,
+            2.275841405761255,
+            2.590854835418882,
+            2.905868265076509,
+            3.2208816947341354,
+            3.5358951243917627,
+            3.850908554049389,
+            4.165921983707016,
+            4.4809354133646435,
+            4.79594884302227,
+            5.110962272679897,
+            5.4259757023375235
+          ]
+        },
+        "absolute_error_K": {
+          "mode": "shared_union_equal_width",
+          "edges": [
+            0.0008965569440988475,
+            6.964583582192768,
+            13.928270607441437,
+            20.891957632690108,
+            27.855644657938775,
+            34.81933168318744,
+            41.78301870843612,
+            48.746705733684784,
+            55.71039275893345,
+            62.67407978418212,
+            69.63776680943079,
+            76.60145383467946,
+            83.56514085992814,
+            90.5288278851768,
+            97.49251491042547,
+            104.45620193567413,
+            111.4198889609228,
+            118.38357598617148,
+            125.34726301142014,
+            132.3109500366688,
+            139.27463706191747
+          ]
+        },
+        "absolute_relative_error_pct": {
+          "mode": "shared_union_equal_width",
+          "edges": [
+            5.7826235793707196e-05,
+            0.2713537200408802,
+            0.5426496138459668,
+            0.8139455076510533,
+            1.0852414014561398,
+            1.3565372952612262,
+            1.627833189066313,
+            1.8991290828713994,
+            2.1704249766764856,
+            2.4417208704815723,
+            2.7130167642866585,
+            2.984312658091745,
+            3.255608551896832,
+            3.526904445701918,
+            3.7982003395070048,
+            4.069496233312091,
+            4.340792127117178,
+            4.612088020922264,
+            4.883383914727351,
+            5.154679808532437,
+            5.4259757023375235
+          ]
+        }
+      }
+    },
+    {
+      "path": "formal_core/figures/source_error_maps_fixed.png",
+      "role": "formal_source_row_error_map",
+      "byte_size": 163897,
+      "raw_sha256": "9472990e7a11c6b39ef541e80dbfe648b9feeffca1d65f98f5d47749e723779e",
+      "axes": [
+        "source_projected_x_m",
+        "source_projected_span_m"
+      ],
+      "units": {
+        "coordinates": "m",
+        "signed_error_K": "K",
+        "signed_relative_error_pct": "%"
+      },
+      "scale": {
+        "mode": "shared_union_symmetric_about_zero",
+        "limits": {
+          "signed_error_K": [
+            -139.27463706191747,
+            139.27463706191747
+          ],
+          "signed_relative_error_pct": [
+            -5.4259757023375235,
+            5.4259757023375235
+          ]
+        }
+      }
+    },
+    {
+      "path": "formal_core/source_profiles.json",
+      "role": "formal_core",
+      "byte_size": 9268,
+      "raw_sha256": "bf8a8f018f341510355b6498ec75c035218b74aeef1f3090d664f75e0e157eee"
+    },
+    {
+      "path": "formal_core/spatial_bin_profiles.json",
+      "role": "formal_core",
+      "byte_size": 11475,
+      "raw_sha256": "5af2d0e3dc6db23c9e8c11147a16f82bc79731f280e1129de02c2e9e29e160ca"
+    }
+  ],
+  "diagnostic_only_artifacts": [
+    {
+      "path": "diagnostic_only/multiplicity_profiles.json",
+      "role": "diagnostic_only",
+      "byte_size": 22461,
+      "raw_sha256": "c6cedac69505bcbc1ed7bc6ecfc8258aa5debd517d52c7af101e3f1aa52847b9"
+    }
+  ],
+  "diagnostic_context_references": [
+    {
+      "path": "diagnostic_context/tier_references.json",
+      "role": "diagnostic_context_reference_layer",
+      "byte_size": 2244,
+      "raw_sha256": "1e7881fe6d48a4f9fa8e13a6892db2c79933fad5335046e3c5d5c0d2863b7636"
+    }
+  ],
+  "artifact_inventory": [
+    {
+      "path": "diagnostic_context/tier_references.json",
+      "byte_size": 2244,
+      "raw_sha256": "1e7881fe6d48a4f9fa8e13a6892db2c79933fad5335046e3c5d5c0d2863b7636"
+    },
+    {
+      "path": "diagnostic_only/multiplicity_profiles.json",
+      "byte_size": 22461,
+      "raw_sha256": "c6cedac69505bcbc1ed7bc6ecfc8258aa5debd517d52c7af101e3f1aa52847b9"
+    },
+    {
+      "path": "formal_core/bounded_case_comparison.json",
+      "byte_size": 6034,
+      "raw_sha256": "a649617f4613bf2f07d7664f71f8d16afe8983c2cb74e9296e88c58450385205"
+    },
+    {
+      "path": "formal_core/figures/coordinate_bin_profiles.png",
+      "byte_size": 128654,
+      "raw_sha256": "966f835eff2dbeb33ea7071b6d4ba7e3a0a050a6f70868e7c48b9822518cc2cc"
+    },
+    {
+      "path": "formal_core/figures/error_distributions.png",
+      "byte_size": 92415,
+      "raw_sha256": "cc853c4cb5f6db2e5fbf3569c3210d100e49a8dc3e7ceeb0662dc3c42fdfd332"
+    },
+    {
+      "path": "formal_core/figures/source_error_maps_fixed.png",
+      "byte_size": 163897,
+      "raw_sha256": "9472990e7a11c6b39ef541e80dbfe648b9feeffca1d65f98f5d47749e723779e"
+    },
+    {
+      "path": "formal_core/source_profiles.json",
+      "byte_size": 9268,
+      "raw_sha256": "bf8a8f018f341510355b6498ec75c035218b74aeef1f3090d664f75e0e157eee"
+    },
+    {
+      "path": "formal_core/spatial_bin_profiles.json",
+      "byte_size": 11475,
+      "raw_sha256": "5af2d0e3dc6db23c9e8c11147a16f82bc79731f280e1129de02c2e9e29e160ca"
+    }
+  ],
+  "known_limitations": [
+    "two bounded formal cases do not support causal attribution",
+    "nominal altitude labels are historical case identities, not certified atmosphere variables",
+    "lower sheets are typed-empty",
+    "M8/30 and windward assets are reference-only diagnostic context"
+  ],
+  "prohibited_interpretations": [
+    "performance PASS or FAIL",
+    "provider ranking or systematic bias conclusion",
+    "single-variable Mach, altitude, pressure, or temperature causality",
+    "unique-target deduplication as formal source-row evidence",
+    "joint windward and leeward population statistics"
+  ]
+}

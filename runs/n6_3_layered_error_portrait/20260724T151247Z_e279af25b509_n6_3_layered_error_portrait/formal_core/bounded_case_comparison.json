@@ -1,0 +1,173 @@
+{
+  "schema": "faceted3d-n6-3-layered-error-profile/v1",
+  "role": "bounded_formal_core_descriptive_comparison",
+  "formal_cases": [
+    "ma6_a5_h30km",
+    "ma8_a5_h40km"
+  ],
+  "weighting": "one_fluent_source_row_equal_weight",
+  "cases": [
+    {
+      "case_id": "ma6_a5_h30km",
+      "Mach": 6.0,
+      "alpha_deg": 5.0,
+      "nominal_altitude_label": "30 km",
+      "exact_custom_T_inf_K": 226.509,
+      "exact_custom_p_inf_Pa": 1197.0,
+      "atmosphere_model": "none / unverified",
+      "freestream_semantics": "historical user-defined comparison input",
+      "source_row_count": 186,
+      "unique_target_count": 80,
+      "formal_source_level_statistics": {
+        "error_fields": {
+          "signed_error_K": {
+            "count": 186,
+            "mean": 14.858881266621484,
+            "median": 10.305264056944111,
+            "population_std": 20.75377502769552,
+            "minimum": -13.674890443056029,
+            "maximum": 72.026600556944,
+            "p05": -7.838805443055946,
+            "p25": -0.567255193055928,
+            "p50": 10.305264056944111,
+            "p75": 19.058085806944064,
+            "p95": 61.03893430694404
+          },
+          "signed_relative_error_pct": {
+            "count": 186,
+            "mean": 0.9863831330244203,
+            "median": 0.6691180664812727,
+            "population_std": 1.38673013510178,
+            "minimum": -0.8742928908150135,
+            "maximum": 4.871905667271791,
+            "p05": -0.5030440045192587,
+            "p25": -0.03657336204255508,
+            "p50": 0.6691180664812727,
+            "p75": 1.2445076668339645,
+            "p95": 4.09823740519776
+          },
+          "absolute_error_K": {
+            "count": 186,
+            "mean": 17.53607206396338,
+            "median": 11.004129556944122,
+            "population_std": 18.54701342435585,
+            "minimum": 0.0008965569440988475,
+            "maximum": 72.026600556944,
+            "p05": 0.7660947215280203,
+            "p25": 5.481274693055923,
+            "p50": 11.004129556944122,
+            "p75": 19.058085806944064,
+            "p95": 61.03893430694404
+          },
+          "absolute_relative_error_pct": {
+            "count": 186,
+            "mean": 1.1582652913666196,
+            "median": 0.7148204907993951,
+            "population_std": 1.246753250458916,
+            "minimum": 5.7826235793707196e-05,
+            "maximum": 4.871905667271791,
+            "p05": 0.04940230462836218,
+            "p25": 0.35228623386529245,
+            "p50": 0.7148204907993951,
+            "p75": 1.2445076668339645,
+            "p95": 4.09823740519776
+          }
+        },
+        "MAE_K": 17.53607206396338,
+        "RMSE_K": 25.524606371024667,
+        "over_count": 136,
+        "under_count": 50,
+        "exact_zero_count": 0,
+        "over_fraction": 0.7311827956989247,
+        "under_fraction": 0.26881720430107525,
+        "exact_zero_fraction": 0.0
+      }
+    },
+    {
+      "case_id": "ma8_a5_h40km",
+      "Mach": 8.0,
+      "alpha_deg": 5.0,
+      "nominal_altitude_label": "40 km",
+      "exact_custom_T_inf_K": 251.0,
+      "exact_custom_p_inf_Pa": 287.0,
+      "atmosphere_model": "none / unverified",
+      "freestream_semantics": "historical user-defined comparison input",
+      "source_row_count": 186,
+      "unique_target_count": 80,
+      "formal_source_level_statistics": {
+        "error_fields": {
+          "signed_error_K": {
+            "count": 186,
+            "mean": 104.03134241675608,
+            "median": 102.14697906191736,
+            "population_std": 9.168016871138445,
+            "minimum": 93.15039006191728,
+            "maximum": 139.27463706191747,
+            "p05": 93.47965431191722,
+            "p25": 98.75053006191717,
+            "p50": 102.14697906191736,
+            "p75": 107.19657356191726,
+            "p95": 123.29751431191744
+          },
+          "signed_relative_error_pct": {
+            "count": 186,
+            "mean": 3.9993416835226507,
+            "median": 3.9227848008556077,
+            "population_std": 0.36835407650348506,
+            "minimum": 3.5649688286714007,
+            "maximum": 5.4259757023375235,
+            "p05": 3.5780210225874307,
+            "p25": 3.7874097154272457,
+            "p50": 3.9227848008556077,
+            "p75": 4.124704754204352,
+            "p95": 4.773811408792467
+          },
+          "absolute_error_K": {
+            "count": 186,
+            "mean": 104.03134241675608,
+            "median": 102.14697906191736,
+            "population_std": 9.168016871138445,
+            "minimum": 93.15039006191728,
+            "maximum": 139.27463706191747,
+            "p05": 93.47965431191722,
+            "p25": 98.75053006191717,
+            "p50": 102.14697906191736,
+            "p75": 107.19657356191726,
+            "p95": 123.29751431191744
+          },
+          "absolute_relative_error_pct": {
+            "count": 186,
+            "mean": 3.9993416835226507,
+            "median": 3.9227848008556077,
+            "population_std": 0.36835407650348506,
+            "minimum": 3.5649688286714007,
+            "maximum": 5.4259757023375235,
+            "p05": 3.5780210225874307,
+            "p25": 3.7874097154272457,
+            "p50": 3.9227848008556077,
+            "p75": 4.124704754204352,
+            "p95": 4.773811408792467
+          }
+        },
+        "MAE_K": 104.03134241675608,
+        "RMSE_K": 104.4345380531835,
+        "over_count": 186,
+        "under_count": 0,
+        "exact_zero_count": 0,
+        "over_fraction": 1.0,
+        "under_fraction": 0.0,
+        "exact_zero_fraction": 0.0
+      }
+    }
+  ],
+  "case2_minus_case1_descriptive_differences": {
+    "MAE_K": 86.49527035279269,
+    "RMSE_K": 78.90993168215883,
+    "mean_signed_error_K": 89.1724611501346,
+    "mean_signed_relative_error_pct": 3.0129585504982304
+  },
+  "causal_attribution": "not_supported",
+  "performance_threshold": "none",
+  "model_performance_assessment": "not_performed",
+  "provider_systematic_bias_conclusion": "not_established"
+}
