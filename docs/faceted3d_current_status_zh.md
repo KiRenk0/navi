@@ -60,10 +60,10 @@ Group 8 冻结了 18 个 sheet-specific leeward freestream-recovery 字段，upp
 - 当前 official CLI candidate summary 的 `outputs_available` 为 74 项；
 - `fields.npz` 正式 schema 为 72 项；
 - summary 仍可能保存旧绝对路径与旧 `run_dir` provenance；
-- summary raw SHA-256 不进入当前 regression overall gate；
+- summary raw SHA-256 不参与 72-field numerical comparison，也不构成 model-performance assessment 或 physical-accuracy gate；current-v5 manifest 仍将其作为 required artifact-integrity input，hash mismatch、artifact missing 或 invalid digest 会导致 artifact-integrity failure，并经 case FAIL 传播为 current regression overall FAIL；
 - endpoint/metadata PASS 不表示 baseline summary 与当前 candidate summary 在 raw 或 parsed 层面完全一致。
 
-因此当前 summary 只用于 legacy provenance。summary v5 parsed-semantic promotion 尚未执行；后续应冻结 parsed semantic contract，而不是跨环境 candidate raw hash。本轮未修改 baseline summary 或 v5 manifest；regression harness 仅新增严格隔离的 candidate manifest 模式，既有 v5 check/freeze 合同保持不变。
+因此当前 summary 只用于 legacy provenance。summary v5 parsed-semantic promotion 尚未执行，是与当前 raw-byte integrity gate 分离的未来合同；后续应冻结 parsed semantic contract，而不是跨环境 candidate raw hash。artifact-integrity PASS 不得改写为 physical/model performance PASS。本轮未修改 baseline summary 或 v5 manifest；regression harness 仅新增严格隔离的 candidate manifest 模式，既有 v5 check/freeze 合同保持不变。
 
 ## 6. Phase 4A projected-point geometry semantics
 

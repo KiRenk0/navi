@@ -16,7 +16,7 @@
 - 两个 current-v5 manifest 已完成 66→68 source-only migration；新增仅 `src/ref_enthalpy_method/analysis/__init__.py` 与 `src/ref_enthalpy_method/analysis/n6_3_layered_error_portrait.py`。provider、comparison、fields、summary、Groups 1–8、72-field arrays、numerical assets 与 `artifact_hashes_sha256` 均未改变。
 - `runs/**`、`fluent_export/**`、CSV、STL、NPZ 与其他 binary artifact 保持原始字节；不得无授权执行全仓库 renormalize。
 - raw artifact hash、parsed semantic contract、数值与字段合同、provenance path 必须分别表述，不能相互替代。
-- baseline `summary.json` 当前只作为 legacy provenance；其 raw SHA-256 不进入 current regression overall gate。未来 summary v5 promotion 应冻结 parsed semantic contract，而不是跨环境 candidate raw hash。
+- baseline `summary.json` 当前只作为 legacy provenance；其 raw SHA-256 不参与 72-field numerical comparison，也不构成 model-performance assessment 或 physical-accuracy gate。current-v5 manifest 仍将该 raw SHA-256 作为 required artifact-integrity input：hash mismatch、artifact missing 或 invalid digest 会导致 artifact-integrity failure，并经 case FAIL 传播为 current regression overall FAIL。未来 summary v5 parsed-semantic promotion 是独立合同，与当前 raw-byte integrity gate 分离；artifact-integrity PASS 不得改写为 physical/model performance PASS。
 - source identity promotion 只管理源码身份，不等于数值 baseline freeze。
 
 ## 1. 压力 baseline（冻结）
