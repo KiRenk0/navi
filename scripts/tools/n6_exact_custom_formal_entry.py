@@ -463,10 +463,9 @@ def validate_formal_lf_manifest(
     validate_source_identity_schema(dict(manifest))
     if manifest["observation"] != _observation_manifest_block(binding):
         raise ValueError("formal LF manifest observation binding mismatch")
-    solver = manifest["solver"]
-    if not isinstance(solver, Mapping) or solver.get("command") != list(case.solver_command):
-        raise ValueError("formal LF manifest solver command mismatch")
     expected_solver = {
+        "command": list(case.solver_command),
+        "command_text": subprocess.list2cmdline(list(case.solver_command)),
         "vehicle_path": case.vehicle_path,
         "case_path": case.case_path,
         "sampling_path": case.sampling_path,
@@ -474,17 +473,52 @@ def validate_formal_lf_manifest(
         "alpha_deg": case.alpha_deg_decimal,
         "nominal_geometric_altitude_m": case.nominal_geometric_altitude_m_decimal,
     }
-    if any(solver.get(key) != value for key, value in expected_solver.items()):
+    if manifest["solver"] != expected_solver:
         raise ValueError("formal LF manifest solver identity mismatch")
-    validate_exact_freestream_summary(binding, summary)
+    disk_summary = _load_json_object(
+        run_dir / "summary.json",
+        label=f"{case.case_id} summary artifact",
+    )
+    if disk_summary != summary:
+        raise ValueError("formal LF manifest summary artifact mismatch")
+    validate_exact_freestream_summary(binding, disk_summary)
     validate_exact_freestream_manifest(binding, manifest)
-    registered = manifest["artifact_hashes_sha256"]
-    if not isinstance(registered, Mapping) or set(registered) != {"fields.npz", "summary.json"}:
+    expected_freestream = {
+        "source": "explicit_override",
+        "actual_T_inf_K": case.T_inf_K_decimal,
+        "actual_p_inf_Pa": case.p_inf_Pa_decimal,
+        "T_inf_K_token": case.T_inf_K_token,
+        "p_inf_Pa_token": case.p_inf_Pa_token,
+    }
+    if manifest["freestream"] != expected_freestream:
+        raise ValueError("formal LF manifest freestream identity mismatch")
+    expected_atmosphere = {
+        "model": "none / unverified",
+        "nominal_altitude_semantics": "historical case identity only",
+        "explicit_freestream_override": True,
+    }
+    if manifest["atmosphere"] != expected_atmosphere:
+        raise ValueError("formal LF manifest atmosphere semantics mismatch")
+    artifact_names = ("fields.npz", "summary.json")
+    for name in artifact_names:
+        if not (run_dir / name).is_file():
+            raise ValueError(f"formal LF manifest artifact missing: {name}")
+    expected_hashes = {
+        name: sha256(run_dir / name)
+        for name in artifact_names
+    }
+    if manifest["artifact_hashes_sha256"] != expected_hashes:
         raise ValueError("formal LF manifest artifact hash map mismatch")
-    for name, digest in registered.items():
-        path = run_dir / name
-        if not path.is_file() or sha256(path) != digest:
-            raise ValueError(f"formal LF manifest artifact hash mismatch: {name}")
+    expected_inventory = [
+        {
+            "path": name,
+            "raw_sha256": expected_hashes[name],
+            "byte_size": (run_dir / name).stat().st_size,
+        }
+        for name in artifact_names
+    ]
+    if manifest["artifact_inventory"] != expected_inventory:
+        raise ValueError("formal LF manifest artifact inventory mismatch")
     if manifest["run_status"] != "PASS" or manifest["model_performance_assessment"] != "not_performed":
         raise ValueError("formal LF manifest status semantics mismatch")
 

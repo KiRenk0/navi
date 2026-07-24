@@ -269,7 +269,19 @@ def test_formal_manifest_binds_source_observation_command_and_artifacts(
     assert manifest["model_performance_assessment"] == "not_performed"
 
 
-@pytest.mark.parametrize("fault", ("missing", "source", "pair", "artifact"))
+@pytest.mark.parametrize(
+    "fault",
+    (
+        "missing",
+        "source",
+        "pair",
+        "artifact",
+        "command-text",
+        "inventory",
+        "atmosphere",
+        "summary-artifact",
+    ),
+)
 def test_formal_manifest_validation_fails_closed(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -290,8 +302,28 @@ def test_formal_manifest_validation_fails_closed(
         manifest["source_identity"] = {"schema": "wrong"}
     elif fault == "pair":
         manifest["freestream"]["actual_T_inf_K"] = "999"
-    else:
+    elif fault == "artifact":
         (run_dir / "fields.npz").write_bytes(b"tampered")
+    elif fault == "command-text":
+        manifest["solver"]["command_text"] = "forged command"
+    elif fault == "inventory":
+        manifest["artifact_inventory"] = [
+            {"path": "forged.bin", "raw_sha256": "0" * 64, "byte_size": 999}
+        ]
+    elif fault == "atmosphere":
+        manifest["atmosphere"]["model"] = "forged"
+    else:
+        forged_summary = _exact_summary(case.case_id)
+        forged_summary["inputs"]["T_inf_K_override"] = 999.0
+        forged_summary["freestream"]["T_inf_K"] = 999.0
+        summary_path = run_dir / "summary.json"
+        summary_path.write_text(json.dumps(forged_summary) + "\n", encoding="utf-8")
+        digest = entry.sha256(summary_path)
+        manifest["artifact_hashes_sha256"]["summary.json"] = digest
+        for item in manifest["artifact_inventory"]:
+            if item["path"] == "summary.json":
+                item["raw_sha256"] = digest
+                item["byte_size"] = summary_path.stat().st_size
 
     with pytest.raises(ValueError):
         entry.validate_formal_lf_manifest(
