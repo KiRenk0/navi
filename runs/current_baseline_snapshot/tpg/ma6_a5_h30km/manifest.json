@@ -496,8 +496,8 @@
     "path_format": "repo-relative-posix",
     "inventory_rule": "production-source-inventory/v1",
     "ordering": "fixed-prefix-then-posix-lexicographic",
-    "inventory_paths_sha256": "f855856dd2442faae2039d32e8de7be4fc6ebfa5d661d4c6de7807a4fccae998",
-    "aggregate_sha256": "561c181902ae01dc6073bfb01aa84d2e397624e807e16320a263ac1aa69e42de"
+    "inventory_paths_sha256": "31b47f1998348b9e82d702b517e14e1a2d2828596c665fb79af3466f0e7fd2f0",
+    "aggregate_sha256": "fb9f8cb3a7c641cd526113c88bce465299ced8cd1e3b86b604e7e91f8cf5b609"
   },
   "source_hashes_sha256": {
     "scripts/run_case_rem.py": "ece6017618f9c3d1bbf4cfa3293094e99d53fcaf25b5b1668fec41fe96ec3397",
@@ -516,6 +516,8 @@
     "src/ref_enthalpy_method/aero/transition.py": "7c4c399b3c6b77622c725506057478bf60a9c02aa04e9d1b388f1f5b7718c235",
     "src/ref_enthalpy_method/aero/windward_cache.py": "02f04721464bdfcce94c818814684b0a3ee607ad0ea913c4cfa63f4a2d1fc2de",
     "src/ref_enthalpy_method/aero/windward_cache_faceted3d.py": "e0dfdba2b14bd72ddca08d6d094b294a8affeac5826f2b98c0ca9d9f6c17b75e",
+    "src/ref_enthalpy_method/analysis/__init__.py": "b556febb921d4166d0656b28cfab0c7b9e25f010b1846a2414625d8f24ee191b",
+    "src/ref_enthalpy_method/analysis/n6_3_layered_error_portrait.py": "ce021bf8f03dc0f5d6422b05aabdd6dd57f0f2ed3d2bb8913e48edcb51864b6e",
     "src/ref_enthalpy_method/atmosphere/__init__.py": "4b5bf7f50c5bf810799cabfa5b0d4827ae8a2ea4d3a4152e9ee2b0b5e0aaedf6",
     "src/ref_enthalpy_method/atmosphere/isa1976.py": "4be2e868e492eb8d257b5c3edf3e94ae62aa65ece55f50bccb285a92a09e149d",
     "src/ref_enthalpy_method/atmosphere/ussa1976.py": "858bf5745a130e5b9177de1064158c7fb3b9daf91e8eeacd731c2b86865d3487",
