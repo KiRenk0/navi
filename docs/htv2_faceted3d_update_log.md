@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-07-25: N6.4 Docs-only Certification Candidate 实施
+
+- N6.4 docs-only certification candidate implemented；base SHA=`5c6e0b56f20a33d431ec1e94e3aa216667983452`。
+- 新增 tracked canonical coverage / exclusion / engineering limitations / third-party reproducibility / N6 exit-condition 认证候选，当前状态为 pending independent QA；N6 final sign-off 尚未签发。
+- provider and numerical assets unchanged；未修改 solver、observation、clean、pairing、comparison、baseline、manifest、fields、summary 或 evidence asset。
+- GATE C not decided；N7 not entered。
+
+---
+
 ## 2026-07-25: N6.3 Canonical Layered Error Portrait 收口
 
 - N6.0、N6.1、N6.2a、N6.2b、N6.3 已完成；N6.4、GATE C、N7 未进入。

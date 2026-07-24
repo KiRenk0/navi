@@ -194,3 +194,11 @@ candidate CLI 必选参数为 `--candidate-manifest`、`--case-id`、`--mach`、
 | `runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait/` | 唯一 N6.3 canonical analysis run；generation SHA=`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`，analysis manifest SHA-256=`909436a7f96588ac35d9b8220ba984af07f3958a6194e3cf2c931e696bfb207d`，8 artifacts + manifest |
 
 analysis package 内 `formal_core/` 保存 source profiles、spatial bins、bounded case comparison 与三幅 figures；`diagnostic_only/` 保存 multiplicity profiles；`diagnostic_context/` 保存 tier references。formal core 仅为 M6/30 与 M8/40 upper/leeward source rows；M8/30 与 windward 不进入 formal core。
+
+## 20. N6.4 Exit Certification Candidate
+
+| 路径 | Authority role |
+|------|----------------|
+| `docs/n6_4_exit_certification_zh.md` | N6.4 coverage、evidence tier、exclusion / non-admission、engineering limitations、third-party reproducibility 与 N6 exit-condition 的 tracked canonical certification candidate；统一绑定 N6.1 approved matrix、N6.2b canonical source package、N6.3 canonical analysis package、current-v5、M8/30 supplemental、45 km candidates、windward diagnostic 与 lower typed-empty |
+
+该文档当前状态为 `DOCS_ONLY_IMPLEMENTED_PENDING_INDEPENDENT_QA`。它是 authority 文档，不是 machine-readable package、baseline、evidence asset 或 GATE C decision；不表示 N6 final sign-off 已签发。
