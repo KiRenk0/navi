@@ -398,7 +398,9 @@ N6.2 official execution 前必须逐项满足以下七项门槛：
 
 ## 35. N6.3 Canonical 分层误差画像（2026-07-25）
 
-### 35.1 当前状态与入口
+### 35.1 N6.3 完成时的历史状态快照（已由第 37 节 supersede）
+
+以下状态仅记录 N6.3 完成、GATE C 尚未裁决时的历史现场；当前权威状态以第 37 节为准。
 
 - `N6.0 = completed`；`N6.1 = completed`；`N6.2a = completed`；`N6.2b = completed`；`N6.3 = completed`；`N6.4 = completed`。
 - `N6 strategic exit = signed / complete`；`N6 final sign-off = issued`；`GATE C = not decided`；`N7 = not entered`。N6 的完成含义以第 36 节的 bounded scope 为准。
