@@ -421,7 +421,7 @@ python -B scripts/tools/n6_3_layered_error_portrait.py `
 ### 35.2 Package identity
 
 - canonical source package：`runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom`；generation SHA=`79ed536fc8c1c7e19811ca744a14b78a732ff71a`；package manifest SHA-256=`dffd989a057c4481446482e0543e935209e8673f1a4468b343f1dfa5785bc314`；evidence manifest SHA-256=`b161086640e0e1c922fd2c02670f7e43f9b01363a797dfabb39c195f34157ac3`。
-- canonical analysis package：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`；run ID=`20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`；generation SHA=`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`；analysis manifest SHA-256=`909436a7f96588ac35d9b8220ba984af07f3958a6194e3cf2c931e696bfb207d`。
+- canonical analysis package：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`；run ID=`20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`；generation SHA=`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`；analysis manifest SHA-256=`d425a3532ac87e5d4f571330ebecee18f733fa191d8fb511fd55bf2af09cc5f8`。
 - analysis package 含 8 项 artifact inventory 与 1 个 manifest，共 9 files；`runs/n6_3_layered_error_portrait/` 下唯一 canonical run count=`1`。
 
 ### 35.3 Population、误差合同与描述性结果

@@ -804,23 +804,92 @@ def build_bounded_case_comparison(source_profiles: Mapping[str, Any]) -> dict[st
     }
 
 
-def _tracked_reference(path_text: str) -> dict[str, Any]:
-    path = ROOT / path_text
-    _require(path.is_file(), f"diagnostic context reference is missing: {path_text}")
-    result = subprocess.run(
-        ["git", "ls-files", "--error-unmatch", "--", path_text],
-        cwd=ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
+def _run_git_bytes(
+    args: Sequence[str],
+    *,
+    failure: str,
+) -> bytes:
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=ROOT,
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise AnalysisContractError(failure) from exc
+    if result.returncode != 0:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()
+        suffix = f": {detail}" if detail else ""
+        raise AnalysisContractError(f"{failure}{suffix}")
+    return result.stdout
+
+
+def _resolve_generation_commit(generation_git_sha: Any) -> str:
+    generation = _validate_hash(
+        generation_git_sha,
+        label="generation Git SHA",
+        length=40,
     )
-    _require(result.returncode == 0, f"diagnostic context reference is not tracked: {path_text}")
-    return {"path": path_text, "raw_sha256": sha256_file(path), "byte_size": path.stat().st_size}
+    output = _run_git_bytes(
+        ("rev-parse", "--verify", "--end-of-options", f"{generation}^{{commit}}"),
+        failure="generation commit is unavailable",
+    ).strip()
+    try:
+        resolved = output.decode("ascii")
+    except UnicodeDecodeError as exc:
+        raise AnalysisContractError("generation commit identity is invalid") from exc
+    _require(resolved == generation, "generation commit identity is invalid")
+    return resolved
 
 
-def build_diagnostic_context() -> dict[str, Any]:
-    references = {path: _tracked_reference(path) for path in CONTEXT_PATHS}
+def _generation_tree_blob(generation_git_sha: str, path_text: str) -> bytes:
+    output = _run_git_bytes(
+        ("ls-tree", "-z", generation_git_sha, "--", path_text),
+        failure=f"generation tree lookup failed: {path_text}",
+    )
+    records = [record for record in output.split(b"\0") if record]
+    _require(len(records) == 1, f"generation tree path is missing: {path_text}")
+    try:
+        metadata, raw_path = records[0].split(b"\t", 1)
+        mode, object_type, object_id = metadata.decode("ascii").split(" ", 2)
+        actual_path = raw_path.decode("utf-8")
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise AnalysisContractError(
+            f"generation tree entry is invalid: {path_text}"
+        ) from exc
+    _require(actual_path == path_text, f"generation tree path mismatch: {path_text}")
+    _require(
+        mode in {"100644", "100755"} and object_type == "blob",
+        f"generation tree entry is not a regular blob: {path_text}",
+    )
+    _require(
+        re.fullmatch(r"[0-9a-f]{40,64}", object_id) is not None,
+        f"generation blob identity is invalid: {path_text}",
+    )
+    return _run_git_bytes(
+        ("cat-file", "blob", object_id),
+        failure=f"generation blob is unavailable: {path_text}",
+    )
+
+
+def _tracked_reference(path_text: str, generation_git_sha: str) -> dict[str, Any]:
+    raw = _generation_tree_blob(generation_git_sha, path_text)
+    return {
+        "path": path_text,
+        "raw_sha256": hashlib.sha256(raw).hexdigest(),
+        "byte_size": len(raw),
+    }
+
+
+def build_diagnostic_context(generation_git_sha: Any) -> dict[str, Any]:
+    generation = _resolve_generation_commit(generation_git_sha)
+    references = {
+        path: _tracked_reference(path, generation)
+        for path in CONTEXT_PATHS
+    }
     return {
         "schema": DIAGNOSTIC_CONTEXT_SCHEMA,
         "role": "metadata_reference_layer_only",
@@ -859,6 +928,15 @@ def build_diagnostic_context() -> dict[str, Any]:
             "reference_semantics": "existing diagnostic assets only; no values recomputed",
         },
     }
+
+
+def _validate_diagnostic_context(
+    context: Mapping[str, Any],
+    *,
+    generation_git_sha: Any,
+) -> None:
+    expected = build_diagnostic_context(generation_git_sha)
+    _require(context == expected, "diagnostic context references drifted")
 
 
 def _configure_plotting() -> None:
@@ -1173,7 +1251,12 @@ def validate_analysis_root(
     _require(isinstance(run_id, str) and re.fullmatch(r"\d{8}T\d{6}Z_[0-9a-f]{12}_n6_3_layered_error_portrait", run_id) is not None, "analysis run ID mismatch")
     if require_directory_identity:
         _require(root.name == run_id, "analysis directory/run identity mismatch")
-    _require(manifest.get("generation_git_sha", "")[:12] == run_id.split("_")[1], "analysis generation SHA/run identity mismatch")
+    generation_git_sha = _validate_hash(
+        manifest.get("generation_git_sha"),
+        label="generation Git SHA",
+        length=40,
+    )
+    _require(generation_git_sha[:12] == run_id.split("_")[1], "analysis generation SHA/run identity mismatch")
     _require(manifest.get("run_status") == "PASS", "analysis run status mismatch")
     _require(manifest.get("status_semantics") == "program_contract_asset_integrity_only", "analysis status semantics mismatch")
     _require(manifest.get("model_performance_assessment") == "not_performed", "analysis performance semantics mismatch")
@@ -1213,17 +1296,19 @@ def validate_analysis_root(
         expected_spatial = build_spatial_bin_profiles(source)
         expected_bounded = build_bounded_case_comparison(expected_source_profiles)
         expected_multiplicity = build_multiplicity_profiles(source)
-        expected_context = build_diagnostic_context()
+        _validate_diagnostic_context(
+            context,
+            generation_git_sha=generation_git_sha,
+        )
         _require(source_profiles == expected_source_profiles, "source profiles are not reproducible from canonical raw evidence")
         _require(spatial == expected_spatial, "spatial profiles are not reproducible from canonical raw evidence")
         _require(bounded == expected_bounded, "bounded comparison is not reproducible")
         _require(multiplicity == expected_multiplicity, "multiplicity diagnostics are not reproducible")
-        _require(context == expected_context, "diagnostic context references drifted")
 
     return AnalysisPublication(
         analysis_root=root,
         run_id=run_id,
-        generation_git_sha=manifest["generation_git_sha"],
+        generation_git_sha=generation_git_sha,
         manifest_sha256=sha256_file(manifest_path),
         artifact_inventory_count=len(manifest["artifact_inventory"]),
     )
@@ -1242,7 +1327,7 @@ def execute_analysis(
     created = datetime.strptime(execution.created_at_utc, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     run_id = f"{created.strftime('%Y%m%dT%H%M%SZ')}_{execution.generation_git_sha[:12]}_n6_3_layered_error_portrait"
     source = validate_source_package(package_root, expectation=source_expectation)
-    context = build_diagnostic_context()
+    context = build_diagnostic_context(execution.generation_git_sha)
     source_profiles = build_source_profiles(source)
     spatial = build_spatial_bin_profiles(source)
     bounded = build_bounded_case_comparison(source_profiles)

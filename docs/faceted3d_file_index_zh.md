@@ -191,7 +191,7 @@ candidate CLI 必选参数为 `--candidate-manifest`、`--case-id`、`--mach`、
 | `scripts/tools/n6_3_layered_error_portrait.py` | 正式 orchestration 入口；互斥模式 `--execute` / `--validate-existing` |
 | `src/ref_enthalpy_method/analysis/n6_3_layered_error_portrait.py` | 分层误差画像 analysis library；production source inventory 的 N6.3 新增路径之一 |
 | `runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom/` | N6.2b canonical source package；package/evidence manifest SHA-256=`dffd989a057c4481446482e0543e935209e8673f1a4468b343f1dfa5785bc314` / `b161086640e0e1c922fd2c02670f7e43f9b01363a797dfabb39c195f34157ac3` |
-| `runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait/` | 唯一 N6.3 canonical analysis run；generation SHA=`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`，analysis manifest SHA-256=`909436a7f96588ac35d9b8220ba984af07f3958a6194e3cf2c931e696bfb207d`，8 artifacts + manifest |
+| `runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait/` | 唯一 N6.3 canonical analysis run；generation SHA=`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`，analysis manifest SHA-256=`d425a3532ac87e5d4f571330ebecee18f733fa191d8fb511fd55bf2af09cc5f8`，8 artifacts + manifest |
 
 analysis package 内 `formal_core/` 保存 source profiles、spatial bins、bounded case comparison 与三幅 figures；`diagnostic_only/` 保存 multiplicity profiles；`diagnostic_context/` 保存 tier references。formal core 仅为 M6/30 与 M8/40 upper/leeward source rows；M8/30 与 windward 不进入 formal core。
 

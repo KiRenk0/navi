@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import stat
+import subprocess
 from collections import OrderedDict
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -15,9 +17,15 @@ import pytest
 from ref_enthalpy_method.analysis import n6_3_layered_error_portrait as portrait
 
 
+_CANONICAL_GENERATION_SHA = "e279af25b5090c0b95f04dfe9ccc9a16f7e43529"
+_CANONICAL_ANALYSIS_RELATIVE = Path(
+    "runs/n6_3_layered_error_portrait/"
+    "20260724T151247Z_e279af25b509_n6_3_layered_error_portrait"
+)
+
 _FIXED_IDENTITY = portrait.ExecutionIdentity(
     created_at_utc="2026-07-24T12:34:56Z",
-    generation_git_sha="1" * 40,
+    generation_git_sha=_CANONICAL_GENERATION_SHA,
     source_identity={"schema": "git-head-tree-source-identity/v1"},
     source_hashes_sha256={path: "2" * 64 for path in portrait.IMPLEMENTATION_PATHS},
     exact_execution_command=(
@@ -43,6 +51,175 @@ def _write_json(path: Path, value: Any) -> None:
         encoding="utf-8",
         newline="\n",
     )
+
+
+def _git(repo: Path, *args: str) -> bytes:
+    return subprocess.run(
+        ["git", *args],
+        cwd=repo,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    ).stdout
+
+
+def _init_diagnostic_context_repo(tmp_path: Path) -> tuple[Path, str]:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-b", "main")
+    _git(repo, "config", "user.name", "N6.3 Test")
+    _git(repo, "config", "user.email", "n6-3@example.invalid")
+    (repo / ".gitattributes").write_text("* text eol=crlf\n", encoding="utf-8")
+    for index, path_text in enumerate(portrait.CONTEXT_PATHS):
+        path = repo / path_text
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(f"reference-{index}\n".encode("ascii"))
+    _git(repo, "add", "--all")
+    _git(repo, "commit", "-m", "generation A")
+    return repo, _git(repo, "rev-parse", "HEAD").decode("ascii").strip()
+
+
+def test_diagnostic_context_is_git_blob_exact_and_eol_independent(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo, generation = _init_diagnostic_context_repo(tmp_path)
+    monkeypatch.setattr(portrait, "ROOT", repo)
+    lf_context = portrait.build_diagnostic_context(generation)
+
+    for path_text in portrait.CONTEXT_PATHS:
+        path = repo / path_text
+        path.unlink()
+        _git(repo, "checkout-index", "--force", "--", path_text)
+    assert _git(repo, "diff", "--name-only") == b""
+    assert all(b"\r\n" in (repo / path).read_bytes() for path in portrait.CONTEXT_PATHS)
+
+    crlf_context = portrait.build_diagnostic_context(generation)
+    first_path = portrait.CONTEXT_PATHS[0]
+    blob = _git(repo, "show", f"{generation}:{first_path}")
+    expected_reference = {
+        "path": first_path,
+        "raw_sha256": hashlib.sha256(blob).hexdigest(),
+        "byte_size": len(blob),
+    }
+    assert crlf_context == lf_context
+    assert crlf_context["m8_h30_supplemental"]["references"][0] == expected_reference
+
+
+def test_historical_diagnostic_context_uses_generation_not_current_head_or_worktree(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo, generation_a = _init_diagnostic_context_repo(tmp_path)
+    monkeypatch.setattr(portrait, "ROOT", repo)
+    context_a = portrait.build_diagnostic_context(generation_a)
+    first_path = repo / portrait.CONTEXT_PATHS[0]
+    first_path.write_bytes(b"generation B worktree bytes\r\n")
+    _git(repo, "add", "--all")
+    _git(repo, "commit", "-m", "generation B")
+    generation_b = _git(repo, "rev-parse", "HEAD").decode("ascii").strip()
+
+    assert generation_b != generation_a
+    assert portrait.build_diagnostic_context(generation_a) == context_a
+    assert portrait.build_diagnostic_context(generation_b) != context_a
+    portrait._validate_diagnostic_context(context_a, generation_git_sha=generation_a)
+    drifted = json.loads(json.dumps(context_a))
+    drifted["m8_h30_supplemental"]["references"][0]["raw_sha256"] = "0" * 64
+    with pytest.raises(portrait.AnalysisContractError, match="diagnostic context references drifted"):
+        portrait._validate_diagnostic_context(
+            drifted,
+            generation_git_sha=generation_a,
+        )
+
+
+def test_missing_generation_commit_fails_closed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo, _generation = _init_diagnostic_context_repo(tmp_path)
+    monkeypatch.setattr(portrait, "ROOT", repo)
+    with pytest.raises(portrait.AnalysisContractError, match="generation commit is unavailable"):
+        portrait.build_diagnostic_context("0" * 40)
+
+
+def test_non_commit_generation_object_fails_closed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo, _generation = _init_diagnostic_context_repo(tmp_path)
+    monkeypatch.setattr(portrait, "ROOT", repo)
+    blob = _git(repo, "rev-parse", f"HEAD:{portrait.CONTEXT_PATHS[0]}").decode("ascii").strip()
+    with pytest.raises(portrait.AnalysisContractError, match="generation commit is unavailable"):
+        portrait.build_diagnostic_context(blob)
+
+
+def test_missing_generation_tree_path_fails_closed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo, _generation = _init_diagnostic_context_repo(tmp_path)
+    monkeypatch.setattr(portrait, "ROOT", repo)
+    (repo / portrait.CONTEXT_PATHS[0]).unlink()
+    _git(repo, "add", "--all")
+    _git(repo, "commit", "-m", "missing context path")
+    generation = _git(repo, "rev-parse", "HEAD").decode("ascii").strip()
+    with pytest.raises(portrait.AnalysisContractError, match="generation tree path is missing"):
+        portrait.build_diagnostic_context(generation)
+
+
+def test_non_regular_generation_tree_entry_fails_closed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo, _generation = _init_diagnostic_context_repo(tmp_path)
+    monkeypatch.setattr(portrait, "ROOT", repo)
+    path = repo / portrait.CONTEXT_PATHS[0]
+    path.unlink()
+    path.mkdir()
+    (path / "nested.txt").write_text("tree entry\n", encoding="utf-8")
+    _git(repo, "add", "--all")
+    _git(repo, "commit", "-m", "context path became tree")
+    generation = _git(repo, "rev-parse", "HEAD").decode("ascii").strip()
+    with pytest.raises(portrait.AnalysisContractError, match="generation tree entry is not a regular blob"):
+        portrait.build_diagnostic_context(generation)
+
+
+def test_missing_generation_blob_fails_closed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    repo, generation = _init_diagnostic_context_repo(tmp_path)
+    monkeypatch.setattr(portrait, "ROOT", repo)
+    blob = _git(repo, "rev-parse", f"{generation}:{portrait.CONTEXT_PATHS[0]}").decode("ascii").strip()
+    object_path = repo / ".git" / "objects" / blob[:2] / blob[2:]
+    assert object_path.is_file()
+    object_path.chmod(stat.S_IWRITE)
+    object_path.unlink()
+    with pytest.raises(portrait.AnalysisContractError, match="generation blob is unavailable"):
+        portrait.build_diagnostic_context(generation)
+
+
+@pytest.mark.parametrize("generation", [None, 7, "", "not-a-sha"])
+def test_analysis_manifest_generation_identity_type_fails_closed(
+    tmp_path: Path,
+    generation: Any,
+) -> None:
+    source = portrait.ROOT / _CANONICAL_ANALYSIS_RELATIVE
+    root = tmp_path / source.name
+    shutil.copytree(source, root)
+    manifest_path = root / "analysis_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["generation_git_sha"] = generation
+    _write_json(manifest_path, manifest)
+    with pytest.raises(portrait.AnalysisContractError, match="generation Git SHA"):
+        portrait.validate_analysis_root(root, validate_source=False)
+
+
+def test_canonical_analysis_validate_existing_uses_manifest_generation() -> None:
+    publication = portrait.validate_analysis_root(
+        portrait.ROOT / _CANONICAL_ANALYSIS_RELATIVE
+    )
+    assert publication.generation_git_sha == _CANONICAL_GENERATION_SHA
 
 
 def _copy_package(tmp_path: Path) -> Path:
@@ -352,7 +529,7 @@ def test_generated_formal_diagnostic_schema_isolation_and_no_threshold_pass(
 
 
 def test_output_target_collision_and_staging_collision_are_rejected(tmp_path: Path) -> None:
-    run_id = "20260724T123456Z_111111111111_n6_3_layered_error_portrait"
+    run_id = "20260724T123456Z_e279af25b509_n6_3_layered_error_portrait"
     output = tmp_path / "output"
     (output / run_id).mkdir(parents=True)
     with pytest.raises(portrait.AnalysisContractError, match="publication target already exists"):

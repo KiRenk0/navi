@@ -296,14 +296,14 @@
       "path": "diagnostic_context/tier_references.json",
       "role": "diagnostic_context_reference_layer",
       "byte_size": 2244,
-      "raw_sha256": "1e7881fe6d48a4f9fa8e13a6892db2c79933fad5335046e3c5d5c0d2863b7636"
+      "raw_sha256": "873ee30ca73ffce99cf7bef7e49a26f5ff87d9ce7a12a6d43145b620347fc2a8"
     }
   ],
   "artifact_inventory": [
     {
       "path": "diagnostic_context/tier_references.json",
       "byte_size": 2244,
-      "raw_sha256": "1e7881fe6d48a4f9fa8e13a6892db2c79933fad5335046e3c5d5c0d2863b7636"
+      "raw_sha256": "873ee30ca73ffce99cf7bef7e49a26f5ff87d9ce7a12a6d43145b620347fc2a8"
     },
     {
       "path": "diagnostic_only/multiplicity_profiles.json",

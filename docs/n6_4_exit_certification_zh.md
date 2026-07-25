@@ -71,7 +71,7 @@ causal attribution = not supported
 - N6.2b evidence manifest SHA-256：`b161086640e0e1c922fd2c02670f7e43f9b01363a797dfabb39c195f34157ac3`。
 - N6.3 package path：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`。
 - N6.3 generation SHA：`e279af25b5090c0b95f04dfe9ccc9a16f7e43529`。
-- N6.3 analysis manifest SHA-256：`909436a7f96588ac35d9b8220ba984af07f3958a6194e3cf2c931e696bfb207d`。
+- N6.3 analysis manifest SHA-256：`d425a3532ac87e5d4f571330ebecee18f733fa191d8fb511fd55bf2af09cc5f8`。
 - N6.3 artifact inventory：`8 artifacts + 1 manifest`。
 - N6.3 canonical run count：`1`。
 
