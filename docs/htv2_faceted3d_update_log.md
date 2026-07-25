@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-07-25: N7 Bounded Engineering-Freeze Certification Candidate 实施
+
+- GATE C=`COMPLETE`；selected branch=`OPTION 3 bounded/degraded freeze`；bounded engineering-freeze scope=`APPROVED`；N7 entry=`AUTHORIZED`。
+- 从 technical base `e3ad9d51482c5ddfb085c9c06cd3345f54a964ed` 实施 exact 7-path docs/governance-only candidate；新增 N7 tracked certification/change-gate authority，并最小同步 current index、decision、status、CLI guide、file index 与 update log。
+- provider、formal registry/bindings、evidence tiers、population、solver/API/comparison contracts、Groups 1–8、72-field contract、baseline、manifests、source/artifact hashes 与 binary assets unchanged；performance threshold none；physical-accuracy gate none。
+- Formal core 仍仅为 M6/30、M8/40 upper/leeward 的 `186` 等权 source rows → `80` unique LF targets，many-to-one preserved；M8/30 supplemental diagnostic、windward independent diagnostic context、45 km tracked candidates、formal lower typed-empty 与 external projection cache exclusion/replay boundary 均不变。
+- `N7 candidate implementation = COMPLETE`；`independent QA = NOT YET COMPLETED`；`engineering freeze completion = NOT YET CERTIFIED`；`user final freeze approval = NOT YET GRANTED`；`main closeout = NOT YET COMPLETED`。
+- annotated tag=`NOT CREATED`；GitHub release=`NOT CREATED`。本条不得解释为 independent QA、final approval、main merge/closeout、tag 或 release 已完成。
+- 本轮 focused implementation validation：artifact-integrity contract=`5 passed`；registry/binding contract=`37 passed`；N6.3 `--validate-existing`=`PASS`；N6.2b package/evidence 与 N6.3 analysis manifest raw SHA-256 均 exact match。未运行 full pytest 或 official current regression；这些 focused PASS 不构成 independent QA 或 model performance PASS。
+
+---
+
 ## 2026-07-25: N6.4 Final Canonical Closeout 与 N6 Strategic Exit
 
 - N6.4 independent QA 与 full regression 已通过，裁决=`N6_4_INDEPENDENT_QA_AND_FULL_REGRESSION_PASS`；已审计有界文档修正 HEAD=`f088d88eb409a5462451b81d27beac92bce528ae`。

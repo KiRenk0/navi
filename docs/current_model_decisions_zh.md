@@ -1,6 +1,6 @@
 # 当前 Faceted3D 冻结模型决策
 
-> 更新：2026-07-25（N6.4 final canonical certification 与 N6 strategic exit）
+> 更新：2026-07-25（N7 bounded engineering-freeze candidate decision）
 
 ---
 
@@ -456,7 +456,7 @@ python -B scripts/tools/n6_3_layered_error_portrait.py `
 - lower typed-empty；M8/30 supplemental-only；windward 是 independent diagnostic tier；无 performance threshold、无 causal attribution，provider systematic bias 未建立。
 - N6.3 合法结论仅为：在两个指定 exact-custom historical input bundles 下，当前 Faceted3D baseline 与 Fluent upper/leeward observations 之间的 source-row 描述性误差、空间结构、many-to-one mapping diagnostic 和可复现回归事实。
 
-## 36. N6.4 Final Canonical Certification 与战略出口（2026-07-25）
+## 36. N6.4 Final Canonical Certification 与战略出口历史状态（2026-07-25；已由第 37 节 supersede）
 
 - `N6.0–N6.4 = complete`；`N6 strategic exit = signed / complete`；`N6 final sign-off = issued`。formal bounded scope 已接受为 completed N6 evidence scope，GATE C entry evidence index 已完成。
 - provider unchanged；formal-core scope unchanged：仅 `ma6_a5_h30km` 与 `ma8_a5_h40km` 的 upper/leeward Fluent source-row populations；每 case `186` rows → `80` unique LF targets，many-to-one 保留。M8/30 supplemental-only、45 km tracked candidates、windward independent diagnostic context、lower typed-empty 与 external projection cache exclusion/reproducibility boundary 均不变。
@@ -464,3 +464,16 @@ python -B scripts/tools/n6_3_layered_error_portrait.py `
 - `GATE C decision = NOT DECIDED`；`GATE C approval = NOT ISSUED`；`engineering freeze = NOT APPROVED`；`N7 = NOT ENTERED`；`release/tag = NOT CREATED`。
 - 下一项允许的战略动作仅为在独立授权下 request / conduct GATE C review；N6 exit 不自动开始 GATE C，不自动批准 engineering freeze，也不自动进入 N7。
 - 包含最终认证文档的 main SHA 不在文档中自引用；其权威身份由 Git ref、真实远端认证、N6.4 Git closeout report 与后续 current handoff 固定。
+- 本节保留 N6 closeout 当时的 GATE C/N7 状态作为历史事实；current GATE C/N7 authority 已由第 37 节 supersede，不得继续把本节的历史“下一步”解释为 current action。
+
+## 37. N7 OPTION 3 Bounded Engineering-Freeze Candidate 决策（2026-07-25）
+
+- technical base=`e3ad9d51482c5ddfb085c9c06cd3345f54a964ed`；`GATE C = COMPLETE`；selected branch=`OPTION 3 bounded/degraded freeze`；bounded engineering-freeze scope=`APPROVED`；`N7 entry = AUTHORIZED`。
+- 第 33 节继续作为 detailed evidence-tier authority，任何 tier、case allocation、population、mapping topology、exclusion 或 non-admission 状态均不在本节复制或重裁。本节只新增 superseding governance state 与 N7 candidate 门禁。
+- Approved bounded scope 仅覆盖 `ma6_a5_h30km`、`ma8_a5_h40km`，alpha=`+5°`、surface/region=`upper/leeward`；每 case formal population 为 `186` 个等权 Fluent source rows，映射到 `80` 个 unique LF primary targets。many-to-one 保留；80 targets 只表示 mapping topology，不是等权 formal population。
+- freestream 继续是 historical exact-custom comparison inputs；`atmosphere_model=none / unverified`；nominal altitude 不构成 validated atmosphere 或真实高度性能证据。
+- Formal core、M8/30 supplemental diagnostic、windward independent diagnostic context、three 45 km tracked candidates、formal lower typed-empty known limitation 与 external projection cache distribution/replay exclusion boundary 均保持第 33 节既有身份，不得自动提升、降级、合并或重命名。
+- provider unchanged；performance threshold none；physical-accuracy gate none；formal registry/bindings、baseline、manifests、Groups 1–8、72-field contract、solver/API/comparison identity、source/artifact hashes 与 numerical/binary assets unchanged。
+- `N7 candidate implementation = COMPLETE`；`independent QA = NOT YET COMPLETED`；`engineering freeze completion = NOT YET CERTIFIED`；`user final freeze approval = NOT YET GRANTED`；`main closeout = NOT YET COMPLETED`；annotated tag 与 GitHub release 均未创建。
+- 本 candidate 是 exact 7-path docs/governance-only change。integrity/regression/focused validation PASS 只证明 program、contract、asset 与 candidate governance consistency，不等于 model performance PASS、physical-accuracy validation、independent QA 或 final engineering-freeze completion。
+- N7 tracked certification/change-gate authority 为 `docs/n7_bounded_engineering_freeze_certification_zh.md`。后续仅可在独立授权下执行 read-only independent QA；不得从本 candidate 自动进入 final approval、main closeout、tag、release 或 N8。

@@ -1,4 +1,4 @@
-# Faceted3D Official CLI 与 N6 canonical 验证运行指南
+# Faceted3D Official CLI 与 N6/N7 canonical 验证运行指南
 
 ---
 
@@ -100,11 +100,30 @@ python -B scripts/tools/n6_3_layered_error_portrait.py `
 
 N6.2b canonical package available：`runs/n6_exact_custom_formal/20260724T111443Z_79ed536fc8c1_n6_exact_custom`。N6.3 canonical package available：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`。N6.3 `--validate-existing` 是 official 只读验证入口；`current_baseline_regression_check.py` 是 official current regression 入口；`docs/n6_4_exit_certification_zh.md` 是 official N6.4 certification document。
 
-该 validation PASS 证明 program、contract、asset 与 regression integrity，不表示 model performance PASS。N6.4 certification document 已正式签发；GATE C 保持 `NOT DECIDED`，N7 保持 `NOT ENTERED`。
+该 validation PASS 证明 program、contract、asset 与 regression integrity，不表示 model performance PASS。N6.4 certification document 已正式签发。N6 closeout 时点的 GATE C/N7 文本属于历史状态；current governance 已由后续 GATE C OPTION 3 approval 与 N7 candidate authority supersede。
 
 ## N6.4 canonical certification
 
-正式文档：`docs/n6_4_exit_certification_zh.md`。其状态为 `N6.4 COMPLETE`、`N6 strategic exit SIGNED / COMPLETE`、`N6 final sign-off ISSUED`；GATE C 保持 `NOT DECIDED`，N7 保持 `NOT ENTERED`。该文档不是 solver、analysis 或 release 命令入口。
+正式文档：`docs/n6_4_exit_certification_zh.md`。其状态为 `N6.4 COMPLETE`、`N6 strategic exit SIGNED / COMPLETE`、`N6 final sign-off ISSUED`；其中 GATE C/N7 表述只记录 N6 closeout 当时状态，不再作为 current action。该文档不是 solver、analysis 或 release 命令入口。
+
+## N7 bounded engineering-freeze candidate 与后续独立 QA 入口
+
+治理 authority：`docs/n7_bounded_engineering_freeze_certification_zh.md`。当前状态为 GATE C complete、OPTION 3 bounded/degraded freeze approved、N7 entry authorized、candidate implementation complete；independent QA、user final approval 与 main closeout pending，tag/release not created。
+
+后续独立 QA 只允许复用现有只读验证入口：
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path .\src)
+$env:PYTHONDONTWRITEBYTECODE = "1"
+
+python -B scripts/tools/current_baseline_regression_check.py
+python -B scripts/tools/n6_3_layered_error_portrait.py `
+  --validate-existing `
+  --analysis-root runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait
+python -B -m pytest -p no:cacheprovider <existing-test-selection>
+```
+
+这些入口只允许在后续独立 QA 的明确范围内运行；不得发明新 CLI/API。明确禁止 `n6_3_layered_error_portrait.py --execute`、solver、formal generation、new analysis、`current_baseline_regression_check.py --freeze`、baseline promotion、manifest migration、summary-hash repair、evidence generation 或 candidate generation。
 
 ## Fluent 对比
 

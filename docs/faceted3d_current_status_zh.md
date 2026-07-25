@@ -1,6 +1,6 @@
 # Faceted3D 当前工程状态
 
-> 更新：2026-07-25（N6.4 complete；N6 strategic exit signed）
+> 更新：2026-07-25（N7 bounded engineering-freeze candidate implementation）
 
 ---
 
@@ -197,14 +197,16 @@ Phase 4A 后仓库卫生审计已完成：删除 3 份已被 canonical docs 替�
 - M8/30 candidate generation=`not yet executed`；production candidate manifest asset=`not yet generated`；M8/30 admission/promotion=`not performed`；formal comparison/evidence=`not entered`。M8/30 未加入 `CASES`、registry 或 baseline。
 - provider=`unchanged`；N3a=`not exited`；GATE A=`not reopened`。strategy v1.2 与 current handoff 均不在本修复范围内。
 
-## 9. N6 Final Canonical 当前状态（2026-07-25）
+## 9. N7 Bounded Engineering-Freeze Candidate 当前状态（2026-07-25）
 
-- `current completed node = N6`；`N6.0–N6.4 = complete`；`N6 strategic exit = signed / complete`；`final N6 sign-off = issued`。
-- 已通过独立 QA：`N6_4_INDEPENDENT_QA_AND_FULL_REGRESSION_PASS`；audited corrected HEAD=`f088d88eb409a5462451b81d27beac92bce528ae`。
-- N6.2b canonical package 与 N6.3 canonical package 均 available；N6.3 `--validate-existing` 与 current baseline regression 均为 official 验证入口。
-- formal core 仍仅含 M6/30、M8/40 upper/leeward source-row populations；每 case `186` rows → `80` unique LF targets，source-row 不去重，lower typed-empty。M8/30 为 supplemental-only，windward 为 independent diagnostic tier，45 km 不 auto-admit。
-- provider unchanged；formal-core scope unchanged；known limitations retained；performance threshold none；model performance assessment not performed；causal attribution not supported；provider systematic bias conclusion not established。
-- main closeout identity 在 Git 步骤完成前保持待认证；最终 main SHA 不在本文自引用，由 N6.4 Git closeout report 与后续 current handoff 固定。
-- `GATE C review eligibility = ELIGIBLE_TO_REQUEST`，但 `GATE C = NOT DECIDED`、`engineering freeze = NOT APPROVED`、`N7 = NOT ENTERED`、`tag/release = NOT CREATED`。
-- 下一项允许的战略动作仅为在独立授权下 request / conduct GATE C review；不得自动进入 GATE C 或 N7。
+- N6 历史完成事实保持不变：`N6.0–N6.4 = complete`；`N6 strategic exit = signed / complete`；`final N6 sign-off = issued`；N6.4 independent QA 已通过。
+- N6 closeout 时点曾处于“可请求 GATE C、尚未进入 N7”的历史状态；该历史状态现已由本节的 GATE C/N7 决策 supersede，不再代表 current action。
+- `GATE C = COMPLETE`；selected branch=`OPTION 3 bounded/degraded freeze`；bounded engineering-freeze scope=`APPROVED`；`N7 entry = AUTHORIZED`。
+- technical base=`e3ad9d51482c5ddfb085c9c06cd3345f54a964ed`；`N7 candidate implementation = COMPLETE`；`independent QA = NOT YET COMPLETED`。
+- `engineering freeze completion = NOT YET CERTIFIED`；`user final freeze approval = NOT YET GRANTED`；`main closeout = NOT YET COMPLETED`；annotated tag 与 GitHub release 均未创建。
+- 本 candidate 严格为 exact 7-path docs/governance-only；未修改 source、tests、scripts、specs、runs、baseline、manifest、provider、formal registry、bindings、Groups 1–8、72-field contract、source/artifact hash 或 binary asset。
+- formal core 仍仅含 M6/30、M8/40 upper/leeward source-row populations；每 case `186` rows → `80` unique LF targets，source-row 不去重，lower typed-empty。M8/30 为 supplemental diagnostic，windward 为 independent diagnostic context，三个 45 km cases 为 tracked candidates，external projection cache 不属于 formal distribution/replay commitment。
+- provider unchanged；performance threshold none；不存在 physical-accuracy gate；atmosphere model none/unverified；causal attribution unsupported；provider systematic-bias claim unsupported。
+- detailed evidence-tier authority 继续是 `docs/current_model_decisions_zh.md` 第 33 节；N7 change-gate authority 为 `docs/n7_bounded_engineering_freeze_certification_zh.md`。
+- 后续只允许独立授权的 N7 read-only QA；本 candidate 不等于 final engineering-freeze completion，也不授权 main closeout、tag 或 release。
 - QA/regression PASS 只表示 program、contract、asset 与 regression integrity，不等于 model performance PASS。

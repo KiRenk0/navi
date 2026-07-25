@@ -1,11 +1,11 @@
 # Faceted3D v2 — 文档索引
 
-> 更新：2026-07-25
+> 更新：2026-07-25（N7 bounded engineering-freeze candidate）
 > 用途：新接手 DS/GPT 快速定位
 
 ## 当前主线一句话
 
-Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。N6.0–N6.4 已完成，N6 strategic exit 已签署，N6 final sign-off 已签发；GATE C 未裁决，N7 未进入。N6.3 canonical analysis package 为 `runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`，正式入口为 `scripts/tools/n6_3_layered_error_portrait.py`。current-v5 source identity 使用 committed Git HEAD tree / Git blob bytes，schema=`git-head-tree-source-identity/v1`，inventory=`68`。正式 registry 仍仅含 `ma6_a5_h30km` 与 `ma8_a5_h40km`；provider 未修改、无统一 performance threshold、无 model performance PASS/FAIL。历史 30、35、40、45 km 仅为 nominal / historical labels，对应 historical custom freestream，不属于已验证大气模型。
+Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。N6.0–N6.4 已完成，N6 strategic exit 已签署，N6 final sign-off 已签发；GATE C 已完成并批准 OPTION 3 bounded/degraded freeze，N7 entry 已授权。当前为 N7 bounded engineering-freeze candidate implementation complete、independent QA pending；engineering freeze completion、用户 final approval 与 main closeout 均未完成。N6.3 canonical analysis package 为 `runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`，正式入口为 `scripts/tools/n6_3_layered_error_portrait.py`。current-v5 source identity 使用 committed Git HEAD tree / Git blob bytes，schema=`git-head-tree-source-identity/v1`，inventory=`68`。正式 registry 仍仅含 `ma6_a5_h30km` 与 `ma8_a5_h40km`；provider unchanged、performance threshold none、无 model performance PASS/FAIL。历史 30、35、40、45 km 仅为 nominal / historical labels，对应 historical custom freestream，不属于已验证大气模型。
 
 ---
 
@@ -18,7 +18,8 @@ Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 t
 | `faceted3d_file_index_zh.md` | 文件索引（代码/配置/Fluent CSV） |
 | `htv2_faceted3d_update_log.md` | 主线历史 |
 | `faceted3d_official_cli_run_guide_zh.md` | Official CLI 跑法 |
-| `n6_4_exit_certification_zh.md` | final canonical N6 exit certification；independent QA passed；N6 exit signed；GATE C not decided |
+| `n6_4_exit_certification_zh.md` | final canonical N6 exit certification；independent QA passed；N6 exit signed；其中 GATE C/N7 表述属于被后续决策取代的历史状态 |
+| `n7_bounded_engineering_freeze_certification_zh.md` | N7 bounded engineering-freeze tracked certification/change-gate authority；当前仅为 candidate，independent QA 与 final approval pending |
 | `audits/faceted3d_phase5b2_mapping_contract_audit_20260718.md` | Phase 5B2 mapping contract audit 的关键结论与主要定量证据；原画布未保存的完整原始统计已明确标注 |
 
 ## 技术参考
@@ -45,14 +46,15 @@ scripts/run_case_rem.py
 - Taw fixed fully turbulent `Pr^(1/3)`，与 q-chain transition 解耦
 - validation complete 未声明
 
-## 当前 N6 状态
+## 当前 N7 governance 状态
 
-- N6.0–N6.4：completed
-- N6 strategic exit：signed / complete；N6 final sign-off：issued
-- GATE C：not decided；review eligibility：eligible to request；N7：not entered
+- N6.0–N6.4：completed；N6 strategic exit：signed / complete；N6 final sign-off：issued
+- GATE C：complete；selected branch：OPTION 3 bounded/degraded freeze；bounded scope：approved
+- N7 entry：authorized；candidate implementation：complete；independent QA：pending
+- engineering freeze completion：not yet certified；user final approval：pending；main closeout：pending
 - canonical analysis：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`
-- current-v5 source identity：68 sources；Groups 1–8、72 fields、numerical assets、artifact hashes zero drift
-- QA/regression PASS 不是 model performance PASS；provider unchanged，无 performance threshold 与 causal attribution
+- current-v5 source identity：68 sources；Groups 1–8、72 fields、numerical assets、artifact hashes unchanged
+- QA/regression PASS 不是 model performance PASS；provider unchanged；performance threshold none；causal attribution unsupported
 
 ## 下一步
 
@@ -63,10 +65,11 @@ scripts/run_case_rem.py
 - Phase 5A Fluent clean、Phase 5B1 LF clean、Phase 5B2 mapping contract audit、Phase 5C pairing、Phase 5D wall-temperature ingestion 与 Phase 5E source-level comparison：完成
 - comparison 口径：direction=`Fluent→LF`，metric=`projected physical`，many-to-one allowed，no gate / no edge buffer
 - Chapter 3.1–3.7A：已完成；Package 0–12=`13/13 PASS`；N3 technical exit=`CERTIFIED SATISFIED`
-- GATE A：已完成，final branch=`A0`；主线仍为 `N3a`
+- GATE A：已完成，final branch=`A0`；当时进入的 `N3a` 历史节点已由 N6 strategic exit 与当前 N7 governance supersede
 - N3b source-identity 修复与 Git closeout：已完成
 - current-v5 source identity：committed Git HEAD tree / Git blob bytes，schema=`git-head-tree-source-identity/v1`，inventory=`68`
-- N6.0–N6.4 已完成；N6 strategic exit 已签署；N6 final sign-off 已签发；GATE C 未裁决，N7 未进入
-- N6.4 independent QA 与 full regression 已通过；provider、formal registry、performance threshold 均未改变
-- 下一项允许的战略动作仅为在独立授权下请求/开展 GATE C review；不得自动进入 GATE C 或 N7
-- 不做调参，不进 residual learning；除单独明确授权的审计证据外，不新增 closeout / manifest / audit / handoff md
+- N6.0–N6.4 已完成；N6 strategic exit 已签署；N6 final sign-off 已签发
+- GATE C 已完成；OPTION 3 bounded/degraded freeze 已批准；N7 entry 已授权
+- N7 candidate implementation 已完成；下一项仅为后续独立只读 QA，final user approval 与 main closeout 均 pending
+- provider、formal registry、performance threshold、evidence tiers、baseline/manifests/assets 均未改变；tag/release 未创建
+- 不做调参，不进 residual learning；不得从 candidate 自动进入 final freeze、main closeout、tag 或 release

@@ -1,6 +1,6 @@
 # Faceted3D 文件索引
 
-> 更新：2026-07-25（N6.3 canonical 入口与资产索引）
+> 更新：2026-07-25（N7 bounded engineering-freeze candidate authority 索引）
 
 ---
 
@@ -201,4 +201,12 @@ analysis package 内 `formal_core/` 保存 source profiles、spatial bins、boun
 |------|----------------|
 | `docs/n6_4_exit_certification_zh.md` | N6.4 coverage、evidence tier、exclusion / non-admission、engineering limitations、third-party reproducibility 与 N6 exit-condition 的 final tracked canonical certification；统一绑定 N6.1 approved matrix、N6.2b canonical source package、N6.3 canonical analysis package、current-v5、M8/30 supplemental、45 km candidates、windward diagnostic 与 lower typed-empty |
 
-该文档当前状态为 `N6.4 COMPLETE`、`N6 strategic exit SIGNED / COMPLETE`、`N6 final sign-off ISSUED`。它是 canonical authority 文档，不是 baseline，不是 formal package，不是 GATE C decision，也不是 release artifact；GATE C 保持 `NOT DECIDED`。
+该文档当前状态为 `N6.4 COMPLETE`、`N6 strategic exit SIGNED / COMPLETE`、`N6 final sign-off ISSUED`。它是 canonical authority 文档，不是 baseline，不是 formal package，不是 GATE C decision，也不是 release artifact；其中 GATE C/N7 表述属于 N6 closeout 历史状态，已由后续 current authority supersede。
+
+## 21. N7 Bounded Engineering-Freeze Certification Candidate
+
+| 路径 | Authority role |
+|------|----------------|
+| `docs/n7_bounded_engineering_freeze_certification_zh.md` | N7 bounded engineering-freeze 的 tracked certification/change-gate authority；固定 OPTION 3 approved bounded scope、candidate 状态、known limitations、prohibited claims、验证门禁、维护规则与回退路径，并引用 `docs/current_model_decisions_zh.md` 第 33 节作为 detailed evidence-tier authority |
+
+该文档是 governance/certification authority，不是 solver、baseline、manifest、formal package、run asset、binary asset、annotated tag 或 GitHub release。当前只认证 candidate implementation；independent QA、engineering freeze completion、用户 final approval 与 main closeout 均未完成，tag/release 未创建。
