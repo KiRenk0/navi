@@ -137,7 +137,7 @@
 18. bounded freeze 授权修改 provider、threshold 或 tier；
 19. N7 entry authorized 等于 N7 complete；
 20. GATE C approval 等于 tag/release authorization；
-21. candidate implementation 等于 final engineering freeze completion。
+21. candidate implementation、任一 authority/certification repair 或 independent QA PASS 等于 final engineering-freeze completion。
 
 ## 9. Final validation matrix
 
