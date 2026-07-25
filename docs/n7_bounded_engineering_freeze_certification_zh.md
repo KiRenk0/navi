@@ -4,7 +4,7 @@
 >
 > 文档类型：tracked certification / change-gate authority
 >
-> 当前阶段：candidate implementation；不是 final engineering-freeze certification
+> 当前阶段：candidate implementation 与已授权 authority repairs 已实施；independent QA 尚未完成，不是 final engineering-freeze certification
 
 ---
 
@@ -19,14 +19,17 @@
 - formal registry、approved bindings、solver/API/comparison contracts；
 - 独立 QA、用户 final freeze decision、main closeout、annotated tag 或 GitHub release。
 
-## 2. 起始技术基线与 candidate commit 身份
+## 2. 起始技术基线与 candidate 累计树身份
 
 - technical base：`e3ad9d51482c5ddfb085c9c06cd3345f54a964ed`；
 - starting branch：`main`；
-- candidate branch：`docs/n7-bounded-engineering-freeze-candidate`；
-- candidate commit identity：该分支上首个完整包含本 certification 与其余六份 N7 current-authority 更新的 Git commit；其精确 SHA 由提交后的 Git ref、真实远端 ref 与任务交付报告认证，本文不进行不可实现的 commit 自引用；
-- candidate commit 的 parent 必须是上述 technical base；
-- 本轮版本身份只由 Git commit、technical base SHA 与本文共同表达，不新增软件版本入口或 package metadata。
+- candidate branch：`docs/n7-bounded-engineering-freeze-candidate`；branch name 是可变引用，不单独构成不可变 identity；
+- initial candidate implementation commit：`1c089934931b41de2a1e3e726d97a90d3b19e17f`；其 parent 是上述 technical base；
+- authority-consistency repair commit：`1845d3ac2399ef8c54e148facff2f25a6ff1923c`；其 parent 是 initial candidate implementation commit；
+- certification identity repair commit：包含本次 certification revision 的 Git 提交；其 exact SHA 由提交后 Git 认证及后续 independent QA 报告绑定，本文不进行不可实现的 commit 自引用；
+- N7 candidate 不是单一 commit；其 identity 是 technical base 之后、当前 candidate branch exact HEAD 所代表的累计 7-path docs/governance-only tracked tree；
+- independent QA target 是包含上述完整提交链及本次 certification revision 的 exact candidate branch HEAD，而不是任一已知中间 commit；
+- 本轮版本身份只由 technical base、累计单父提交链、exact candidate HEAD、累计 7-path allowlist 与本文共同表达，不新增软件版本入口或 package metadata。
 
 ## 3. GATE C OPTION 3 用户批准事实
 
@@ -140,14 +143,14 @@
 
 | Gate | Candidate requirement | 当前状态 |
 |---|---|---|
-| Git / changed-path identity | technical base、parent、branch、exact 7-path allowlist、tracked clean | 起始门禁与 pre-commit 7-path allowlist PASS；commit/push identity 待交付阶段认证 |
+| Git / changed-path identity | technical base、累计单父 parent chain、branch、exact 7-path allowlist、tracked clean | 起始门禁与 pre-commit 累计 7-path allowlist PASS；包含本 revision 的 exact candidate HEAD 须在 commit/push 后认证 |
 | Current-authority consistency | 陈旧 current state 已 supersede；历史状态保持历史标注 | PASS；陈旧字面仅保留在显式历史段 |
 | Artifact-integrity contract | focused artifact hash integrity pytest | PASS：`5 passed` |
 | Registry/binding contract | focused observation binding pytest | PASS：`37 passed` |
 | Existing canonical analysis | N6.3 `--validate-existing`，禁止 `--execute` | PASS：8 artifacts；manifest SHA-256 exact match |
 | Manifest raw hashes | N6.2b package/evidence 与 N6.3 analysis 三份 SHA-256 | PASS：三份均 exact match |
 | Temporary/cache hygiene | 不产生 `.pytest_cache`、`__pycache__`、新 run/manifest/binary | post-focused scan PASS；提交与推送后仍须复核 |
-| Independent QA | 后续独立只读 QA | `NOT YET COMPLETED` |
+| Independent QA | 验证包含本 revision 的 exact candidate HEAD 及 technical base 到该 HEAD 的完整累计 diff | `NOT YET COMPLETED` |
 | User final freeze decision | 独立用户决策 | `NOT YET GRANTED` |
 | Main closeout | 独立 main closeout | `NOT YET COMPLETED` |
 
@@ -157,7 +160,8 @@ focused implementation validation 只支撑本 candidate 的 docs/governance 与
 
 - detailed evidence matrix 只在 `docs/current_model_decisions_zh.md` 第 33 节维护；本文只保留引用、必要摘要和 certification 状态机；
 - 历史 N6/GATE C 前状态必须保留为历史事实，不得静默改写为当时已完成 N7；
-- current status、文档索引、CLI guide、文件索引与 update log 必须与本文 candidate 状态一致；
+- current status、文档索引、CLI guide、文件索引与 update log 必须与当前 exact candidate HEAD 所代表的累计 candidate 状态一致；
+- 本 candidate 是以 technical base 为父链起点的累计 docs/governance-only 提交链；所有提交必须为普通单父提交，累计 changed paths 始终限制在已批准的 7-path allowlist 内；后续经批准的最小 QA repair 仍以 exact HEAD 与累计 allowlist 定义 identity；
 - provider、threshold、tier、population、formal case 或资产 identity 的任何变化均超出本 candidate。
 
 ## 11. 变更门禁
@@ -171,13 +175,14 @@ focused implementation validation 只支撑本 candidate 的 docs/governance 与
 
 ## 12. 回退路径
 
-本 candidate 是单一 task commit、exact 7-path docs/governance-only 变更。若 focused gate、后续 independent QA 或用户决策不接受：
+本 candidate 是 technical base 之后的累计 7-path docs/governance-only 提交链，不是单一 task commit。若 focused gate、后续 independent QA 或用户决策不接受：
 
 1. 不合并 task branch；或
-2. 对已共享 candidate commit 创建显式 revert commit；
-3. technical base、provider、baseline、manifest、formal assets 与 contracts 无需迁移或重建。
+2. 若需要撤销整个已共享 N7 candidate，从当时已认证的 exact candidate HEAD 开始，按逆时间顺序逐个 `git revert` technical base 之后的 N7 docs/governance-only 提交；当前已知链包含 `1845d3ac2399ef8c54e148facff2f25a6ff1923c` 与 `1c089934931b41de2a1e3e726d97a90d3b19e17f`，包含本次 revision 的提交须以提交后认证的 exact SHA 纳入逆序回退；或
+3. 从已认证的 technical base `e3ad9d51482c5ddfb085c9c06cd3345f54a964ed` 创建 recovery branch；
+4. technical base、provider、baseline、manifest、formal assets 与 contracts 无需迁移或重建。
 
-不得通过 force、reset、历史改写、baseline promotion 或 manifest/hash 更新掩盖回退。
+不得使用 hard reset、rebase、history rewrite、force push、baseline promotion 或 manifest/hash 更新掩盖回退。
 
 ## 13. Tag/release 独立授权门
 
@@ -188,8 +193,14 @@ focused implementation validation 只支撑本 candidate 的 docs/governance 与
 
 ## 14. 当前 candidate 状态
 
+- `GATE C = COMPLETE`；
+- `selected branch = OPTION 3 bounded/degraded freeze`；
+- `bounded engineering-freeze scope = APPROVED`；
+- `N7 entry = AUTHORIZED`；
 - `N7 candidate implementation = COMPLETE`；
-- `independent QA = NOT YET COMPLETED`；
+- `authority-consistency defect repair = COMPLETE`；
+- `certification candidate-identity repair = COMPLETE in this revision`；该状态只表示本次文档修复已实施，不表示 independent QA 已通过；
+- `independent QA for exact revised candidate HEAD = NOT YET COMPLETED`；
 - `engineering freeze completion = NOT YET CERTIFIED`；
 - `user final freeze approval = NOT YET GRANTED`；
 - `main closeout = NOT YET COMPLETED`；
@@ -202,4 +213,6 @@ Final user decision 尚未取得。本 candidate 只提供后续 independent QA 
 
 ## 16. Independent QA
 
-Independent QA 尚未完成，结果栏待后续独立任务填写。本轮 focused validation 不是 independent QA；本轮结束后不得自行进入 independent QA、main closeout、final freeze approval、tag 或 release。
+Independent QA 尚未完成。后续 QA 不得仅验证 initial candidate implementation commit `1c089934931b41de2a1e3e726d97a90d3b19e17f`，也不得仅验证 authority-consistency repair commit `1845d3ac2399ef8c54e148facff2f25a6ff1923c`；必须验证包含本次 certification revision 的 exact current candidate HEAD，并覆盖从 technical base `e3ad9d51482c5ddfb085c9c06cd3345f54a964ed` 到该 HEAD 的完整累计 diff。QA 报告必须登记该 exact HEAD SHA、parent chain 与累计 7-path allowlist。
+
+本轮 focused validation 不是 independent QA；本轮结束后不得自行进入 independent QA、main closeout、final freeze approval、tag 或 release。
