@@ -554,3 +554,9 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - 相对导入、脚本和测试联合扫描后，唯一零 incoming runtime source 是 `aero/adiabatic_wall_temp.py`；正式功能已由 `windward_cache_faceted3d.py` 替代，但该文件仍被冻结在两个 current-v5 manifest 的 68-source identity 中，本轮不绕过 baseline migration 删除。
 - pressure、sweep、viz、current-v5、N6/N7 与 N8 工具均有现行入口、文档责任或冻结合同，保留。
 - 全仓 `ruff check src tests scripts` 当前报告 416 个历史 style/static warnings，主要位于 geometry/pressure diagnostics 与旧测试；本轮不批量 autofix，避免无关改写和破坏 current-v5 source identity。N8 本轮相关源码/测试的定向 Ruff 检查保持 PASS。
+### 2026-07-28 N8 geometry-domain Git closeout 与 current-v5 身份迁移
+
+- N8 G1-G4 闭合实现与清理提交为 `f5193e97e68c787dadb1fef5478d8d71114c1000`；12/12 phase13 v4 runner/validator PASS，每工况 13 项产物、9,663 nodes、18,110 triangles、333 typed exclusions、9,663/9,663 provider-valid。
+- production source inventory 从 68 迁移到 69；`inventory_paths_sha256=0cb3a5aa592256807a9e975e9213867c2b6b8337902450209a5421845e37edf8`，`aggregate_sha256=92114f8e2d798d3f6e574a68a710233463c0d30a4396a8839bf190dcb21cf38d`。
+- source-only migration 仅改两个 current-v5 manifest 的 `source_identity` 与 `source_hashes_sha256`。另行把两份 manifest 的 `atmosphere.model` 从历史误名 `isa1976` 更正为活动实现名 `ussa1976`；该项是元数据标签修复，不是 numerical baseline freeze。
+- 修复前后的 72 fields、Groups 1-8、`fields.npz`、`summary.json` 与 artifact hashes 均 zero drift；两个正式工况、CURRENT TPG OFFICIAL 与 CURRENT REGRESSION OVERALL 全部 PASS。

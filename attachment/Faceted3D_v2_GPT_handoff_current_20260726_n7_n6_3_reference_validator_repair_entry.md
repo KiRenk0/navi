@@ -814,3 +814,4 @@ Git stage/commit/push authorization = granted by user on 2026-07-28
 ### Git 与 current-v5 收口要求
 
 本轮 production source inventory 净增 1 项。实现提交形成 clean committed HEAD 后，必须使用现有 `--migrate-source-identity` 流程，对两个 current-v5 manifest 做 source-only migration，再运行 official current regression。只允许改变 `source_identity` 和 `source_hashes_sha256`；`fields.npz`、`summary.json`、artifact hashes、Groups 1-8 和数值 baseline 必须 zero drift。用户已授权跟踪并更新本交接附件及 G1/G2 附件。
+最终 current-v5 identity：`count=69`，`inventory_paths_sha256=0cb3a5aa592256807a9e975e9213867c2b6b8337902450209a5421845e37edf8`，`aggregate_sha256=92114f8e2d798d3f6e574a68a710233463c0d30a4396a8839bf190dcb21cf38d`。源码身份迁移保持 source-only；两个 manifest 的 `atmosphere.model` 另从历史误名 `isa1976` 更正为唯一活动实现名 `ussa1976`，数值和 artifact hashes 均不变。两个正式工况、CURRENT TPG OFFICIAL 与 CURRENT REGRESSION OVERALL 全部 PASS。

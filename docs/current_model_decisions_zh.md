@@ -12,7 +12,7 @@
 - Git 语义 clean 时，Windows CRLF 与 Linux LF checkout materialization 对 identity 中性；identity 读取 Git blob bytes，而不是 raw worktree bytes。
 - staged、unstaged、deleted、renamed 或 inventory-matching untracked production source 均 fail closed；无关 ordinary untracked 不进入 source identity。
 - source-only migration 只能来自 clean committed `HEAD`；禁止把 raw worktree hash 或 index-only hash 写入 baseline。
-- 当前正式 source identity：inventory count=`68`；`inventory_paths_sha256=31b47f1998348b9e82d702b517e14e1a2d2828596c665fb79af3466f0e7fd2f0`；`aggregate_sha256=57835d2d422be3b6be198d6912cf7fad5b60e3c75797c779b5e4bf2e6e5cdfe4`。
+- 当前正式 source identity：inventory count=`69`；`inventory_paths_sha256=0cb3a5aa592256807a9e975e9213867c2b6b8337902450209a5421845e37edf8`；`aggregate_sha256=92114f8e2d798d3f6e574a68a710233463c0d30a4396a8839bf190dcb21cf38d`。
 - 两个 current-v5 manifest 已完成 66→68 source-only migration；新增仅 `src/ref_enthalpy_method/analysis/__init__.py` 与 `src/ref_enthalpy_method/analysis/n6_3_layered_error_portrait.py`。provider、comparison、fields、summary、Groups 1–8、72-field arrays、numerical assets 与 `artifact_hashes_sha256` 均未改变。
 - `runs/**`、`fluent_export/**`、CSV、STL、NPZ 与其他 binary artifact 保持原始字节；不得无授权执行全仓库 renormalize。
 - raw artifact hash、parsed semantic contract、数值与字段合同、provenance path 必须分别表述，不能相互替代。

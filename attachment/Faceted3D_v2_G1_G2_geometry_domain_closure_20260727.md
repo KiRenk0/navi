@@ -255,3 +255,4 @@ Git closeout authorization = granted by user on 2026-07-28
 代表工况 `ma8_a10_h40km` 在 projection cache hit 条件下，包含 Python 启动、完整计算、13 个 PNG/NPZ/JSON 产物写出及 validator 的端到端墙钟时间为 `18.702 s`。该数值不是 projection cache miss 的冷启动基准。
 
 本次源码净增一项正式 production source；Git 收口必须在实现提交后执行 current-v5 的 source-only identity migration，并再次通过 official current regression。该迁移只允许更新两个 manifest 的 `source_identity` 与 `source_hashes_sha256`，不得 freeze 或改写数值基线。
+最终 Git 收口的 current-v5 production source identity 为：`count=69`，`inventory_paths_sha256=0cb3a5aa592256807a9e975e9213867c2b6b8337902450209a5421845e37edf8`，`aggregate_sha256=92114f8e2d798d3f6e574a68a710233463c0d30a4396a8839bf190dcb21cf38d`。两个 manifest 的源码身份迁移保持 source-only；其 `atmosphere.model` 另从历史误名 `isa1976` 更正为当前唯一活动实现名 `ussa1976`，不改变任何数值资产。两个正式工况、CURRENT TPG OFFICIAL 与 CURRENT REGRESSION OVERALL 全部 PASS。

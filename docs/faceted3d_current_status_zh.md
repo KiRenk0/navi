@@ -9,7 +9,7 @@
 - 正式远端：`https://github.com/KiRenk0/navi.git`。
 - 当前正式活动工作区必须是该远端仓库经 Git 身份认证的 checkout root。
 - 既有只读恢复证据与历史资料不是活动工作区或正式来源。
-- 当前 production source identity：schema=`git-head-tree-source-identity/v1`，count=`68`，`inventory_paths_sha256=31b47f1998348b9e82d702b517e14e1a2d2828596c665fb79af3466f0e7fd2f0`，`aggregate_sha256=57835d2d422be3b6be198d6912cf7fad5b60e3c75797c779b5e4bf2e6e5cdfe4`。
+- 当前 production source identity：schema=`git-head-tree-source-identity/v1`，count=`69`，`inventory_paths_sha256=0cb3a5aa592256807a9e975e9213867c2b6b8337902450209a5421845e37edf8`，`aggregate_sha256=92114f8e2d798d3f6e574a68a710233463c0d30a4396a8839bf190dcb21cf38d`。
 
 活动 Python、Markdown、YAML 等文本按 `.gitattributes` 使用 LF。`runs/**`、`fluent_export/**`、CSV、STL、NPZ 与其他 binary artifact 保持原始字节，不执行无差别 normalization；未经单独授权不得执行全仓库 renormalize。
 
