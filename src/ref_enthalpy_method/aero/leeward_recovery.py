@@ -10,7 +10,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ref_enthalpy_method.geometry.local_incidence import SURFACE_CLASS_LEEWARD
+from ref_enthalpy_method.geometry.local_incidence import (
+    SURFACE_CLASS_INVALID,
+    SURFACE_CLASS_LEEWARD,
+)
 from ref_enthalpy_method.types import GasModel
 
 
@@ -145,6 +148,38 @@ def build_leeward_freestream_recovery(
         mu_e=mu_e,
         Taw_tpg=Taw_tpg,
     )
+
+def build_freestream_recovery(
+    *,
+    mask: np.ndarray,
+    T_inf_K: float,
+    p_inf_Pa: float,
+    rho_inf_kg_m3: float,
+    V_inf_m_s: float,
+    Ma_inf: float,
+    gas: GasModel,
+) -> LeewardFreestreamRecoveryFields:
+    """Return the freestream-recovery candidate on an explicit 1-D mask."""
+
+    selected = np.asarray(mask)
+    if selected.ndim != 1:
+        raise ValueError(f"mask must be 1-D; got ndim={selected.ndim}")
+    if selected.dtype != np.bool_:
+        raise TypeError("mask must have boolean dtype")
+    recovery_class = np.full(
+        selected.shape, SURFACE_CLASS_INVALID, dtype=np.int8
+    )
+    recovery_class[selected] = SURFACE_CLASS_LEEWARD
+    return build_leeward_freestream_recovery(
+        surface_class=recovery_class,
+        T_inf_K=T_inf_K,
+        p_inf_Pa=p_inf_Pa,
+        rho_inf_kg_m3=rho_inf_kg_m3,
+        V_inf_m_s=V_inf_m_s,
+        Ma_inf=Ma_inf,
+        gas=gas,
+    )
+
 
 
 # ── helpers ───────────────────────────────────────────────────────────────

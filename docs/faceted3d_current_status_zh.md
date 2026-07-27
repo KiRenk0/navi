@@ -210,3 +210,38 @@ Phase 4A 后仓库卫生审计已完成：删除 3 份已被 canonical docs 替�
 - detailed evidence-tier authority 继续是 `docs/current_model_decisions_zh.md` 第 33 节；N7 change-gate authority 为 `docs/n7_bounded_engineering_freeze_certification_zh.md`。
 - 后续只允许独立授权的 N7 read-only QA；本 candidate 不等于 final engineering-freeze completion，也不授权 main closeout、tag 或 release。
 - QA/regression PASS 只表示 program、contract、asset 与 regression integrity，不等于 model performance PASS。
+
+## 10. N8 Taw Surface 几何域 v4 当前状态（2026-07-27）
+
+当前状态：`N8_TAW_SURFACE_GEOMETRY_DOMAIN_V4_G1_G2_G3_G4_PASS`。
+
+### 10.1 计算责任
+
+- `stl-angle-weighted-continuous-normal/v1` 负责 N8 `incidence_s`、surface class 和 windward candidate 的 `sx/sy`；upper/lower sheet 隔离，20° crease threshold 阻止跨真实锐边平滑。
+- STL face 保留位置、geometric sheet、triangle identity、projection/support 和原始面法向审计责任。
+- `n8-taw-domain-topology/v1` 用 STL 图皮肤与显式三角连接定义最终 product domain，不再用结构化 quad 的任一坏点遮掉整个 cell。
+- product node table 只含权威图皮肤节点；旧 phase9 几何失败点进入 typed exclusion audit，不混入产品域。
+
+### 10.2 当前产品
+
+- 正式目录：`runs/n8_taw_surface/*_phase13_geometry_domain_v4`。
+- 12/12 工况 runner PASS，12/12 artifact validator PASS。
+- 每工况 9,663 nodes、18,110 triangles、333 条独立 legacy exclusion。
+- 每工况 geometry-valid/provider-valid=9,663/9,663。
+- summary schema=`n8-taw-run-summary/v4`；dispatch=`n8-taw-dispatch/v3`。
+- 每工况 13 件产物，包括 upper/lower Taw、provider、validity、固定 ±10% 误差图和实际 min..max 自适应误差图。
+
+### 10.3 闭合范围
+
+- G1/G2：几何域真值、mismatch 归属和 validator repair entry 已闭合。
+- G3：代表工况实现、13 件套与 validator 已闭合。
+- G4：十二工况批量产品已闭合。
+- 最近全量回归：`508 passed, 137 subtests passed`。
+- 原固定误差图 24 个文件在补 auto-range 图前后 SHA-256 均未变化。
+
+闭合只认证 N8 geometry-domain/product contract。它不改变 frozen Group 8、current-v5、N6/N7 历史数值，不声明 provider CFD 物理精度、performance threshold、registry admission 或 baseline promotion。
+
+当前 evidence：
+
+- `attachment/Faceted3D_v2_G1_G2_geometry_domain_closure_20260727.md`
+- `attachment/Faceted3D_v2_G3_geometry_domain_implementation_validation_20260727.md`

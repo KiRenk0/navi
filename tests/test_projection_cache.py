@@ -14,7 +14,6 @@ Covers:
 from __future__ import annotations
 
 import hashlib
-import io
 import json
 import tempfile
 import unittest
@@ -44,9 +43,7 @@ from ref_enthalpy_method.mapping.fluent_surface import read_fluent_surface_geome
 
 
 def _sha256_ndarray(arr: np.ndarray) -> str:
-    return hashlib.sha256(
-        np.ascontiguousarray(arr).tobytes(order="C")
-    ).hexdigest()
+    return hashlib.sha256(np.ascontiguousarray(arr).tobytes(order="C")).hexdigest()
 
 
 def _sha256_text(text: str) -> str:
@@ -126,7 +123,7 @@ def _write_and_load(
             triangle_count=triangle_count,
         )
         return path, result
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - test helper returns loader failures
         return path, exc
 
 
@@ -451,7 +448,9 @@ class CacheTruncatedCorruptedTest(unittest.TestCase):
         data = path.read_bytes()[:50]  # truncate
         truncated.write_bytes(data)
         identity = _make_synthetic_identity()
-        with self.assertRaises((CacheIntegrityError, CacheIdentityMismatchError, OSError)):
+        with self.assertRaises(
+            (CacheIntegrityError, CacheIdentityMismatchError, OSError)
+        ):
             load_projection_cache(truncated, **identity)
 
     def test_corrupted_manifest_json(self) -> None:
@@ -501,7 +500,11 @@ class CacheGeometryReuseTest(unittest.TestCase):
         identity = _make_synthetic_identity()
         # Flip one character in the canonical geometry hash
         original_hash = identity["fluent_canonical_geometry_sha256"]
-        flipped = "0" + original_hash[1:] if original_hash[0] != "0" else "1" + original_hash[1:]
+        flipped = (
+            "0" + original_hash[1:]
+            if original_hash[0] != "0"
+            else "1" + original_hash[1:]
+        )
         identity["fluent_canonical_geometry_sha256"] = flipped
         with self.assertRaises(CacheIdentityMismatchError):
             load_projection_cache(path, **identity)
@@ -655,6 +658,7 @@ class CacheOrchestrationTest(unittest.TestCase):
         write_cache: bool = False,
         use_bvh: bool = False,
         gate: float = 0.005,
+        cache_identity_scope: str = "source_geometry",
     ) -> FluentSurfaceProjection:
         return project_fluent_surface_with_cache(
             self.geometry if geometry is None else geometry,
@@ -666,6 +670,7 @@ class CacheOrchestrationTest(unittest.TestCase):
             geometry_identity_kwargs=(
                 None if cache_path is None else self._identity_kwargs()
             ),
+            cache_identity_scope=cache_identity_scope,
         )
 
     def _create_valid_cache(self) -> FluentSurfaceProjection:
@@ -673,10 +678,7 @@ class CacheOrchestrationTest(unittest.TestCase):
 
     def _read_npz(self) -> dict[str, np.ndarray]:
         with np.load(self.cache_path, allow_pickle=False) as loaded:
-            return {
-                name: np.array(loaded[name], copy=True)
-                for name in loaded.files
-            }
+            return {name: np.array(loaded[name], copy=True) for name in loaded.files}
 
     def _rewrite_npz(self, data: dict[str, np.ndarray]) -> None:
         np.savez_compressed(self.cache_path, **data)
@@ -713,12 +715,67 @@ class CacheOrchestrationTest(unittest.TestCase):
         for actual in (brute_flag, bvh_flag):
             self.assertIsInstance(actual, FluentSurfaceProjection)
             for field in (
-                "canonical_index", "solver_xyz", "projected_xyz", "triangle_id",
-                "projection_distance_m", "raw_normal", "projection_gate_pass",
+                "canonical_index",
+                "solver_xyz",
+                "projected_xyz",
+                "triangle_id",
+                "projection_distance_m",
+                "raw_normal",
+                "projection_gate_pass",
             ):
                 np.testing.assert_array_equal(
                     getattr(actual, field), getattr(expected, field)
                 )
+
+    def test_canonical_scope_reuses_source_row_and_cellnumber_reordering(
+        self,
+    ) -> None:
+        reordered_path = self.root / "reordered.csv"
+        reordered_path.write_text(
+            "cellnumber,x-coordinate,y-coordinate,z-coordinate,wall-temperature\n"
+            "99,0.37,0.3,0.002,500.0\n"
+            "42,0.17,0.2,0.001,600.0\n",
+            encoding="utf-8",
+        )
+        reordered = read_fluent_surface_geometry_csv(reordered_path, x_offset_m=0.030)
+        np.testing.assert_array_equal(
+            reordered.canonical_solver_xyz,
+            self.geometry.canonical_solver_xyz,
+        )
+        expected = self._call(
+            cache_path=self.cache_path,
+            write_cache=True,
+            cache_identity_scope="canonical_geometry",
+        )
+        with mock.patch(
+            "ref_enthalpy_method.mapping.fluent_projection.project_fluent_surface_exact",
+            side_effect=AssertionError("canonical cache hit must not project"),
+        ):
+            actual = self._call(
+                geometry=reordered,
+                cache_path=self.cache_path,
+                cache_identity_scope="canonical_geometry",
+            )
+        np.testing.assert_array_equal(actual.projected_xyz, expected.projected_xyz)
+        with np.load(self.cache_path, allow_pickle=False) as archive:
+            manifest = json.loads(bytes(archive["manifest_json"]).decode("utf-8"))
+        self.assertEqual(
+            manifest["fluent_identity_scope"],
+            "canonical_geometry",
+        )
+        changed_path = self.root / "canonical-coordinate-changed.csv"
+        self._write_geometry(
+            changed_path,
+            temperatures=(700.0, 800.0),
+            geometry_delta=np.spacing(0.17),
+        )
+        changed = read_fluent_surface_geometry_csv(changed_path, x_offset_m=0.030)
+        with self.assertRaises(CacheIdentityMismatchError):
+            self._call(
+                geometry=changed,
+                cache_path=self.cache_path,
+                cache_identity_scope="canonical_geometry",
+            )
 
     def test_identity_mismatches_fail_closed(self) -> None:
         self._create_valid_cache()
@@ -810,9 +867,7 @@ class CacheOrchestrationTest(unittest.TestCase):
             "ref_enthalpy_method.mapping.fluent_projection.project_fluent_surface_exact",
             side_effect=AssertionError("temperature-only change must hit cache"),
         ):
-            hit = self._call(
-                geometry=temperature_geometry, cache_path=self.cache_path
-            )
+            hit = self._call(geometry=temperature_geometry, cache_path=self.cache_path)
         self.assertIsInstance(hit, FluentSurfaceProjection)
 
         changed_path = self.root / "geometry_bit_change.csv"

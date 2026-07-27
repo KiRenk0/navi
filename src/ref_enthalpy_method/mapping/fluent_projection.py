@@ -9,12 +9,12 @@ from typing import Any
 
 import numpy as np
 
-from ref_enthalpy_method.geometry.exact_projection import project_points_exact
 from ref_enthalpy_method.geometry.exact_bvh import (
     ExactBvh,
     build_exact_bvh,
     project_points_bvh,
 )
+from ref_enthalpy_method.geometry.exact_projection import project_points_exact
 from ref_enthalpy_method.mapping.fluent_surface import FluentSurfaceGeometry
 
 
@@ -51,7 +51,9 @@ def _validate_selected_raw_normals(
         normal_norm > np.finfo(np.float64).eps * scale_squared
     )
     if not np.all(np.isfinite(raw_normal[nondegenerate])):
-        raise ValueError("kernel raw_normal must be finite for selected nondegenerate triangles")
+        raise ValueError(
+            "kernel raw_normal must be finite for selected nondegenerate triangles"
+        )
 
 
 @dataclass(frozen=True)
@@ -107,22 +109,30 @@ def project_fluent_surface_exact(
             f"(N, 3), got {canonical_xyz.shape}"
         )
     if canonical_xyz.shape[0] == 0:
-        raise ValueError("geometry canonical solver coordinates must contain at least one point")
+        raise ValueError(
+            "geometry canonical solver coordinates must contain at least one point"
+        )
     if not np.all(np.isfinite(canonical_xyz)):
-        raise ValueError("geometry canonical solver coordinates must contain only finite values")
+        raise ValueError(
+            "geometry canonical solver coordinates must contain only finite values"
+        )
 
     triangle_array = np.asarray(triangles)
     if triangle_array.dtype != np.dtype(np.float64):
         triangle_array = np.asarray(triangles, dtype=np.float64)
     if triangle_array.ndim != 3 or triangle_array.shape[1:] != (3, 3):
-        raise ValueError(f"triangles must have shape (M, 3, 3), got {triangle_array.shape}")
+        raise ValueError(
+            f"triangles must have shape (M, 3, 3), got {triangle_array.shape}"
+        )
     if triangle_array.shape[0] == 0:
         raise ValueError("triangles must contain at least one triangle")
     if not np.all(np.isfinite(triangle_array)):
         raise ValueError("triangles must contain only finite values")
 
     points_for_kernel = np.array(canonical_xyz, dtype=np.float64, copy=True, order="C")
-    triangles_for_kernel = np.array(triangle_array, dtype=np.float64, copy=True, order="C")
+    triangles_for_kernel = np.array(
+        triangle_array, dtype=np.float64, copy=True, order="C"
+    )
 
     if use_bvh:
         current_bvh: ExactBvh
@@ -131,7 +141,9 @@ def project_fluent_surface_exact(
         else:
             current_bvh = build_exact_bvh(triangles_for_kernel)
         bvh_result_raw = project_points_bvh(
-            points_for_kernel, triangles_for_kernel, bvh=current_bvh,
+            points_for_kernel,
+            triangles_for_kernel,
+            bvh=current_bvh,
             diagnostics=return_diagnostics,
         )
         if return_diagnostics:
@@ -140,9 +152,7 @@ def project_fluent_surface_exact(
             kernel_result = bvh_result_raw
     else:
         if return_diagnostics:
-            raise ValueError(
-                "return_diagnostics=True requires use_bvh=True"
-            )
+            raise ValueError("return_diagnostics=True requires use_bvh=True")
         kernel_result = project_points_exact(points_for_kernel, triangles_for_kernel)
 
     count = canonical_xyz.shape[0]
@@ -151,15 +161,21 @@ def project_fluent_surface_exact(
     distance = np.asarray(kernel_result.distance)
     raw_normal = np.asarray(kernel_result.raw_normal)
     if triangle_id.shape != (count,):
-        raise ValueError(f"kernel triangle_id must have shape ({count},), got {triangle_id.shape}")
+        raise ValueError(
+            f"kernel triangle_id must have shape ({count},), got {triangle_id.shape}"
+        )
     if projected_xyz.shape != (count, 3):
         raise ValueError(
             f"kernel closest_point must have shape ({count}, 3), got {projected_xyz.shape}"
         )
     if distance.shape != (count,):
-        raise ValueError(f"kernel distance must have shape ({count},), got {distance.shape}")
+        raise ValueError(
+            f"kernel distance must have shape ({count},), got {distance.shape}"
+        )
     if raw_normal.shape != (count, 3):
-        raise ValueError(f"kernel raw_normal must have shape ({count}, 3), got {raw_normal.shape}")
+        raise ValueError(
+            f"kernel raw_normal must have shape ({count}, 3), got {raw_normal.shape}"
+        )
     if not np.issubdtype(triangle_id.dtype, np.integer):
         raise ValueError("kernel triangle_id must have an integer dtype")
 
@@ -168,7 +184,9 @@ def project_fluent_surface_exact(
     distance = np.asarray(distance, dtype=np.float64)
     raw_normal = np.asarray(raw_normal, dtype=np.float64)
     if np.any(triangle_id < 0) or np.any(triangle_id >= triangle_array.shape[0]):
-        raise ValueError("kernel triangle_id contains an index outside the triangle mesh")
+        raise ValueError(
+            "kernel triangle_id contains an index outside the triangle mesh"
+        )
     if not np.all(np.isfinite(projected_xyz)):
         raise ValueError("kernel closest_point must contain only finite values")
     if not np.all(np.isfinite(distance)) or np.any(distance < 0.0):
@@ -248,6 +266,7 @@ def project_fluent_surface_with_cache(
     cache_path: str | Path | None = None,
     write_cache: bool = False,
     geometry_identity_kwargs: dict[str, Any] | None = None,
+    cache_identity_scope: str = "source_geometry",
 ) -> FluentSurfaceProjection:
     """Single orchestration entry point for Fluent projection with optional caching.
 
@@ -262,6 +281,11 @@ def project_fluent_surface_with_cache(
     Cache identity validation requires *geometry_identity_kwargs* with all the
     fields documented in ``projection_cache.build_geometry_identity``.
 
+    ``source_geometry`` preserves the historical strict source-row/cell identity.
+    ``canonical_geometry`` is an explicit opt-in for consumers whose projection
+    input is the canonical coordinate array; it still rejects any canonical
+    coordinate, mesh, transform, sampling, outline, or gate identity change.
+
     Returns
     -------
     FluentSurfaceProjection
@@ -273,6 +297,12 @@ def project_fluent_surface_with_cache(
         write_projection_cache,
     )
 
+    identity_scope = str(cache_identity_scope)
+    if identity_scope not in {"source_geometry", "canonical_geometry"}:
+        raise ValueError(
+            "cache_identity_scope must be 'source_geometry' or 'canonical_geometry'"
+        )
+
     gate = _positive_finite_scalar(projection_gate_m, name="projection_gate_m")
     solver_xyz = np.asarray(geometry.canonical_solver_xyz)
     if solver_xyz.dtype != np.dtype(np.float64):
@@ -280,9 +310,7 @@ def project_fluent_surface_with_cache(
             "geometry canonical solver coordinates must have dtype float64"
         )
     if solver_xyz.ndim != 2 or solver_xyz.shape[1:] != (3,):
-        raise ValueError(
-            "geometry canonical solver coordinates must have shape (N, 3)"
-        )
+        raise ValueError("geometry canonical solver coordinates must have shape (N, 3)")
     if solver_xyz.shape[0] == 0 or not np.all(np.isfinite(solver_xyz)):
         raise ValueError(
             "geometry canonical solver coordinates must be nonempty and finite"
@@ -314,6 +342,9 @@ def project_fluent_surface_with_cache(
         )
         identity = build_geometry_identity(**identity_inputs)
 
+        if identity_scope == "canonical_geometry":
+            identity["fluent_source_geometry_sha256"] = canonical_hash
+
     cache_p = Path(cache_path).resolve() if cache_path is not None else None
     if cache_p is not None and cache_p.exists() and not cache_p.is_file():
         raise ValueError(f"cache_path exists but is not a file: {cache_p}")
@@ -331,6 +362,11 @@ def project_fluent_surface_with_cache(
         _validate_selected_raw_normals(
             triangle_array, cached.triangle_id, cached.raw_normal
         )
+        cached_scope = str(
+            cached.manifest.get("fluent_identity_scope", "source_geometry")
+        )
+        if cached_scope != identity_scope:
+            raise ValueError("projection cache identity scope mismatch")
         projection = FluentSurfaceProjection(
             canonical_index=_readonly_copy(
                 np.arange(solver_xyz.shape[0]), dtype=np.int64
@@ -364,9 +400,7 @@ def project_fluent_surface_with_cache(
 
     if write_cache and cache_p is not None:
         if identity is None:
-            raise ValueError(
-                "geometry_identity_kwargs required for cache writing"
-            )
+            raise ValueError("geometry_identity_kwargs required for cache writing")
         manifest = build_cache_manifest(
             **identity,
             projected_xyz=projection.projected_xyz,
@@ -375,6 +409,7 @@ def project_fluent_surface_with_cache(
             projection_distance_m=projection.projection_distance_m,
             projection_gate_pass=projection.projection_gate_pass,
         )
+        manifest["fluent_identity_scope"] = identity_scope
         write_projection_cache(
             target_path=cache_p,
             projected_xyz=projection.projected_xyz,

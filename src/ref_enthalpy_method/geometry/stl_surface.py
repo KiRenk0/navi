@@ -52,7 +52,7 @@ def _parse_vertex_line(line: str) -> tuple[float, float, float] | None:
         return None
     try:
         return float(parts[1]), float(parts[2]), float(parts[3])
-    except Exception:
+    except ValueError:
         return None
 
 
@@ -100,14 +100,14 @@ class AsciiStlMesh:
                 x, y, z = v
                 v_abs_max = max(v_abs_max, abs(x), abs(y), abs(z))
                 cur.append((x, y, z))
-                if len(cur) == 3:       #凑够三个顶点=一个三角形
+                if len(cur) == 3:  # 凑够三个顶点=一个三角形
                     tris.append(cur)
                     cur = []
 
         if len(tris) == 0:
             raise ValueError(f"No triangles parsed from STL: {p}")
 
-        scale = float(_auto_unit_scale(v_abs_max=v_abs_max, unit=unit))    #统一坐标
+        scale = float(_auto_unit_scale(v_abs_max=v_abs_max, unit=unit))  # 统一坐标
 
         # Convert to solver coords[坐标转换]: (x, span, up) = (x_cad, span_sign*z_cad, y_cad)
         arr = np.asarray(tris, dtype=float) * scale  # (nt,3,3) in CAD order
@@ -134,13 +134,29 @@ class AsciiStlMesh:
         p1 = v1[:, :2].copy()
         p2 = v2[:, :2].copy()
 
-        bb_min = np.stack([np.minimum.reduce([p0[:, 0], p1[:, 0], p2[:, 0]]), np.minimum.reduce([p0[:, 1], p1[:, 1], p2[:, 1]])], axis=1)
-        bb_max = np.stack([np.maximum.reduce([p0[:, 0], p1[:, 0], p2[:, 0]]), np.maximum.reduce([p0[:, 1], p1[:, 1], p2[:, 1]])], axis=1)
+        bb_min = np.stack(
+            [
+                np.minimum.reduce([p0[:, 0], p1[:, 0], p2[:, 0]]),
+                np.minimum.reduce([p0[:, 1], p1[:, 1], p2[:, 1]]),
+            ],
+            axis=1,
+        )
+        bb_max = np.stack(
+            [
+                np.maximum.reduce([p0[:, 0], p1[:, 0], p2[:, 0]]),
+                np.maximum.reduce([p0[:, 1], p1[:, 1], p2[:, 1]]),
+            ],
+            axis=1,
+        )
 
-        return cls(v0=v0, v1=v1, v2=v2, p0=p0, p1=p1, p2=p2, bb_min=bb_min, bb_max=bb_max)
+        return cls(
+            v0=v0, v1=v1, v2=v2, p0=p0, p1=p1, p2=p2, bb_min=bb_min, bb_max=bb_max
+        )
 
 
-def _point_in_tri_2d(px: float, py: float, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> bool:
+def _point_in_tri_2d(
+    px: float, py: float, a: np.ndarray, b: np.ndarray, c: np.ndarray
+) -> bool:
     """Barycentric test in 2D. a,b,c are (2,) arrays."""
     ax, ay = float(a[0]), float(a[1])
     bx, by = float(b[0]), float(b[1])
@@ -197,7 +213,12 @@ class SurfaceSlopeSampler:
         for i in range(bb0.shape[0]):
             x0, y0 = float(bb0[i, 0]), float(bb0[i, 1])
             x1, y1 = float(bb1[i, 0]), float(bb1[i, 1])
-            if not (np.isfinite(x0) and np.isfinite(y0) and np.isfinite(x1) and np.isfinite(y1)):
+            if not (
+                np.isfinite(x0)
+                and np.isfinite(y0)
+                and np.isfinite(x1)
+                and np.isfinite(y1)
+            ):
                 continue
             id0 = self._bin_id(x0, y0)
             id1 = self._bin_id(x1, y1)
@@ -210,7 +231,12 @@ class SurfaceSlopeSampler:
                 for ix in range(min(ix0, ix1), max(ix0, ix1) + 1):
                     self._bins[base + ix].append(i)
 
-    def sample_upper_lower(self, *, x: float, span: float) -> tuple[tuple[float, float, float, float, float, float] | None, tuple[float, float, float, float, float, float] | None]:
+    def sample_upper_lower(
+        self, *, x: float, span: float
+    ) -> tuple[
+        tuple[float, float, float, float, float, float] | None,
+        tuple[float, float, float, float, float, float] | None,
+    ]:
         """Return the existing six-field upper/lower sampling contract."""
         upper, lower = self.sample_upper_lower_with_triangle_id(x=x, span=span)
         return (
@@ -218,8 +244,29 @@ class SurfaceSlopeSampler:
             None if lower is None else lower[:6],
         )
 
-    def sample_upper_lower_with_triangle_id(self, *, x: float, span: float) -> tuple[tuple[float, float, float, float, float, float, int] | None, tuple[float, float, float, float, float, float, int] | None]:
-        """Return selected skin samples plus the exact source triangle ID."""
+    def sample_upper_lower_with_triangle_id(
+        self,
+        *,
+        x: float,
+        span: float,
+        triangle_sheet: np.ndarray | None = None,
+        upper_sheet_code: int = 1,
+        lower_sheet_code: int = 2,
+    ) -> tuple[
+        tuple[float, float, float, float, float, float, int] | None,
+        tuple[float, float, float, float, float, float, int] | None,
+    ]:
+        """Return selected skin samples plus the exact source triangle ID.
+
+        When triangle_sheet is provided, upper/lower candidates are filtered
+        by the requested geometric sheet before height ordering. This prevents
+        a surviving triangle from one sheet being returned for both requests.
+        """
+        sheets: np.ndarray | None = None
+        if triangle_sheet is not None:
+            sheets = np.asarray(triangle_sheet)
+            if sheets.shape != (self.mesh.v0.shape[0],):
+                raise ValueError("triangle_sheet must have one code per STL triangle")
         bid = self._bin_id(float(x), float(span))
         cand = self._bins[bid]
         if not cand:
@@ -231,11 +278,19 @@ class SurfaceSlopeSampler:
 
         for ti in cand:
             # Quick bb reject
-            if px < float(self.mesh.bb_min[ti, 0]) - 1e-12 or px > float(self.mesh.bb_max[ti, 0]) + 1e-12:
+            if (
+                px < float(self.mesh.bb_min[ti, 0]) - 1e-12
+                or px > float(self.mesh.bb_max[ti, 0]) + 1e-12
+            ):
                 continue
-            if py < float(self.mesh.bb_min[ti, 1]) - 1e-12 or py > float(self.mesh.bb_max[ti, 1]) + 1e-12:
+            if (
+                py < float(self.mesh.bb_min[ti, 1]) - 1e-12
+                or py > float(self.mesh.bb_max[ti, 1]) + 1e-12
+            ):
                 continue
-            if not _point_in_tri_2d(px, py, self.mesh.p0[ti], self.mesh.p1[ti], self.mesh.p2[ti]):
+            if not _point_in_tri_2d(
+                px, py, self.mesh.p0[ti], self.mesh.p1[ti], self.mesh.p2[ti]
+            ):
                 continue
 
             v0 = self.mesh.v0[ti]
@@ -273,10 +328,21 @@ class SurfaceSlopeSampler:
         if not candidates:
             return None, None
 
-        def _pick_surface(*, want_upper: bool) -> tuple[float, float, float, float, float, float, int] | None:
+        def _pick_surface(
+            *, want_upper: bool
+        ) -> tuple[float, float, float, float, float, float, int] | None:
+            requested_code = int(upper_sheet_code if want_upper else lower_sheet_code)
             ordered = sorted(
-                candidates,
-                key=lambda c: ((-1.0 if want_upper else 1.0) * float(c["z"]), int(c["triangle_id"])),
+                (
+                    candidate
+                    for candidate in candidates
+                    if sheets is None
+                    or int(sheets[int(candidate["triangle_id"])]) == requested_code
+                ),
+                key=lambda c: (
+                    (-1.0 if want_upper else 1.0) * float(c["z"]),
+                    int(c["triangle_id"]),
+                ),
             )
             for c in ordered:
                 if float(c["abs_nz_hat"]) >= float(self.surface_abs_nz_min):
@@ -295,3 +361,145 @@ class SurfaceSlopeSampler:
         lower = _pick_surface(want_upper=False)
         return upper, lower
 
+
+def _corner_angle(vertices: np.ndarray, corner: int) -> float:
+    origin = vertices[corner]
+    first = vertices[(corner + 1) % 3] - origin
+    second = vertices[(corner + 2) % 3] - origin
+    denominator = float(np.linalg.norm(first) * np.linalg.norm(second))
+    if denominator <= 0.0:
+        return 0.0
+    cosine = float(np.clip(np.dot(first, second) / denominator, -1.0, 1.0))
+    return float(np.arccos(cosine))
+
+
+def _barycentric_coordinates_2d(
+    *,
+    point: np.ndarray,
+    triangle: np.ndarray,
+) -> np.ndarray:
+    px, py = np.asarray(point, dtype=np.float64)
+    (ax, ay), (bx, by), (cx, cy) = np.asarray(triangle, dtype=np.float64)
+    denominator = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+    if abs(float(denominator)) <= 1.0e-18:
+        return np.full(3, np.nan, dtype=np.float64)
+    first = ((by - cy) * (px - cx) + (cx - bx) * (py - cy)) / denominator
+    second = ((cy - ay) * (px - cx) + (ax - cx) * (py - cy)) / denominator
+    return np.asarray([first, second, 1.0 - first - second], dtype=np.float64)
+
+
+@dataclass
+class ContinuousStlNormalField:
+    """Angle-weighted, crease-preserving vertex normals for an STL triangle soup.
+
+    Triangle selection and surface height remain owned by SurfaceSlopeSampler.
+    This field only replaces piecewise-constant face normals where a consumer
+    requires a continuous normal on a design surface intended to be smooth.
+    """
+
+    mesh: AsciiStlMesh
+    triangle_sheet: np.ndarray
+    crease_angle_deg: float = 20.0
+    upper_sheet_code: int = 1
+    lower_sheet_code: int = 2
+    vertex_round_decimals: int = 12
+
+    def __post_init__(self) -> None:
+        triangles = np.stack((self.mesh.v0, self.mesh.v1, self.mesh.v2), axis=1).astype(
+            np.float64, copy=False
+        )
+        sheets = np.asarray(self.triangle_sheet)
+        if sheets.shape != (triangles.shape[0],):
+            raise ValueError("triangle_sheet must have one code per STL triangle")
+        crease = float(self.crease_angle_deg)
+        if not np.isfinite(crease) or not 0.0 < crease < 180.0:
+            raise ValueError("crease_angle_deg must be finite and between 0 and 180")
+
+        raw = np.cross(
+            triangles[:, 1] - triangles[:, 0], triangles[:, 2] - triangles[:, 0]
+        )
+        magnitude = np.linalg.norm(raw, axis=1)
+        face_normals = np.full(raw.shape, np.nan, dtype=np.float64)
+        valid = magnitude > 1.0e-12
+        face_normals[valid] = raw[valid] / magnitude[valid, None]
+        for code, z_sign in (
+            (int(self.upper_sheet_code), 1.0),
+            (int(self.lower_sheet_code), -1.0),
+        ):
+            flip = (sheets == code) & valid & (face_normals[:, 2] * z_sign < 0.0)
+            face_normals[flip] *= -1.0
+
+        corner_angles = np.zeros((triangles.shape[0], 3), dtype=np.float64)
+        adjacency: dict[
+            tuple[int, tuple[float, float, float]], list[tuple[int, int]]
+        ] = {}
+        skin_codes = {int(self.upper_sheet_code), int(self.lower_sheet_code)}
+        for triangle_id, vertices in enumerate(triangles):
+            sheet_code = int(sheets[triangle_id])
+            if sheet_code not in skin_codes or not valid[triangle_id]:
+                continue
+            for corner in range(3):
+                corner_angles[triangle_id, corner] = _corner_angle(vertices, corner)
+                vertex_key = tuple(
+                    np.round(vertices[corner], int(self.vertex_round_decimals)).tolist()
+                )
+                adjacency.setdefault((sheet_code, vertex_key), []).append(
+                    (triangle_id, corner)
+                )
+
+        cosine_limit = float(np.cos(np.deg2rad(crease)))
+        corner_normals = np.full((*corner_angles.shape, 3), np.nan, dtype=np.float64)
+        for triangle_id, vertices in enumerate(triangles):
+            sheet_code = int(sheets[triangle_id])
+            if sheet_code not in skin_codes or not valid[triangle_id]:
+                continue
+            reference = face_normals[triangle_id]
+            for corner in range(3):
+                vertex_key = tuple(
+                    np.round(vertices[corner], int(self.vertex_round_decimals)).tolist()
+                )
+                weighted = np.zeros(3, dtype=np.float64)
+                for adjacent_id, adjacent_corner in adjacency[(sheet_code, vertex_key)]:
+                    candidate = face_normals[adjacent_id]
+                    if float(np.dot(reference, candidate)) < cosine_limit:
+                        continue
+                    weight = float(corner_angles[adjacent_id, adjacent_corner])
+                    weighted += weight * candidate
+                weighted_norm = float(np.linalg.norm(weighted))
+                if weighted_norm <= 1.0e-12:
+                    corner_normals[triangle_id, corner] = reference
+                else:
+                    corner_normals[triangle_id, corner] = weighted / weighted_norm
+
+        self.face_normals = face_normals
+        self.corner_normals = corner_normals
+
+    def sample_outward_normal(
+        self,
+        *,
+        triangle_id: int,
+        x: float,
+        span: float,
+    ) -> np.ndarray:
+        """Interpolate the crease-aware vertex normal inside one selected triangle."""
+
+        index = int(triangle_id)
+        if index < 0 or index >= self.face_normals.shape[0]:
+            raise IndexError("triangle_id is outside the STL triangle array")
+        corners = self.corner_normals[index]
+        if not np.all(np.isfinite(corners)):
+            return np.full(3, np.nan, dtype=np.float64)
+        projected = np.stack(
+            (self.mesh.p0[index], self.mesh.p1[index], self.mesh.p2[index])
+        )
+        barycentric = _barycentric_coordinates_2d(
+            point=np.asarray([x, span], dtype=np.float64),
+            triangle=projected,
+        )
+        if not np.all(np.isfinite(barycentric)) or np.any(barycentric < -1.0e-8):
+            return np.full(3, np.nan, dtype=np.float64)
+        interpolated = barycentric @ corners
+        magnitude = float(np.linalg.norm(interpolated))
+        if magnitude <= 1.0e-12:
+            return np.full(3, np.nan, dtype=np.float64)
+        return np.asarray(interpolated / magnitude, dtype=np.float64)

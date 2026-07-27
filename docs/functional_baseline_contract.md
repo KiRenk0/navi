@@ -1,14 +1,14 @@
 # 功能基准线（Functional Baseline Contract）
 
-本文件定义 `src/ref_enthalpy_method/` 的 **功能基准线**：与旧实现 `ref_enthalpy/` **行为等价**的输入/输出契约。
+本文件定义 `src/ref_enthalpy_method/` 当前正式求解器与 additive N8 product 的输入、输出和验证契约。
 
 目标：后续重写（更清晰的模块化 + 更强的可测试性）时，**不丢功能、不改用户工作流**。
 
 ## 0. 正式参数域与默认口径（2026-07-12 冻结）
 
 - **正式高度参数域：20–40 km。** 30/35/40 km 采用标准 USSA 1976 大气口径。
-- **大气模型：** CLI 输入 `h_m` 为几何高度，内部自动换算为位势高度后按 1976 标准大气分层计算。`isa1976.py` 是唯一正式实现，`ussa1976.py` 为薄兼容 alias。
-- **explicit override：** 支持 `--T_inf_K` / `--p_inf_Pa` 成对显式覆盖（必须同时提供），覆盖后跳过大气模型。
+- **大气模型：** `ussa1976.py` 是唯一活动实现。只提供几何高度时，内部换算为位势高度后按 USSA 1976 分层计算；活动代码不再提供 ISA fallback。
+- **explicit override：** 支持 `--T_inf_K` / `--p_inf_Pa` 成对显式覆盖（必须同时提供）。只要提供完整温压对，即使同时提供高度也以自定义温压为准并跳过 USSA；只提供温度或压力之一属于非法输入。
 - **thermodynamics：** Route A-TPG 是唯一正式且唯一可运行模型；CLI 不提供 thermodynamics 选择。
 - **Taw recovery：** Route A-TPG Taw 固定使用 fully turbulent `r_aw = Pr^(1/3)`（`Pr=0.72`），与 q-chain transition weighting 解耦。
 - **pressure closure：** `newtonian_like`，`A=0.38`，`n=1.15`（已冻结）。
@@ -70,7 +70,7 @@
 
 ### 1.4 翼型 `.dat` 格式（你后续加翼型就按这个）
 
-示例：`ref_enthalpy/specs/airfoils/doubleconvex_t0p03.dat`
+示例：`specs/airfoils/doubleconvex_t0p03.dat`
 
 - **第 1 行**：翼型名字/注释（任意字符串，读取时会跳过）
 - **后续每行**：两个浮点数 `x y`
@@ -195,14 +195,49 @@ candidate manifest 顶层字段按顺序固定为：
 - 显式路径交叉校验 `inputs.T_inf_K_override`、`inputs.p_inf_Pa_override`、`freestream.freestream_source`、`freestream.T_inf_K` 与 `freestream.p_inf_Pa`；source 必须为 `explicit_override`，校验通过后记录 `atmosphere.explicit_freestream_override=true`。显式 summary 未同时提供对应 provenance pair 时拒绝生成 manifest。
 - 非显式 candidate 路径保持向后兼容并记录 `atmosphere.explicit_freestream_override=false`。本修复未改变 candidate manifest 顶层字段集合，也未改变正式 v5 baseline、`CASES`、registry、freeze/check、source inventory、Groups 1–8 或 72-field serialization contract。
 
+## 3. 当前权威来源
 
-当你确认 `specs/` 内容齐全后（本项目默认即为 `specs/`）：
+- 算法公式：根目录 `Reference_Enthalpy_Method_Technical_Doc.md`。
+- 生产输入：`specs/`。
+- 生产源码：`src/ref_enthalpy_method/`。
+- 正式入口与验证命令：`docs/faceted3d_official_cli_run_guide_zh.md`。
 
-- 新项目运行不再依赖 `ref_enthalpy/`
-- 你可以安全删除 `ref_enthalpy/`（如需保留历史文档/截图，可自行备份）
+本仓库不依赖外部旧 editable package 或已删除的 `ref_enthalpy/` 源码树。
 
-## 3. 文档来源
+## 4. N8 Taw Surface v4 Additive Contract（2026-07-27）
 
-- `ref_enthalpy/具体方法/Reference_Enthalpy_Method_Technical_Doc.md`
-- `ref_enthalpy/使用教程.md`
+本节只约束 `src/ref_enthalpy_method/n8_taw_surface.py` 生成的 N8 联合 Taw surface 产品，不修改 current-v5 baseline、Groups 1-8、72-field solver serialization 或 N6/N7 历史认证。
 
+### 4.1 Schema 与几何域
+
+- summary schema：`n8-taw-run-summary/v4`。
+- dispatch schema：`n8-taw-dispatch/v3`。
+- normal schema：`stl-angle-weighted-continuous-normal/v1`；crease threshold=20°。
+- topology schema：`n8-taw-domain-topology/v1`。
+- product node table 只包含权威 graph-skin 节点；legacy phase9 exclusions 必须保存在 typed audit arrays。
+- 显式 `triangle_node_ids` 同时服务渲染和 local mapping support；三角形不得跨 geometric sheet。
+- geometry-valid 点必须具有有限单位连续/面法向、两套 incidence、连续法向导出的 `sx/sy`、有效 triangle identity 和有限 smoothing angle。
+- provider-valid 必须 exact-equal geometry-valid。
+
+### 4.2 Taw dispatch 与对比
+
+- `s<=0` 使用 freestream recovery；`0<s<0.05` 在 enthalpy space 使用 C1 smoothstep；`s>=0.05` 使用 fully turbulent windward candidate。
+- signed error direction 固定为 prediction-observation。
+- comparison 只在 local valid-triangle support 内有效；unsupported rows 必须显式标为 `MAPPING_UNSUPPORTED`，误差字段为 NaN。
+- 固定误差图色标为 `-10%..+10%`。
+- auto-range 误差图只统计 `comparison_valid=True` 且有限的 `signed_relative_error_pct`；色标上下限为该 sheet 实际 min/max，不使用 extend。
+
+### 4.3 发布与验证
+
+当前结果目录为 `runs/n8_taw_surface/*_phase13_geometry_domain_v4`。每工况必须原子发布 13 件产物，并由 `validate_n8_run_artifacts()` 检查 inventory、summary/NPZ 合同、topology identity、comparison masks、auto-range contract 和非空 PNG。
+
+十二工况当前均为：
+
+- 9,663 product nodes
+- 18,110 product triangles
+- 333 typed legacy exclusions
+- 9,663/9,663 geometry/provider-valid
+- runner 12/12 PASS
+- validator 12/12 PASS
+
+该合同闭合 N8 geometry-domain/product，不构成 provider CFD validation、统一性能门限、registry admission 或 baseline promotion。冻结 Group 8、current-v5 和 N6/N7 历史产品不得追溯回算。

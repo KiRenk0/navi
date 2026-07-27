@@ -1,0 +1,26 @@
+schema: n8-taw-case/v1
+
+case:
+  case_id: ma6p5_a5_h40km
+  observation_csv: fluent_export/adiabatic_wall_csv/287pa_251k_40km_5alpha_6.5ma.csv
+  mach: 6.5
+  alpha_deg: 5.0
+  T_inf_K: 251.0
+  p_inf_Pa: 287.0
+  h_label_km: 40.0
+
+gas:
+  gamma: 1.4
+  R_J_per_kgK: 287.0
+  prandtl: 0.72
+
+geometry:
+  vehicle_spec: specs/vehicles/htv2_faceted3d_0629.yaml
+  fluent_x_offset_m: 0.030
+  projection_gate_m: 0.005
+
+sampling:
+  spec: specs/sampling/n8_taw_surface_grid_81x41.yaml
+
+plot:
+  signed_relative_error_limit_pct: 10.0

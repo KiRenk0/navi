@@ -855,16 +855,10 @@ class WingLowFidelitySolverFaceted3D:
             p_inf = float(self.case.p_inf_override_Pa)
             rho_inf = float(p_inf / (float(self.case.R_J_per_kgK) * T_inf))
         else:
-            model = str(self.case.atmosphere_model).strip().lower()
-            if model == "ussa1976":
-                from .atmosphere.ussa1976 import ussa1976_0_32km
+            from .atmosphere.ussa1976 import ussa1976
 
-                p_inf, rho_inf, T_inf = ussa1976_0_32km(h_m=self.case.fixed_h_m, R_gas_J_per_kgK=self.case.R_J_per_kgK)
-            else:
-                from .atmosphere.isa1976 import isa1976
-
-                atm = isa1976(self.case.fixed_h_m, R=self.case.R_J_per_kgK)
-                T_inf, p_inf, rho_inf = atm.T, atm.p, atm.rho
+            atm = ussa1976(self.case.fixed_h_m, R=self.case.R_J_per_kgK)
+            T_inf, p_inf, rho_inf = atm.T, atm.p, atm.rho
         a_inf = float(self.gas.tpg.a_T(float(T_inf)))
         v_inf = float(mach) * a_inf
         return float(p_inf), float(rho_inf), float(T_inf), float(v_inf)

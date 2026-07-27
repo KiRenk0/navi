@@ -59,8 +59,9 @@ def classify_triangle_geometric_sheets(
     triangles: np.ndarray,
     *,
     surface_abs_nz_min: float = 0.45,
+    propagate_components: bool = True,
 ) -> np.ndarray:
-    """Assign stable upper/lower identity through the formal sampler selection semantics."""
+    """Assign upper/lower identity and propagate it across eligible skin components."""
 
     triangle_array = _validate_triangles(triangles)
     sampler = SurfaceSlopeSampler(
@@ -86,6 +87,60 @@ def classify_triangle_geometric_sheets(
             result[triangle_index] = GEOMETRIC_SHEET_UPPER if is_upper else GEOMETRIC_SHEET_LOWER
         elif is_upper and is_lower:
             result[triangle_index] = GEOMETRIC_SHEET_INVALID
+
+    if not bool(propagate_components):
+        return _readonly(result, dtype=np.int8)
+
+    edge_owners: dict[
+        tuple[tuple[float, float, float], tuple[float, float, float]], list[int]
+    ] = {}
+    for triangle_index in np.flatnonzero(skin):
+        vertices = triangle_array[triangle_index]
+        for first, second in ((0, 1), (1, 2), (2, 0)):
+            endpoints = sorted(
+                (
+                    tuple(np.round(vertices[first], 12).tolist()),
+                    tuple(np.round(vertices[second], 12).tolist()),
+                )
+            )
+            edge_owners.setdefault((endpoints[0], endpoints[1]), []).append(
+                int(triangle_index)
+            )
+
+    adjacency: dict[int, set[int]] = {
+        int(index): set() for index in np.flatnonzero(skin)
+    }
+    for owners in edge_owners.values():
+        for triangle_index in owners:
+            adjacency[triangle_index].update(
+                other for other in owners if other != triangle_index
+            )
+
+    visited: set[int] = set()
+    for start in np.flatnonzero(skin):
+        start_index = int(start)
+        if start_index in visited:
+            continue
+        component: list[int] = []
+        pending = [start_index]
+        visited.add(start_index)
+        while pending:
+            triangle_index = pending.pop()
+            component.append(triangle_index)
+            for neighbor in adjacency[triangle_index]:
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    pending.append(neighbor)
+        seeds = {
+            int(result[index])
+            for index in component
+            if int(result[index])
+            in (GEOMETRIC_SHEET_UPPER, GEOMETRIC_SHEET_LOWER)
+        }
+        if len(seeds) == 1:
+            result[component] = np.int8(next(iter(seeds)))
+        elif not seeds:
+            result[component] = np.int8(GEOMETRIC_SHEET_OTHER)
     return _readonly(result, dtype=np.int8)
 
 

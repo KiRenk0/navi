@@ -407,3 +407,17 @@ Chapter 3.7A 只读审计已完成，N3 formal evidence package 的 technical ex
 GATE A 已完成，final branch=`A0`，当前战略节点=`N3a`，用于补充受控证据；没有进入 provider survey 或 N4，当前 freestream-recovery provider 保持 baseline 且不作修改。A3 未成立：现有 `ma6_a5_h30km` 与 `ma8_a5_h40km` 两个 formal cases 同时改变 Mach 与高度，case coverage 和变量控制不足，无法证明稳定、可解释、受控的跨 case provider 系统偏差。这是 coverage/变量混杂限制，不是 formal evidence chain 失败，也不构成模型性能 FAIL。
 
 N3a 只复用冻结的 ingestion、pairing 与 comparison 补可信 case 或必要诊断。第一步是对候选 case 的数据可用性、Fluent adiabatic-wall observation 与 provenance 入口进行只读审计；候选 M6/40 km 与 M8/30 km 只是 2×2 Mach/高度控制设计，不会自动进入正式 registry。任何 provider 候选研究或 N4 工作必须等待 N3a 完成并返回未来 GATE A 后的新裁决；当前不得新增 provider 公式、模型比较或性能 threshold。
+
+---
+
+## 13. N8 联合 Taw Surface v4 与 Legacy Leeward 模型边界（2026-07-27）
+
+本节记录当前 N8 surface product，不改写前述 legacy leeward q-chain 调研和 N6/N7 历史结论。
+
+- N8 在 geometric upper/lower 上统一判断局部 incidence；`stl-angle-weighted-continuous-normal/v1` 只接管 N8 incidence、near-tangent dispatch 与 windward Taw candidate 坡度。
+- legacy `q_l`、Group 8 freestream recovery、pressure、正式 windward edge-state 和 current-v5 routing 不由 N8 回算。
+- `s<=0` recovery、`0<s<0.05` C1 enthalpy blend、`s>=0.05` windward 的 dispatch schema 仍为 `n8-taw-dispatch/v3`。
+- v4 新增 `n8-taw-domain-topology/v1`：最终 product domain 由 graph-skin nodes 和显式 triangles 定义；legacy phase9 geometry failures 作为 typed exclusions 审计。
+- 12/12 `*_phase13_geometry_domain_v4` 工况 PASS；每工况 9,663 nodes、18,110 triangles、333 exclusions、13 件产物。
+- 固定 ±10% 与 actual min..max 两组 upper/lower signed-relative-error 图并存；unsupported/NaN 不参与 auto range。
+- G1-G4 和产品合同闭合不证明 recovery/windward provider 与 CFD 一致，不构成 leeward model validation、performance PASS 或 baseline promotion。

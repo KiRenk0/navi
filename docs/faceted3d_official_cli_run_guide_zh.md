@@ -140,3 +140,20 @@ Fluent 四工况 CSV 位于 `fluent_export/adiabatic_wall_csv/`。
 - 不进入 residual learning / GPR / MoE
 - 不使用 q_scale / multiplier
 - 不声明 validation complete
+
+## N8 Taw Surface v4
+
+正式单工况入口：
+
+```powershell
+python scripts/run_n8_taw_case.py --case specs/cases/n8_taw_ma8_a10_h40km.yaml --mach 8 --alpha_deg 10 --T_inf_K 251 --p_inf_Pa 287 --run_dir runs/n8_taw_surface/<new_run_dir>
+```
+
+规则：
+
+- `--mach`、`--alpha_deg` 必须与 case spec 精确一致。
+- 自定义自由流必须成对提供 `--T_inf_K/--p_inf_Pa`；否则使用 `--h_m` 或 `--h_km` 的 USSA1976 路径。
+- `run_dir` 必须不存在，runner 原子发布，禁止覆盖现有结果。
+- 当前正式结果为 12 个 `*_phase13_geometry_domain_v4` 目录，每目录 13 件套。
+- `validate_n8_run_artifacts()` 检查 inventory、summary/NPZ、topology、mapping support、auto range 和 PNG。
+- fixed error plots 为 ±10%；`*_auto_range.png` 显示各 sheet 实际有效有限误差 min..max。

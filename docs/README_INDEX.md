@@ -1,75 +1,86 @@
-# Faceted3D v2 — 文档索引
+# Faceted3D v2 - 文档索引
 
-> 更新：2026-07-25（N7 bounded engineering-freeze candidate）
-> 用途：新接手 DS/GPT 快速定位
+> 更新：2026-07-27
+> 用途：从当前代码状态进入；历史认证和审计按原日期保留
 
-## 当前主线一句话
+## 当前主线
 
-Route A-TPG（thermally-perfect-gas）是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。N6.0–N6.4 已完成，N6 strategic exit 已签署，N6 final sign-off 已签发；GATE C 已完成并批准 OPTION 3 bounded/degraded freeze，N7 entry 已授权。当前为 N7 bounded engineering-freeze candidate implementation complete、independent QA pending；engineering freeze completion、用户 final approval 与 main closeout 均未完成。N6.3 canonical analysis package 为 `runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`，正式入口为 `scripts/tools/n6_3_layered_error_portrait.py`。current-v5 source identity 使用 committed Git HEAD tree / Git blob bytes，schema=`git-head-tree-source-identity/v1`，inventory=`68`。正式 registry 仍仅含 `ma6_a5_h30km` 与 `ma8_a5_h40km`；provider unchanged、performance threshold none、无 model performance PASS/FAIL。历史 30、35、40、45 km 仅为 nominal / historical labels，对应 historical custom freestream，不属于已验证大气模型。
+- Route A-TPG 是正式低保真求解器唯一可运行的 thermodynamic baseline；`scripts/run_case_rem.py` 是正式主入口。
+- current-v5 保持 Groups 1-8、72-field serialization 和两个正式 registry case，不因 N8 回算。
+- N6.0-N6.4 已完成并签署；N7 bounded engineering-freeze candidate 的 independent QA、final approval 与 main closeout 状态以 N7 认证文档为准。
+- N8 Taw surface 的 G1-G4 已闭合，12/12 `*_phase13_geometry_domain_v4` 工况 PASS，每工况 13 件产物。
+- 最近全量回归：`508 passed, 137 subtests passed`。
 
----
+PASS 表示程序、合同、资产与回归完整性通过，不自动表示 provider 物理精度或统一 performance threshold 通过。
 
-## Canonical Docs（必读）
+## 当前说明
 
-| 文档 | 说明 |
+| 文档 | 当前职责 |
+|------|----------|
+| `faceted3d_current_status_zh.md` | 当前工程与闭合状态 |
+| `current_model_decisions_zh.md` | 现行模型、几何、provider 和合同决策 |
+| `faceted3d_file_index_zh.md` | 当前源码、脚本、spec、结果和证据索引 |
+| `functional_baseline_contract.md` | 正式 solver 与 N8 的输入输出合同 |
+| `faceted3d_official_cli_run_guide_zh.md` | 正式 solver、N8 和只读验证命令 |
+| `airfoils.md` | 翼型格式与参考 |
+| `leeward_heating_model_survey.md` | 背风模型调研及当前 N8 边界 |
+
+## 历史与治理文档
+
+| 文档 | 性质 |
 |------|------|
-| `faceted3d_current_status_zh.md` | 当前工程状态 |
-| `current_model_decisions_zh.md` | 冻结模型决策 |
-| `faceted3d_file_index_zh.md` | 文件索引（代码/配置/Fluent CSV） |
-| `htv2_faceted3d_update_log.md` | 主线历史 |
-| `faceted3d_official_cli_run_guide_zh.md` | Official CLI 跑法 |
-| `n6_4_exit_certification_zh.md` | final canonical N6 exit certification；independent QA passed；N6 exit signed；其中 GATE C/N7 表述属于被后续决策取代的历史状态 |
-| `n7_bounded_engineering_freeze_certification_zh.md` | N7 bounded engineering-freeze tracked certification/change-gate authority；当前仅为 candidate，independent QA 与 final approval pending |
-| `audits/faceted3d_phase5b2_mapping_contract_audit_20260718.md` | Phase 5B2 mapping contract audit 的关键结论与主要定量证据；原画布未保存的完整原始统计已明确标注 |
+| `htv2_faceted3d_update_log.md` | 只追加的主线历史；旧 v2/v3/phase 记录不是当前入口 |
+| `n6_4_exit_certification_zh.md` | 已签署 N6 历史认证 |
+| `n7_bounded_engineering_freeze_certification_zh.md` | N7 candidate/change-gate authority |
+| `audits/faceted3d_phase5b2_mapping_contract_audit_20260718.md` | 历史 mapping 审计证据 |
 
-## 技术参考
+签署认证、历史 audit 和旧日志条目不因代码清理改写。
 
-| 文档 | 说明 |
-|------|------|
-| `airfoils.md` | 翼型参考 |
-| `functional_baseline_contract.md` | 基线合约定义 |
-| `leeward_heating_model_survey.md` | 背风面模型调研 |
+## 正式入口
 
-## Official CLI
+- 主求解器：`scripts/run_case_rem.py`
+- N8 Taw surface：`scripts/run_n8_taw_case.py`
+- current-v5 只读回归：`scripts/tools/current_baseline_regression_check.py`
+- N6.3 canonical 只读验证：`scripts/tools/n6_3_layered_error_portrait.py --validate-existing`
 
-```
-scripts/run_case_rem.py
+仓库使用 `src/` 布局。运行测试时显式设置当前仓库源码：
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path .\src)
+python -m pytest -q
 ```
 
-## 当前禁止事项
+## N8 Taw Surface v4
 
-- 不修改迎风面参考焓公式 / Busemann / Kemp-Riddell / transition / chord_min_m
-- cp_model = newtonian_like, A=0.38, n=1.15 已冻结
-- q_scale / multiplier 禁止
-- `ma8_a10_h50km` 为 formal 20–40 km 域外 reserved legacy stress/reference case；不参与训练或模型选择
-- 不进入 residual learning / GPR / MoE
-- Taw fixed fully turbulent `Pr^(1/3)`，与 q-chain transition 解耦
-- validation complete 未声明
+当前正式产品目录：
 
-## 当前 N7 governance 状态
+```text
+runs/n8_taw_surface/*_phase13_geometry_domain_v4
+```
 
-- N6.0–N6.4：completed；N6 strategic exit：signed / complete；N6 final sign-off：issued
-- GATE C：complete；selected branch：OPTION 3 bounded/degraded freeze；bounded scope：approved
-- N7 entry：authorized；candidate implementation：complete；independent QA：pending
-- engineering freeze completion：not yet certified；user final approval：pending；main closeout：pending
-- canonical analysis：`runs/n6_3_layered_error_portrait/20260724T151247Z_e279af25b509_n6_3_layered_error_portrait`
-- current-v5 source identity：68 sources；Groups 1–8、72 fields、numerical assets、artifact hashes unchanged
-- QA/regression PASS 不是 model performance PASS；provider unchanged；performance threshold none；causal attribution unsupported
+当前合同：
 
-## 下一步
+- summary：`n8-taw-run-summary/v4`
+- dispatch：`n8-taw-dispatch/v3`
+- normal：`stl-angle-weighted-continuous-normal/v1`
+- topology：`n8-taw-domain-topology/v1`
+- 每工况 9,663 nodes、18,110 triangles、333 typed legacy exclusions
+- provider-valid=geometry-valid=9,663/9,663
+- 12/12 runner PASS，12/12 validator PASS
+- 每工况 13 件产物
 
-- 正式 CLI 默认大气参数域：20–40 km（几何高度输入，内部位势换算）；这只描述无 explicit override 的 CLI 运行配置，不把历史 30/35/40/45 km 自定义来流对比工况升级为已验证大气模型
-- 当前 diagnostic comparison：`runs/fluent_freestream_v2/comparison_table.json`（9 工况 30–40 km）
-- local-incidence classification 与 sheet-specific leeward freestream-recovery TPG Taw diagnostic 已正式收口；alpha-sign routing 不变
-- current baseline schema v5，Groups 1–8，official CLI `fields.npz` 共 72 字段
-- Phase 5A Fluent clean、Phase 5B1 LF clean、Phase 5B2 mapping contract audit、Phase 5C pairing、Phase 5D wall-temperature ingestion 与 Phase 5E source-level comparison：完成
-- comparison 口径：direction=`Fluent→LF`，metric=`projected physical`，many-to-one allowed，no gate / no edge buffer
-- Chapter 3.1–3.7A：已完成；Package 0–12=`13/13 PASS`；N3 technical exit=`CERTIFIED SATISFIED`
-- GATE A：已完成，final branch=`A0`；当时进入的 `N3a` 历史节点已由 N6 strategic exit 与当前 N7 governance supersede
-- N3b source-identity 修复与 Git closeout：已完成
-- current-v5 source identity：committed Git HEAD tree / Git blob bytes，schema=`git-head-tree-source-identity/v1`，inventory=`68`
-- N6.0–N6.4 已完成；N6 strategic exit 已签署；N6 final sign-off 已签发
-- GATE C 已完成；OPTION 3 bounded/degraded freeze 已批准；N7 entry 已授权
-- N7 candidate implementation 已完成；下一项仅为后续独立只读 QA，final user approval 与 main closeout 均 pending
-- provider、formal registry、performance threshold、evidence tiers、baseline/manifests/assets 均未改变；tag/release 未创建
-- 不做调参，不进 residual learning；不得从 candidate 自动进入 final freeze、main closeout、tag 或 release
+误差图同时保留：
+
+- `Taw_error_vs_fluent_upper/lower.png`：固定 `-10%..+10%`
+- `Taw_error_vs_fluent_upper/lower_auto_range.png`：各 sheet 有效有限误差的实际 min..max
+
+G1-G4 证据：
+
+- `attachment/Faceted3D_v2_G1_G2_geometry_domain_closure_20260727.md`
+- `attachment/Faceted3D_v2_G3_geometry_domain_implementation_validation_20260727.md`
+
+N8 v4 是工程闭合的 Taw surface product contract，不是 provider CFD validation、baseline promotion 或统一性能 PASS。
+
+## 清理边界
+
+已删除可再生缓存和明确标为 superseded/temp/closeout 的 `scripts/_archive/`。`src/`、`tests/`、`specs/`、current-v5/N6/N7 validator 与 N8 生产链不得仅凭文件名或浅层“无直接引用”删除；必须证明无入口、无公开 API、无动态/相对导入、无测试、无资产复现依赖且已有替代者。

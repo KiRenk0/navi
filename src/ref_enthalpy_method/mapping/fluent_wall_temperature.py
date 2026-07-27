@@ -128,6 +128,16 @@ def _read_wall_temperature_column(
     return np.array(temperatures, dtype=np.float64, copy=True, order="C"), source_sha256
 
 
+def read_fluent_wall_temperature_source(
+    csv_path: str | Path,
+) -> tuple[np.ndarray, str]:
+    """Read strict source-order adiabatic-wall temperatures and raw identity."""
+
+    temperatures, source_sha256 = _read_wall_temperature_column(csv_path)
+    temperatures.setflags(write=False)
+    return temperatures, source_sha256
+
+
 def _validate_geometry_identity(
     csv_path: str | Path,
     integration: FluentProjectedSemanticsIntegration,

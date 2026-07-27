@@ -98,7 +98,9 @@ class CaseSpec:
         atm = _opt(cs, "atmosphere", {}) or {}
         if not isinstance(atm, dict):
             atm = {}
-        atm_model = str(atm.get("model", "isa1976")).strip().lower()
+        atm_model = str(atm.get("model", "ussa1976")).strip().lower()
+        if atm_model != "ussa1976":
+            raise SpecError("case_spec.atmosphere.model must be 'ussa1976'")
 
         # Optional explicit T_inf/p_inf override (must be paired)
         T_inf_override = atm.get("T_inf_K", None)
@@ -165,4 +167,3 @@ class SamplingSpec:
         # fallback
         y0 = sp.get("y_over_b", None)
         return cls(mode=mode, x_start=x0, x_end=x1, nx=nx, y_start=None, y_end=None, ny=1, concat_order=concat_order)
-

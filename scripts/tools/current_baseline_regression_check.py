@@ -136,7 +136,7 @@ FIXED_PRODUCTION_PATHS = (
     "new_spec/outline_xz_right_0629.csv",
 )
 PYTHON_SOURCE_PREFIX = "src/ref_enthalpy_method/"
-EXPECTED_PRODUCTION_SOURCE_COUNT = 68
+EXPECTED_PRODUCTION_SOURCE_COUNT = 69
 SOURCE_IDENTITY_MUTABLE_FIELDS = frozenset(
     {"source_hashes_sha256", "source_identity"}
 )

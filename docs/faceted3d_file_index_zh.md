@@ -21,7 +21,7 @@
 | `scripts/viz/` | `viz_error_cloud_readonly.py`（3D 误差散点）、`plot_windward_error_vs_fluent.py`（迎风面 `Taw_tpg_w` vs Fluent 绝热壁 Tw 相对误差%云图半模投影，弦向-展向，只读 diagnostic visualization；Fluent 迎风面按 z<0 压缩侧筛选，映射沿用 LF(x_w_m,span_w_m)→Fluent(x,y) 最近邻；**不替代 P2R2 corrected comparison canon、不代表 validation complete、不涉及 leeward temperature error**）、`plot_root_chord_temperature_from_run_rem.py`、`plot_wing_surface_temperature_from_run_rem.py` |
 | `scripts/pressure/` | `pressure_audit.py`、`pressure_audit_plots.py`、`edge_pressure_breakdown.py`、`cp_pressure_correction_sandbox.py`（pressure/Cp 审计） |
 | `scripts/tools/` | `current_baseline_regression_check.py`（formal baseline v5 regression）、`n6_3_layered_error_portrait.py`（N6.3 canonical analysis 的 `--execute` / `--validate-existing` 入口）、`faceted3d_phase4b_geometry_qa.py`、`faceted3d_phase5a_fluent_clean_qa.py`、`local_incidence_raw_facet_qa.py`、`local_incidence_alpha_scan.py`、`export_faceted3d_fields_to_table.py` |
-| `scripts/_archive/20260709_scripts_top_prune/` | 已完成阶段的 diagnostic / audit / ablation 脚本（非 active） |
+| `scripts/_archive/` | 已于 2026-07-27 删除；历史内容由 Git history 保留 |
 
 Route A-TPG 是**唯一正式且唯一可运行**的 thermodynamic baseline；CLI 无 thermo 选择。当前不声明 validation complete。
 
@@ -74,7 +74,7 @@ Filename 中的 P/T 是 historical user-defined comparison input；nominal altit
 | 文件 | 说明 |
 |------|------|
 | `src/ref_enthalpy_method/gas/thermo.py` | 唯一正式 TPG 热力学源：Cp(T) 表 h/s0/γ/a 单源 |
-| `src/ref_enthalpy_method/aero/adiabatic_wall_temp.py` | Route A windward Taw 计算纯函数 |
+| `src/ref_enthalpy_method/aero/adiabatic_wall_temp.py` | 当前运行时零引用，正式 windward Taw 已由 `windward_cache_faceted3d.py` 计算；因仍在 current-v5 source identity 中冻结而暂时保留，不能绕过 baseline migration 删除 |
 | `src/ref_enthalpy_method/aero/leeward_recovery.py` | sheet-specific leeward freestream edge-state 与 TPG Taw diagnostic 纯 provider；raw class mask、mask 外 NaN |
 
 ## 8. 关键 src（不改）
@@ -210,3 +210,34 @@ analysis package 内 `formal_core/` 保存 source profiles、spatial bins、boun
 | `docs/n7_bounded_engineering_freeze_certification_zh.md` | N7 bounded engineering-freeze 的 tracked certification/change-gate authority；固定 OPTION 3 approved bounded scope、candidate 状态、known limitations、prohibited claims、验证门禁、维护规则与回退路径，并引用 `docs/current_model_decisions_zh.md` 第 33 节作为 detailed evidence-tier authority |
 
 该文档是 governance/certification authority，不是 solver、baseline、manifest、formal package、run asset、binary asset、annotated tag 或 GitHub release。当前只认证 candidate implementation；independent QA、engineering freeze completion、用户 final approval 与 main closeout 均未完成，tag/release 未创建。
+
+## 22. N8 Taw Surface v4 当前资产
+
+| 路径 | 当前职责 |
+|------|----------|
+| `src/ref_enthalpy_method/n8_taw_surface.py` | N8 v4 case/freestream、dispatch、Fluent comparison、13 件套发布和 validator |
+| `src/ref_enthalpy_method/geometry/n8_domain_topology.py` | `n8-taw-domain-topology/v1` 图皮肤节点、显式三角连接和 typed legacy exclusions |
+| `src/ref_enthalpy_method/geometry/stl_surface.py` | `ContinuousStlNormalField`：sheet-aware、angle-weighted、20° crease-preserving normal |
+| `src/ref_enthalpy_method/geometry/projected_semantics.py` | projected geometric-sheet semantics |
+| `src/ref_enthalpy_method/mapping/fluent_projection.py` | exact projection 与 `canonical_geometry` cache identity scope |
+| `src/ref_enthalpy_method/mapping/fluent_wall_temperature.py` | Fluent wall-temperature ingestion |
+| `src/ref_enthalpy_method/mapping/observation_binding.py` | source/freestream observation binding |
+| `scripts/run_n8_taw_case.py` | 单 N8 工况 CLI；目标目录禁止覆盖 |
+| `specs/cases/n8_taw_*.yaml` | 12 个 N8 工况合同 |
+| `specs/sampling/n8_taw_surface_grid_81x41.yaml` | N8 81x41 canonical sampling |
+| `tests/test_n8_taw_surface.py` | case、freestream、dispatch、topology、pairing、plot、artifact validator |
+| `tests/test_continuous_stl_normal_field.py` | synthetic/formal STL 连续性与锐边合同 |
+| `tests/test_projection_cache.py` | cache corruption、identity 和 canonical reuse 合同 |
+| `runs/n8_taw_surface/*_phase13_geometry_domain_v4/` | 12 个当前结果目录；每目录 13 件套 |
+| `runs/n8_taw_surface/_projection_cache/` | canonical geometry projection cache |
+| `attachment/Faceted3D_v2_G1_G2_geometry_domain_closure_20260727.md` | G1/G2 几何域闭合证据 |
+| `attachment/Faceted3D_v2_G3_geometry_domain_implementation_validation_20260727.md` | G3/G4 实现与十二工况验证证据 |
+
+每个当前 run 固定包含：
+
+- `summary.json`、`Taw_surface_fields.npz`、`Taw_error_stats.json`
+- upper/lower `Taw_surface`、`Taw_provider`、`Taw_validity` PNG
+- upper/lower 固定 ±10% `Taw_error_vs_fluent` PNG
+- upper/lower actual min..max `Taw_error_vs_fluent_*_auto_range.png`
+
+旧 phase4-phase12 目录是中间诊断/修复资产，不是当前产品入口。`scripts/_archive/` 已删除，历史脚本只从 Git history 恢复。

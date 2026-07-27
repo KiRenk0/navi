@@ -520,3 +520,37 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 - exact M8/30 CSV、candidate 四项资产、projection cache、两个 current-v5 baseline cases、source identity、Git HEAD 与 tracked status 均为 zero drift。
 - “30 km”仍仅为 historical / nominal label，`atmosphere_model=none / unverified`；数值只表示指定历史自定义来流输入下的 descriptive numerical difference，不构成标准大气、真实高度、provider 或统一性能 threshold 裁决。
 - comparison 仅产生内存对象，未生成 formal evidence 或持久 comparison asset；未 admission/promotion，provider 未修改。N3a.8 技术工作已完成，等待 docs commit/push 与独立 fast-forward merge；N3a 整体完成仍待监督 GPT 裁决，尚未返回或重开 GATE A。
+
+---
+
+## 2026-07-27: N8 Taw Surface v3 连续法向、全链修复与 canonical 投影缓存
+
+- 原子任务 3/4 证明异常最早存在于 raw Taw，闭合 provider threshold、面法向离散、contour 插值和 quad 遮罩根因；用户随后扩大授权完成任务 5/6。
+- 新增 `ContinuousStlNormalField`：sheet 隔离、angle-weighted vertex normals、20° crease preservation、barycentric interpolation。N8 incidence、surface class 和 windward `sx/sy` 改用连续法向；STL 面法向与 triangle ID 保留审计。
+- N8 summary/dispatch 升为 v3；NPZ 增加连续/面法向、两套 incidence、平滑角、坡度、triangle identity、normal schema/crease metadata。validator 强制检查单位法向、有效域、坡度/入射派生关系和 schema。
+- exact projection cache 新增显式 `canonical_geometry` scope；默认 `source_geometry` 行为不变。N8 12 份 CSV 的 canonical coordinates 完全一致，投影只计算一次，source-row/cellnumber 差异仍逐工况映射。
+- 最终产品：12/12 `*_phase9_continuous_normal_cached_v3` PASS，每工况 11 件套；projection unique key=1，本轮 12/12 cache hit。phase8 保留为字段改名前的中间验证结果。
+- 最终 full pytest=`499 passed, 137 subtests passed`；缓存/连续法向/N8 组合专项=`54 passed, 14 subtests passed`；`git diff --check` 与修改范围静态检查 PASS。
+- 汇总：geometry-valid/invalid=`75,708/3,996`，near-tangent blend=`10,684`，最大法向平滑角=`8.0004408333°`；upper Taw 相邻 jump P95/max=`1.2014970412/13.9481471483 K`。
+- formal STL 连续/锐边专项、cache source-row reorder 专项和 N8 tests 均通过。冻结 Group 8、current-v5、N6/N7 与旧产物未追溯修改。
+- 中断批处理产生的唯一 `.tmp` 目录已精确删除；正式 phase7/phase8 结果均未覆盖。Git 暂存/提交/推送/合并/tag/release 未执行。
+
+## 2026-07-27: N8 Geometry-Domain v4 G1-G4 闭合与 13 件套
+
+- G1/G2 几何域审计定位 legacy mismatch：最终产品域不能继续由结构化 quad-validity 间接定义。
+- 新增 `n8-taw-domain-topology/v1`；graph-skin nodes 和显式 triangles 成为产品、渲染与 local mapping support 的共同域。
+- legacy phase9 geometry failures 从 product node table 移出，保留为 333 条 typed exclusions；每工况当前为 9,663 nodes、18,110 triangles、9,663/9,663 provider-valid。
+- summary 升为 `n8-taw-run-summary/v4`；12/12 `*_phase13_geometry_domain_v4` runner 与 validator PASS。
+- 在原固定 ±10% upper/lower error plots 之外新增 actual min..max upper/lower auto-range plots；原 24 张固定图 SHA-256 未变化。
+- 每工况 artifact contract 从 11 件扩为 13 件；summary 精确记录两个 sheet 的有效有限 signed-relative-error min/max。
+- 最终全量回归 `508 passed, 137 subtests passed`；G1-G4 全部 PASS。
+- N8 v4 不追溯修改 current-v5、Groups 1-8、N6/N7、provider、registry、performance threshold 或 baseline。
+
+## 2026-07-27: 文档与废弃代码清理
+
+- 删除 `scripts/_archive/` 的 29 个 tracked superseded/temp/closeout 文件及其中生成缓存；清除工作区 Python/pytest/ruff 可再生缓存。
+- 卸载机器 site-packages 中指向 `D:\ref\reference-enthalpy_03_12_26-main` 的旧 `ref-enthalpy-method 0.0.0` editable 注册；不删除外部源码目录。
+- 不新增 `pytest.ini` 或新代码说明文件；测试继续显式设置当前仓库 `PYTHONPATH=src`，生产 CLI 继续使用既有 local-src bootstrap。
+- 相对导入、脚本和测试联合扫描后，唯一零 incoming runtime source 是 `aero/adiabatic_wall_temp.py`；正式功能已由 `windward_cache_faceted3d.py` 替代，但该文件仍被冻结在两个 current-v5 manifest 的 68-source identity 中，本轮不绕过 baseline migration 删除。
+- pressure、sweep、viz、current-v5、N6/N7 与 N8 工具均有现行入口、文档责任或冻结合同，保留。
+- 全仓 `ruff check src tests scripts` 当前报告 416 个历史 style/static warnings，主要位于 geometry/pressure diagnostics 与旧测试；本轮不批量 autofix，避免无关改写和破坏 current-v5 source identity。N8 本轮相关源码/测试的定向 Ruff 检查保持 PASS。

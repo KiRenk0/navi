@@ -11,6 +11,7 @@ from .fluent_lf_taw_comparison import (
     FluentLfTawComparison,
     build_fluent_lf_taw_comparison,
 )
+from .fluent_wall_temperature import read_fluent_wall_temperature_source
 
 from .observation_binding import (
     APPROVED_FORMAL_OBSERVATION_REGISTRY,
@@ -45,6 +46,7 @@ __all__ = [
     "transform_fluent_xyz_to_solver",
     "FluentLfTawComparison",
     "build_fluent_lf_taw_comparison",
+    "read_fluent_wall_temperature_source",
     "APPROVED_FORMAL_OBSERVATION_REGISTRY",
     "SUPPLEMENTAL_OBSERVATION_REGISTRY",
     "FluentObservationBinding",

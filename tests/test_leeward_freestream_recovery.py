@@ -14,17 +14,11 @@ import numpy as np
 
 from ref_enthalpy_method.aero.leeward_recovery import (
     LeewardFreestreamRecoveryFields,
+    build_freestream_recovery,
     build_leeward_freestream_recovery,
 )
 from ref_enthalpy_method.gas import make_fluent_tpg_thermo, mu_sutherland
-from ref_enthalpy_method.geometry.local_incidence import (
-    SURFACE_CLASS_LEEWARD,
-    SURFACE_CLASS_NEAR_TANGENT,
-    SURFACE_CLASS_WINDWARD,
-    SURFACE_CLASS_INVALID,
-)
 from ref_enthalpy_method.types import GasModel
-
 
 # ── shared test GasModel (constructed once) ────────────────────────────────
 
@@ -306,6 +300,47 @@ class LeewardFreestreamRecoveryTest(unittest.TestCase):
                 gas=gas,
             )
         self.assertIsInstance(result, LeewardFreestreamRecoveryFields)
+
+    def test_explicit_mask_builds_recovery_candidate_without_reclassification(
+        self,
+    ) -> None:
+        mask = np.asarray([True, False, True], dtype=np.bool_)
+        original = mask.copy()
+        result = build_freestream_recovery(
+            mask=mask,
+            T_inf_K=_T_INF,
+            p_inf_Pa=_P_INF,
+            rho_inf_kg_m3=_RHO_INF,
+            V_inf_m_s=_V_INF,
+            Ma_inf=_MA_INF,
+            gas=_get_gas(),
+        )
+        np.testing.assert_array_equal(mask, original)
+        np.testing.assert_array_equal(result.mask, original)
+        self.assertTrue(np.all(np.isfinite(result.Taw_tpg[mask])))
+        self.assertTrue(np.all(np.isnan(result.Taw_tpg[~mask])))
+
+    def test_explicit_mask_rejects_ambiguous_domains(self) -> None:
+        with self.assertRaisesRegex(ValueError, "mask must be 1-D"):
+            build_freestream_recovery(
+                mask=np.ones((1, 2), dtype=np.bool_),
+                T_inf_K=_T_INF,
+                p_inf_Pa=_P_INF,
+                rho_inf_kg_m3=_RHO_INF,
+                V_inf_m_s=_V_INF,
+                Ma_inf=_MA_INF,
+                gas=_get_gas(),
+            )
+        with self.assertRaisesRegex(TypeError, "boolean dtype"):
+            build_freestream_recovery(
+                mask=np.asarray([1, 0], dtype=np.int8),
+                T_inf_K=_T_INF,
+                p_inf_Pa=_P_INF,
+                rho_inf_kg_m3=_RHO_INF,
+                V_inf_m_s=_V_INF,
+                Ma_inf=_MA_INF,
+                gas=_get_gas(),
+            )
 
 
 if __name__ == "__main__":

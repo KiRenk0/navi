@@ -19,7 +19,7 @@ case_spec:
     R_J_per_kgK: 287.0
 
   atmosphere:
-    model: isa1976
+    model: ussa1976
     altitude_type: geometric
 
   viscosity:
@@ -74,4 +74,3 @@ case_spec:
         formula: mu_e = sutherland(T_e)
 
   # IMPORTANT: omit tw_model (or use a non-radiative type) so the solver uses fixed wall temperature.
-

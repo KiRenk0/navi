@@ -129,15 +129,14 @@ Route A-TPG 是唯一正式且唯一可运行的 thermodynamic baseline；CLI �
 ## 14. 正式 CLI 高度参数域（2026-07-12）
 
 - 正式 CLI 高度参数域：20–40 km；该运行配置不得反向解释历史 Fluent 自定义来流对比工况的证据资格。
-- 未提供 explicit override 时，30、35、40 km CLI case 使用正式默认大气；提供 explicit `T_inf / p_inf` override 时，以成对记录的精确来流为准。
+- 未提供 explicit override 时，高度输入使用 USSA1976；提供 explicit `T_inf / p_inf` override 时，以成对记录的精确来流为准，即使同时给出高度也不再调用大气模型。
 
 ## 15. 正式默认大气（2026-07-12）
 
 - CLI 输入 `h_m` 为几何高度
-- 内部换算为位势高度，按 1976 标准大气分层计算
-- `isa1976.py` 是唯一正式计算实现
-- `ussa1976.py` 仅为薄兼容 alias，不再维护独立简化公式
-- explicit `T_inf / p_inf` override 保留（必须成对提供），可用于复现 Fluent 实际输入；一旦使用 override，不得再把 nominal 高度标签表述为已验证大气模型
+- 内部换算为位势高度，按 USSA 1976 标准大气分层计算
+- `ussa1976.py` 是唯一活动计算实现；`isa1976.py` 已按用户 2026-07-26 裁决从活动树删除，不再存在 ISA fallback
+- explicit `T_inf / p_inf` override 保留且必须成对提供；完整温压对的优先级高于高度，可用于复现 Fluent 实际输入；一旦使用 override，不得再把 nominal 高度标签表述为已验证大气模型
 
 ## 16. 50 km（2026-07-12）
 
@@ -479,3 +478,53 @@ python -B scripts/tools/n6_3_layered_error_portrait.py `
 - `N7 candidate implementation = COMPLETE`；`independent QA = NOT YET COMPLETED`；`engineering freeze completion = NOT YET CERTIFIED`；`user final freeze approval = NOT YET GRANTED`；`main closeout = NOT YET COMPLETED`；annotated tag 与 GitHub release 均未创建。
 - 本 candidate 是 exact 7-path docs/governance-only change。integrity/regression/focused validation PASS 只证明 program、contract、asset 与 candidate governance consistency，不等于 model performance PASS、physical-accuracy validation、independent QA 或 final engineering-freeze completion。
 - N7 tracked certification/change-gate authority 为 `docs/n7_bounded_engineering_freeze_certification_zh.md`。后续仅可在独立授权下执行 read-only independent QA；不得从本 candidate 自动进入 final approval、main closeout、tag、release 或 N8。
+
+## 38. N8 Taw Surface v3 法向与投影缓存决策（2026-07-27）
+
+### 38.1 法向责任
+
+- 设计上应连续的 N8 Taw surface 不能继续用 piecewise-constant STL face normal 作为局部入射和 windward slope 的最终输入；N8 必须使用连续法向。
+- 当前权威几何没有完整解析曲面方程。常量 faceted reference slope 会抹掉鼻部/前缘曲率，因此不能冒充解析法向或替代 STL 局部几何。
+- 正式实现是 `stl-angle-weighted-continuous-normal/v1`：sheet 隔离、角度加权顶点法向、三角形内重心插值、20° crease preservation。它是连续工程重建，不宣称 exact CAD analytic recovery。
+- `normal_out` 驱动 N8 incidence、surface class 和 `sx=-nx/nz`、`sy=-ny/nz`；`stl_face_normal_out`、`stl_face_incidence_s`、`normal_smoothing_angle_deg` 与 `triangle_id` 是强制审计字段。
+- 冻结 Group 8、正式 solver alpha-sign routing、current-v5、N6/N7 历史产品不回算。N8 v3 是 additive surface-product contract。
+
+### 38.2 Provider 与显示
+
+- dispatch schema=`n8-taw-dispatch/v3`；`s<=0` recovery，`0<s<0.05` 为 C1 smoothstep enthalpy blend，`s>=0.05` windward。
+- 数学零线附近可因真实曲率出现极小符号闭区；`s=0` 处权重和一阶导数均为零，不产生旧式 Taw 交替跳变。不得用 provider 色块数量代替 Taw 连续性校验。
+- flat original-triangle rendering、geometry reason、candidate fields 和 blend weight 继续为强制合同。
+
+### 38.3 Canonical projection reuse
+
+- 精确投影只依赖 canonical solver coordinates、STL triangles、坐标合同和 gate，不依赖 CSV source-row order 或 cellnumber。
+- `project_fluent_surface_with_cache` 默认仍用 `source_geometry` 严格作用域；N8 显式使用 `cache_identity_scope=canonical_geometry`，作用域写入 cache manifest，scope mismatch fail closed。
+- 12 份 N8 CSV 的 canonical coordinate SHA-256 均为 `f8e831b08dd86283bb69dc2f5be5fdb636e160a801ce97ec4d9382098b611c23`，因此只执行一次 exact projection；各 CSV 的 source-row mapping 与 temperature ingestion 仍独立执行。
+
+### 38.4 任务边界
+
+- 已完成任务 3、4、5、6：首次异常层、根因、全链修复设计、实现/测试/12 工况产品验证。
+- 下一任不得把旧任务 5/6 解释为待办。除非输入身份或合同发生新变化，也不得重做任务 3/4。
+- 任务 7 中 Git 暂存、提交、推送、合并、tag、release 仍未授权；测试 PASS 不自动授权这些动作。
+
+## 39. N8 Geometry-Domain v4 闭合决策（2026-07-27）
+
+### 39.1 域定义
+
+- N8 current product 由 `n8-taw-domain-topology/v1` 定义，不再把 legacy 81x41 结构网格的 quad-validity 当作最终表面边界。
+- product node table 只包含 authoritative graph-skin nodes；legacy phase9 geometry failures 保留为 typed exclusion audit。
+- `triangle_node_ids` 是渲染、sheet isolation 和 local mapping support 的共同连接合同；不得重新引入 reshape 或任一坏点遮整个 quad 的边界语义。
+
+### 39.2 当前发布
+
+- summary schema 升为 `n8-taw-run-summary/v4`；dispatch/normal schema 保持 `n8-taw-dispatch/v3` 与 `stl-angle-weighted-continuous-normal/v1`。
+- 当前目录唯一指向 `runs/n8_taw_surface/*_phase13_geometry_domain_v4`。
+- 12/12 工况均为 9,663 nodes、18,110 triangles、333 typed exclusions、9,663/9,663 provider-valid。
+- 每工况产物合同为 13 件：原 11 件加 upper/lower actual-range signed-relative-error PNG。
+- 固定误差图保持 ±10%；auto-range 只使用有效有限 comparison rows，并把实际 min/max 写入 summary contract。
+
+### 39.3 闭合与冻结边界
+
+- G1、G2、G3、G4 全部 PASS；最近全量回归 `508 passed, 137 subtests passed`。
+- frozen Group 8、current-v5、N6/N7 history、provider、registry、performance threshold 和正式 baseline 均未改变。
+- v4 supersede v3 作为 N8 current product 入口；v3/phase9 和 phase10-phase12 只保留历史诊断意义，不得在当前文档中继续称为最终产品。

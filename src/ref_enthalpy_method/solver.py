@@ -120,8 +120,8 @@ class WingLowFidelitySolver:
     def _freestream(self, mach: float) -> tuple[float, float, float, float]:
         """Return (p_inf, rho_inf, T_inf, v_inf).
 
-        For now we follow baseline case specs which provide h_m and atmosphere model.
-        We use our ISA1976 implementation (supports wider range) but can switch per spec later.
+        Explicit temperature/pressure overrides take precedence over altitude.
+        Without an explicit pair, geometric altitude is resolved with USSA1976.
         """
 
         # Explicit override: skip atmosphere model, use user-provided T_inf/p_inf
@@ -130,16 +130,10 @@ class WingLowFidelitySolver:
             p_inf = float(self.case.p_inf_override_Pa)
             rho_inf = float(p_inf / (float(self.case.R_J_per_kgK) * T_inf))
         else:
-            model = str(self.case.atmosphere_model).strip().lower()
-            if model == "ussa1976":
-                from .atmosphere.ussa1976 import ussa1976_0_32km
+            from .atmosphere.ussa1976 import ussa1976
 
-                p_inf, rho_inf, T_inf = ussa1976_0_32km(h_m=self.case.fixed_h_m, R_gas_J_per_kgK=self.case.R_J_per_kgK)
-            else:
-                from .atmosphere.isa1976 import isa1976
-
-                atm = isa1976(self.case.fixed_h_m, R=self.case.R_J_per_kgK)
-                T_inf, p_inf, rho_inf = atm.T, atm.p, atm.rho
+            atm = ussa1976(self.case.fixed_h_m, R=self.case.R_J_per_kgK)
+            T_inf, p_inf, rho_inf = atm.T, atm.p, atm.rho
         a_inf = float(self.gas.tpg.a_T(float(T_inf)))
         v_inf = float(mach) * a_inf
         return float(p_inf), float(rho_inf), float(T_inf), float(v_inf)
