@@ -283,7 +283,7 @@ def resolve_n8_freestream(
         raise ValueError(
             "provide either h_m for USSA1976 or the paired T_inf_K/p_inf_Pa override"
         )
-    atmosphere = ussa1976(altitude_m, R=R)
+    atmosphere = ussa1976(altitude_m)
     return N8Freestream(
         source="ussa1976",
         T_inf_K=float(atmosphere.T),

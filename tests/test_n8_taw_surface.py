@@ -196,7 +196,7 @@ class N8TawCaseSchemaTest(unittest.TestCase):
 
 class N8FreestreamResolutionTest(unittest.TestCase):
     def test_altitude_only_uses_ussa1976(self) -> None:
-        expected = ussa1976(30_000.0, R=287.0)
+        expected = ussa1976(30_000.0)
         result = resolve_n8_freestream(
             h_m=30_000.0,
             T_inf_K=None,
@@ -249,13 +249,11 @@ class N8FreestreamResolutionTest(unittest.TestCase):
                 R_J_per_kgK=287.0,
             )
 
-    def test_ussa_rejects_invalid_altitude_and_gas_constant(self) -> None:
+    def test_ussa_rejects_invalid_altitude(self) -> None:
         with self.assertRaisesRegex(ValueError, "altitude_m"):
             ussa1976(-1.0)
         with self.assertRaisesRegex(ValueError, "altitude_m"):
             ussa1976(float("nan"))
-        with self.assertRaisesRegex(ValueError, "R must"):
-            ussa1976(30_000.0, R=0.0)
 
 
 class ActiveAtmosphereSpecTest(unittest.TestCase):

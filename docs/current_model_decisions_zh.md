@@ -42,7 +42,7 @@
 ## 4. 禁止事项
 
 - q_scale / multiplier 禁止
-- `ma8_a10_h50km` 为 formal 域外 reserved legacy stress/reference case
+- `ma8_a10_h50km` 为 provenance 未重新冻结的 reserved legacy stress/reference case，不因高度已落入正式域而自动升级
 - 不进入 residual learning / GPR / MoE
 ## 5. Taw Recovery Factor（冻结）
 
@@ -128,7 +128,7 @@ Route A-TPG 是唯一正式且唯一可运行的 thermodynamic baseline；CLI �
 
 ## 14. 正式 CLI 高度参数域（2026-07-12）
 
-- 正式 CLI 高度参数域：20–40 km；该运行配置不得反向解释历史 Fluent 自定义来流对比工况的证据资格。
+- 正式 CLI 高度参数域：20–60 km；该运行配置不得反向解释历史 Fluent 自定义来流对比工况的证据资格。
 - 未提供 explicit override 时，高度输入使用 USSA1976；提供 explicit `T_inf / p_inf` override 时，以成对记录的精确来流为准，即使同时给出高度也不再调用大气模型。
 
 ## 15. 正式默认大气（2026-07-12）
@@ -140,7 +140,7 @@ Route A-TPG 是唯一正式且唯一可运行的 thermodynamic baseline；CLI �
 
 ## 16. 50 km（2026-07-12）
 
-- `ma8_a10_h50km` 为 formal 20–40 km 域外的 reserved legacy stress/reference case
+- `ma8_a10_h50km` 的高度位于 formal 20–60 km 域内，但其旧来流 provenance 未按当前 USSA 合同重新冻结，因此仍为 reserved legacy stress/reference case
 - 本轮未运行，不参与当前训练或模型选择，也不作为完全盲的端到端外推证据
 - 不删除其文件，不运行，不重新分析
 

@@ -136,7 +136,7 @@ Fluent 四工况 CSV 位于 `fluent_export/adiabatic_wall_csv/`。
 ## 禁止
 
 - 不修改 src / specs / YAML / Fluent CSV
-- `ma8_a10_h50km` 为 formal 域外 reserved legacy stress/reference case，不参与当前训练或模型选择
+- `ma8_a10_h50km` 的高度位于 formal 20–60 km 域内，但旧来流 provenance 未重新冻结；它仍是 reserved legacy stress/reference case，不参与当前训练或模型选择
 - 不进入 residual learning / GPR / MoE
 - 不使用 q_scale / multiplier
 - 不声明 validation complete

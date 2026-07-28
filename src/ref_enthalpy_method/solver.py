@@ -132,7 +132,7 @@ class WingLowFidelitySolver:
         else:
             from .atmosphere.ussa1976 import ussa1976
 
-            atm = ussa1976(self.case.fixed_h_m, R=self.case.R_J_per_kgK)
+            atm = ussa1976(self.case.fixed_h_m)
             T_inf, p_inf, rho_inf = atm.T, atm.p, atm.rho
         a_inf = float(self.gas.tpg.a_T(float(T_inf)))
         v_inf = float(mach) * a_inf

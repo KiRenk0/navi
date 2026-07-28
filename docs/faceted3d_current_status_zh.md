@@ -15,7 +15,7 @@
 
 ## 2. 当前正式模型
 
-- 正式高度参数域：20–40 km；30、35、40 km 使用 1976 标准大气口径，CLI 输入几何高度并在内部换算位势高度。
+- 正式高度参数域：20–60 km；只提供高度时使用 1976 标准大气口径，CLI 输入几何高度并在内部换算位势高度。
 - Route A-TPG 是唯一正式且唯一可运行的 thermodynamic baseline；CLI 不提供 thermodynamics 选择。
 - TPG Taw 固定使用 fully turbulent `Pr^(1/3)` recovery，与 q-chain transition weighting 解耦。
 - pressure closure 冻结为 `newtonian_like`，`A=0.38`、`n=1.15`；transition 默认 `step`；`chord_min_m=0.02 m`。
@@ -181,7 +181,7 @@ Phase 4A 后仓库卫生审计已完成：删除 3 份已被 canonical docs 替�
 ## 7. 当前禁止项
 
 - 不进入 residual learning、GPR 或 MoE。
-- 不扩展 45 km/50 km active domain；`ma8_a10_h50km` 仅为域外 reserved legacy stress/reference case。
+- 不因高度已落入 20–60 km 正式域就自动升级历史 45 km/50 km 证据；`ma8_a10_h50km` 仍为 provenance 未重新冻结的 reserved legacy stress/reference case。
 - 不做大规模 pruning，不重构 Group 6，不修改 pressure、TPG 或正式 windward routing。
 - 不调整冻结物理合同，不用 manifest 更新掩盖源码或数值漂移。
 - 不将现有 source-level comparison 或 integrity PASS 扩张为统一性能 threshold、provider route decision 或背风模型 validation complete。

@@ -116,7 +116,7 @@ docs 已压缩为 9 个 canonical docs；后续常规诊断只更新现有 canon
 ## Phase 5-A-P6/P7: Ma9 + 40km Two-Case Append + Regional Error Audit
 
 - P6: Ma9 corrected case (h35km_a8deg_ma9) append-only comparison 完成；LF CPG Taw +457 K vs Fluent Tw 3015 K，rel_err 15.2%
-- P6R: T_inf consistency audit（USSA1976 @ 35km = 231.65K 确认正确）；raw/mapped/area-weighted Fluent mean consistency verified；pressure statistics verified（5231 Pa raw mean 非 copy-paste error）
+- P6R: T_inf consistency audit（2026-07-29 更正：USSA1976 在 35 km 几何高度为 236.513 K；原 231.65 K 结论错误）；raw/mapped/area-weighted Fluent mean consistency verified；pressure statistics verified（5231 Pa raw mean 非 copy-paste error）
 - P7: 40km two-case（h40km_a5deg_ma8, h40km_a10deg_ma8）append-only comparison 完成
   - h40km_a5deg_ma8: rel_err 8.8%（altitude 缓解 bias）
   - h40km_a10deg_ma8: rel_err 10.1%（alpha 温和恶化 bias）
@@ -205,9 +205,9 @@ Engineering cleanup completed after Phase 2E-P4/P4R. 该段只记录当时状态
 
 - Route A-TPG Taw 删除伪转捩死逻辑（hard-coded `re_measure=1e7`/`re_tri=1e6`/`transition_weight`）；改为显式 `r_aw = Pr^(1/3)` fully turbulent recovery
 - 大气模型统一：`isa1976.py` 新增几何高度→位势高度内部换算，成为唯一正式实现；`ussa1976.py` 改为薄 alias
-- 正式高度参数域冻结为 20–40 km；30/35/40 km 采用标准 USSA 1976 大气口径（几何输入、内部位势换算）
-- 45 km 全部原始 CSV / runs / fields / summary / PNG / JSON 从项目中彻底删除（不归档）；不属于当前正式参数域
-- 50 km 降级为 formal 域外的 reserved legacy stress/reference case
+- 2026-07-29 修订：正式高度参数域由 20–40 km 扩展为 20–60 km；只提供高度时采用标准 USSA 1976 大气口径（几何输入、内部位势换算）
+- 历史处置：45 km 全部原始 CSV / runs / fields / summary / PNG / JSON 当时从项目中彻底删除（不归档）；该处置不因当前参数域扩展而反向恢复
+- 50 km 历史工况继续作为 provenance 未重新冻结的 reserved legacy stress/reference case；原因不再是高度域外
 - canonical docs 一致性收口：`current_model_decisions_zh.md` 补齐正式域/大气/Taw 口径；`README_INDEX.md`、`faceted3d_official_cli_run_guide_zh.md`、`functional_baseline_contract.md`、`faceted3d_file_index_zh.md` 同步更新
 - 无模型公式修改，无 pressure/DN/residual/holdout 变化
 
