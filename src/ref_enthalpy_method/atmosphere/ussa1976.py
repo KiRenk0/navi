@@ -5,7 +5,6 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-
 _EARTH_EFFECTIVE_RADIUS_M = 6_356_766.0
 _STANDARD_GRAVITY_M_PER_S2 = 9.80665
 _USSA_UNIVERSAL_GAS_CONSTANT_J_PER_KMOL_K = 8_314.32
@@ -106,17 +105,3 @@ def ussa1976(
         h_base_m = h_top_m
 
     raise RuntimeError("USSA1976 layer lookup failed for a validated altitude")
-
-
-def ussa1976_0_32km(*, h_m: float, R_gas_J_per_kgK: float) -> tuple[float, float, float]:
-    """Return ``(p_Pa, rho_kg_m3, T_K)`` using the full USSA model.
-
-    The function name is retained for API compatibility; the model supports
-    geometric altitudes through 86 km. ``R_gas_J_per_kgK`` is retained only
-    for call compatibility and no longer changes the strict USSA constants.
-    """
-    compatibility_R = float(R_gas_J_per_kgK)
-    if not math.isfinite(compatibility_R) or compatibility_R <= 0.0:
-        raise ValueError("R_gas_J_per_kgK must be finite and positive")
-    atm = ussa1976(float(h_m))
-    return float(atm.p), float(atm.rho), float(atm.T)

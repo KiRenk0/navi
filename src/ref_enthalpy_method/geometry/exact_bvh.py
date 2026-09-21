@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from typing import Any
 
 import numpy as np
 
@@ -78,27 +77,6 @@ class ExactBvh:
 # ---------------------------------------------------------------------------
 # AABB lower-bound (vectorized)
 # ---------------------------------------------------------------------------
-
-
-def _squared_lower_bound_batch(
-    point: np.ndarray,               # (3,) float64
-    aabb_min: np.ndarray,            # (K, 3) float64
-    aabb_max: np.ndarray,            # (K, 3) float64
-) -> np.ndarray:                     # (K,) float64
-    """Vectorized squared distance from *point* to K AABBs."""
-    p = point.reshape(1, 3)
-    lo = aabb_min
-    hi = aabb_max
-    d = np.zeros(lo.shape[0], dtype=np.float64)
-    for axis in range(3):
-        pv = float(p[0, axis])
-        lv = lo[:, axis]
-        hv = hi[:, axis]
-        below = pv < lv
-        above = pv > hv
-        d[below] += (lv[below] - pv) ** 2
-        d[above] += (pv - hv[above]) ** 2
-    return d
 
 
 def _squared_distance_point_aabb(
@@ -362,8 +340,7 @@ def _compute_tree_depth(bvh: ExactBvh) -> int:
     stack: list[tuple[int, int]] = [(root_idx, 0)]
     while stack:
         nid, depth = stack.pop()
-        if depth > max_depth:
-            max_depth = depth
+        max_depth = max(max_depth, depth)
         if bvh.node_type[nid] == _NODE_INTERNAL:
             left = int(bvh.node_left[nid])
             right = int(bvh.node_right[nid])
@@ -390,7 +367,7 @@ def _query_single_point_bvh_v2(
     """
     p = np.asarray(point, dtype=np.float64)
 
-    best_sq_dist = float("inf")
+
     best_dist = float("inf")
     best_tri_idx = 0
     best_result: TriangleProjection | None = None
@@ -440,12 +417,12 @@ def _query_single_point_bvh_v2(
 
                 if best_result is None:
                     # First candidate — accept unconditionally
-                    best_sq_dist = cand_dist * cand_dist
+
                     best_dist = cand_dist
                     best_tri_idx = tri_idx
                     best_result = candidate
                 elif cand_dist < best_dist and not _distances_equivalent(cand_dist, best_dist):
-                    best_sq_dist = cand_dist * cand_dist
+
                     best_dist = cand_dist
                     best_tri_idx = tri_idx
                     best_result = candidate

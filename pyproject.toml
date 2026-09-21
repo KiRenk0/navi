@@ -1,0 +1,12 @@
+[tool.pytest.ini_options]
+testpaths = ["tests/active"]
+norecursedirs = [".git", ".venv", ".pytest_cache", ".ruff_cache", "runs", "runs_review", "archive"]
+python_files = ["test_*.py"]
+pythonpath = ["src"]
+addopts = "-ra -m 'not integration' -p no:cacheprovider"
+markers = [
+  "integration: executes the formal CLI or a full baseline replay",
+]
+
+[tool.ruff]
+exclude = ["archive", "runs", "runs_review", "fluent_export"]

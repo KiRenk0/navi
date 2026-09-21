@@ -6,39 +6,19 @@ import csv
 import hashlib
 import io
 import re
-from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path, PurePosixPath
-from types import MappingProxyType
 from typing import Any
 
-_BINDING_SCHEMA = "faceted3d-observation-binding/v2"
-_FILENAME_PATTERN = re.compile(
+_BINDING_SCHEMA = "0920-taw-observation-binding/v1"
+_FREESTREAM_FILENAME_PATTERN = re.compile(
     r"(?P<p_inf>(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)pa_"
     r"(?P<T_inf>(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)k_"
-    r"(?P<altitude>(?:0|[1-9][0-9]*))km_"
-    r"(?P<alpha>(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)alpha_"
+    r"(?P<altitude>(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)km_"
+    r"(?P<alpha>-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)alpha_"
     r"(?P<mach>(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)ma\.csv"
 )
-
-_CSV_DIRECTORY = "fluent_export/adiabatic_wall_csv"
-APPROVED_FORMAL_OBSERVATION_REGISTRY: Mapping[str, str] = MappingProxyType(
-    {
-        "ma6_a5_h30km": (
-            f"{_CSV_DIRECTORY}/1197pa_226.509k_30km_5alpha_6ma.csv"
-        ),
-        "ma8_a5_h40km": f"{_CSV_DIRECTORY}/287pa_251k_40km_5alpha_8ma.csv",
-    }
-)
-SUPPLEMENTAL_OBSERVATION_REGISTRY: Mapping[str, str] = MappingProxyType(
-    {
-        "ma8_a5_h30km": (
-            f"{_CSV_DIRECTORY}/1197pa_226.509k_30km_5alpha_8ma.csv"
-        ),
-    }
-)
-
 _ALLOWED_FIELDS = frozenset(
     {
         "schema",
@@ -55,7 +35,6 @@ _ALLOWED_FIELDS = frozenset(
         "coordinate_unit",
         "fluent_source_convention",
         "solver_transform",
-        "user_confirmation_date",
         "validation_policy",
     }
 )
@@ -85,13 +64,13 @@ class ObservationFilenameIdentity:
     """Immutable observation identity derived only from one CSV basename."""
 
     basename: str
-    p_inf_Pa_token: str
-    T_inf_K_token: str
+    p_inf_Pa_token: str | None
+    T_inf_K_token: str | None
     nominal_altitude_km_token: str
     alpha_deg_token: str
     mach_token: str
-    p_inf_Pa: Decimal
-    T_inf_K: Decimal
+    p_inf_Pa: Decimal | None
+    T_inf_K: Decimal | None
     nominal_altitude_km: Decimal
     alpha_deg: Decimal
     mach: Decimal
@@ -99,10 +78,12 @@ class ObservationFilenameIdentity:
 
     @property
     def geometric_altitude_m(self) -> Decimal:
-        return self.nominal_altitude_km * Decimal("1000")
+        return self.nominal_altitude_km * Decimal(1000)
 
     @property
-    def numeric_identity(self) -> tuple[Decimal, Decimal, Decimal, Decimal, Decimal]:
+    def numeric_identity(
+        self,
+    ) -> tuple[Decimal | None, Decimal | None, Decimal, Decimal, Decimal]:
         return (
             self.p_inf_Pa,
             self.T_inf_K,
@@ -113,7 +94,7 @@ class ObservationFilenameIdentity:
 
 
 def parse_observation_filename(basename: str) -> ObservationFilenameIdentity:
-    """Parse the current approved basename schema without performing admission."""
+    """Parse the active observation basename schema."""
     if not isinstance(basename, str) or not basename:
         raise ValueError("observation basename must be a non-empty string")
     if basename != PurePosixPath(basename).name or "/" in basename or "\\" in basename:
@@ -121,13 +102,23 @@ def parse_observation_filename(basename: str) -> ObservationFilenameIdentity:
     if basename.strip() != basename or any(character.isspace() for character in basename):
         raise ValueError("observation basename must not contain whitespace")
 
-    match = _FILENAME_PATTERN.fullmatch(basename)
+    match = _FREESTREAM_FILENAME_PATTERN.fullmatch(basename)
     if match is None:
         raise ValueError("observation basename does not match the current strict schema")
 
     tokens = match.groupdict()
-    p_inf = _parse_decimal_token(tokens["p_inf"], name="p_inf_Pa", positive=True)
-    T_inf = _parse_decimal_token(tokens["T_inf"], name="T_inf_K", positive=True)
+    p_inf_token = tokens.get("p_inf")
+    T_inf_token = tokens.get("T_inf")
+    p_inf = (
+        _parse_decimal_token(p_inf_token, name="p_inf_Pa", positive=True)
+        if p_inf_token is not None
+        else None
+    )
+    T_inf = (
+        _parse_decimal_token(T_inf_token, name="T_inf_K", positive=True)
+        if T_inf_token is not None
+        else None
+    )
     altitude = _parse_decimal_token(
         tokens["altitude"], name="nominal_altitude_km", positive=False
     )
@@ -139,8 +130,8 @@ def parse_observation_filename(basename: str) -> ObservationFilenameIdentity:
     )
     return ObservationFilenameIdentity(
         basename=basename,
-        p_inf_Pa_token=tokens["p_inf"],
-        T_inf_K_token=tokens["T_inf"],
+        p_inf_Pa_token=p_inf_token,
+        T_inf_K_token=T_inf_token,
         nominal_altitude_km_token=tokens["altitude"],
         alpha_deg_token=tokens["alpha"],
         mach_token=tokens["mach"],
@@ -151,30 +142,6 @@ def parse_observation_filename(basename: str) -> ObservationFilenameIdentity:
         mach=mach,
         case_key=case_key,
     )
-
-
-def validate_observation_identity_set(
-    identities: Iterable[ObservationFilenameIdentity],
-) -> tuple[ObservationFilenameIdentity, ...]:
-    """Reject duplicate numeric identities and conflicting pairs per case key."""
-    result = tuple(identities)
-    seen_numeric: set[tuple[Decimal, Decimal, Decimal, Decimal, Decimal]] = set()
-    pair_by_case: dict[str, tuple[Decimal, Decimal]] = {}
-    for identity in result:
-        if not isinstance(identity, ObservationFilenameIdentity):
-            raise ValueError("identity set contains a non-filename identity")
-        if identity.numeric_identity in seen_numeric:
-            raise ValueError(
-                f"duplicate complete observation identity: {identity.basename}"
-            )
-        seen_numeric.add(identity.numeric_identity)
-        pair = (identity.T_inf_K, identity.p_inf_Pa)
-        previous = pair_by_case.setdefault(identity.case_key, pair)
-        if previous != pair:
-            raise ValueError(
-                f"conflicting freestream pair for case key {identity.case_key}"
-            )
-    return result
 
 
 def _validate_repo_relative_path(csv_path: str) -> None:
@@ -196,26 +163,6 @@ def _identity_from_csv_path(csv_path: str) -> ObservationFilenameIdentity:
     return parse_observation_filename(PurePosixPath(csv_path).name)
 
 
-def _validate_explicit_registry(registry: Mapping[str, str], *, label: str) -> None:
-    identities: list[ObservationFilenameIdentity] = []
-    for case_key, csv_path in registry.items():
-        identity = _identity_from_csv_path(csv_path)
-        if identity.case_key != case_key:
-            raise RuntimeError(
-                f"{label} registry key/path mismatch: {case_key} != {identity.case_key}"
-            )
-        identities.append(identity)
-    validate_observation_identity_set(identities)
-
-
-_validate_explicit_registry(
-    APPROVED_FORMAL_OBSERVATION_REGISTRY, label="approved formal observation"
-)
-_validate_explicit_registry(
-    SUPPLEMENTAL_OBSERVATION_REGISTRY, label="supplemental observation"
-)
-
-
 @dataclass(frozen=True)
 class FluentObservationBinding:
     """Raw CSV identity directly bound to its filename-derived authority."""
@@ -234,7 +181,6 @@ class FluentObservationBinding:
     coordinate_unit: str
     fluent_source_convention: str
     solver_transform: str
-    user_confirmation_date: str
     validation_policy: str
 
     def __post_init__(self) -> None:
@@ -272,9 +218,6 @@ class FluentObservationBinding:
             value = getattr(self, name)
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{name} must be a non-empty string")
-        date = self.user_confirmation_date
-        if len(date) != 10 or date[4] != "-" or date[7] != "-":
-            raise ValueError("user_confirmation_date must use YYYY-MM-DD")
         if self.validation_policy != "fail-closed":
             raise ValueError("validation_policy must be exactly 'fail-closed'")
 
@@ -295,11 +238,11 @@ class FluentObservationBinding:
         return self.filename_identity.geometric_altitude_m
 
     @property
-    def T_inf_K(self) -> Decimal:
+    def T_inf_K(self) -> Decimal | None:
         return self.filename_identity.T_inf_K
 
     @property
-    def p_inf_Pa(self) -> Decimal:
+    def p_inf_Pa(self) -> Decimal | None:
         return self.filename_identity.p_inf_Pa
 
 
@@ -346,49 +289,15 @@ def build_observation_binding(
         byte_size=raw_identity["byte_size"],
         header=raw_identity["header"],
         row_count=raw_identity["row_count"],
-        freestream_provenance="historical user-defined comparison input",
+        freestream_provenance="observation filename and active case identity",
         wall_thermal_condition="adiabatic",
         observation_field="wall-temperature",
         observation_unit="K",
         coordinate_unit="m",
         fluent_source_convention="(x,y,z)",
         solver_transform="(x+0.030, span=y, up=z)",
-        user_confirmation_date="2026-07-22",
         validation_policy="fail-closed",
     )
-
-
-def build_approved_observation_binding(
-    case_key: str,
-    repo_root: str | Path,
-) -> FluentObservationBinding:
-    try:
-        csv_path = APPROVED_FORMAL_OBSERVATION_REGISTRY[case_key]
-    except KeyError as exc:
-        raise ValueError(f"case is not in approved formal observation registry: {case_key}") from exc
-    return build_observation_binding(repo_root, csv_path=csv_path)
-
-
-def build_supplemental_observation_binding(
-    case_key: str,
-    repo_root: str | Path,
-) -> FluentObservationBinding:
-    try:
-        csv_path = SUPPLEMENTAL_OBSERVATION_REGISTRY[case_key]
-    except KeyError as exc:
-        raise ValueError(f"case is not in supplemental observation registry: {case_key}") from exc
-    return build_observation_binding(repo_root, csv_path=csv_path)
-
-
-def build_m8h30_observation_binding(
-    repo_root: str | Path,
-    *,
-    csv_path: str = SUPPLEMENTAL_OBSERVATION_REGISTRY["ma8_a5_h30km"],
-) -> FluentObservationBinding:
-    expected = SUPPLEMENTAL_OBSERVATION_REGISTRY["ma8_a5_h30km"]
-    if csv_path != expected:
-        raise ValueError(f"M8/30 supplemental binding path must be exactly {expected!r}")
-    return build_supplemental_observation_binding("ma8_a5_h30km", repo_root)
 
 
 def validate_observation_binding(
@@ -405,7 +314,7 @@ def validate_observation_binding(
             return False, f"missing required field(s): {sorted(missing)}"
         try:
             binding = FluentObservationBinding(**binding)
-        except Exception as exc:
+        except (TypeError, ValueError, InvalidOperation) as exc:
             return False, f"binding construction failed: {exc}"
     if not isinstance(binding, FluentObservationBinding):
         return False, "binding must be a FluentObservationBinding or dict"
@@ -415,21 +324,20 @@ def validate_observation_binding(
         if binding.filename_identity != parsed:
             return False, "filename identity does not match csv_path"
         actual = _read_csv_raw_identity(repo_root, binding.csv_path)
-    except Exception as exc:
+    except (OSError, UnicodeError, csv.Error, KeyError, TypeError, ValueError) as exc:
         return False, f"CSV identity read failed: {exc}"
 
     for name in ("raw_sha256", "byte_size", "header", "row_count"):
         if getattr(binding, name) != actual[name]:
             return False, f"{name} mismatch"
     expected_metadata = {
-        "freestream_provenance": "historical user-defined comparison input",
+        "freestream_provenance": "observation filename and active case identity",
         "wall_thermal_condition": "adiabatic",
         "observation_field": "wall-temperature",
         "observation_unit": "K",
         "coordinate_unit": "m",
         "fluent_source_convention": "(x,y,z)",
         "solver_transform": "(x+0.030, span=y, up=z)",
-        "user_confirmation_date": "2026-07-22",
         "validation_policy": "fail-closed",
     }
     for name, expected in expected_metadata.items():
@@ -440,7 +348,7 @@ def validate_observation_binding(
 
 def _runtime_decimal(name: str, value: Any) -> Decimal:
     if value is None or isinstance(value, bool):
-        raise ValueError(f"{name} must be an explicit finite positive decimal")
+        raise TypeError(f"{name} must be an explicit finite positive decimal")
     if isinstance(value, Decimal):
         result = value
     elif isinstance(value, (str, int, float)):
@@ -449,7 +357,7 @@ def _runtime_decimal(name: str, value: Any) -> Decimal:
         except InvalidOperation as exc:
             raise ValueError(f"{name} must be an explicit finite positive decimal") from exc
     else:
-        raise ValueError(f"{name} must be an explicit finite positive decimal")
+        raise TypeError(f"{name} must be an explicit finite positive decimal")
     if not result.is_finite() or result <= 0:
         raise ValueError(f"{name} must be an explicit finite positive decimal")
     return result
@@ -464,7 +372,7 @@ def _validated_authority_identity(
         else authority
     )
     if not isinstance(identity, ObservationFilenameIdentity):
-        raise ValueError("exact freestream authority must be a filename identity or binding")
+        raise TypeError("exact freestream authority must be a filename identity or binding")
     parsed = parse_observation_filename(identity.basename)
     if identity != parsed:
         raise ValueError("exact freestream authority must be parser-derived")
@@ -478,73 +386,13 @@ def require_exact_freestream_pair(
     p_inf_Pa: Any,
 ) -> None:
     identity = _validated_authority_identity(authority)
+    if identity.T_inf_K is None or identity.p_inf_Pa is None:
+        raise ValueError(
+            "observation filename does not contain an explicit freestream pair"
+        )
     actual_T = _runtime_decimal("T_inf_K", T_inf_K)
     actual_p = _runtime_decimal("p_inf_Pa", p_inf_Pa)
     if actual_T != identity.T_inf_K or actual_p != identity.p_inf_Pa:
         raise ValueError(
             "explicit freestream pair does not exactly match observation filename identity"
         )
-
-
-def exact_freestream_cli_arguments(
-    authority: ObservationFilenameIdentity | FluentObservationBinding,
-    *,
-    T_inf_K: Any,
-    p_inf_Pa: Any,
-) -> tuple[str, str, str, str]:
-    require_exact_freestream_pair(
-        authority,
-        T_inf_K=T_inf_K,
-        p_inf_Pa=p_inf_Pa,
-    )
-    identity = _validated_authority_identity(authority)
-    return (
-        "--T_inf_K",
-        identity.T_inf_K_token,
-        "--p_inf_Pa",
-        identity.p_inf_Pa_token,
-    )
-
-
-def validate_exact_freestream_summary(
-    authority: ObservationFilenameIdentity | FluentObservationBinding,
-    summary: Mapping[str, Any],
-) -> None:
-    inputs = summary.get("inputs")
-    freestream = summary.get("freestream")
-    if not isinstance(inputs, Mapping):
-        raise ValueError("summary.inputs must contain explicit freestream overrides")
-    if not isinstance(freestream, Mapping):
-        raise ValueError("summary.freestream must be an object")
-    if freestream.get("freestream_source") != "explicit_override":
-        raise ValueError("summary freestream source must be explicit_override")
-    for T_value, p_value in (
-        (inputs.get("T_inf_K_override"), inputs.get("p_inf_Pa_override")),
-        (freestream.get("T_inf_K"), freestream.get("p_inf_Pa")),
-    ):
-        require_exact_freestream_pair(
-            authority,
-            T_inf_K=T_value,
-            p_inf_Pa=p_value,
-        )
-
-
-def validate_exact_freestream_manifest(
-    authority: ObservationFilenameIdentity | FluentObservationBinding,
-    manifest: Mapping[str, Any],
-) -> None:
-    freestream = manifest.get("freestream")
-    atmosphere = manifest.get("atmosphere")
-    if not isinstance(freestream, Mapping):
-        raise ValueError("manifest.freestream must be an object")
-    if freestream.get("source") != "explicit_override":
-        raise ValueError("manifest freestream source must be explicit_override")
-    if not isinstance(atmosphere, Mapping) or atmosphere.get(
-        "explicit_freestream_override"
-    ) is not True:
-        raise ValueError("manifest must record explicit_freestream_override=true")
-    require_exact_freestream_pair(
-        authority,
-        T_inf_K=freestream.get("actual_T_inf_K"),
-        p_inf_Pa=freestream.get("actual_p_inf_Pa"),
-    )

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from .local_incidence import outward_normal_from_slopes
-
 QCHAIN_MAX_NORMAL_ANGLE_DEG = 20.0
 QCHAIN_MIN_ABS_NZ = 0.45
 
@@ -48,30 +46,3 @@ def qchain_stl_acceptance(
     )
     threshold = np.cos(np.deg2rad(float(max_normal_angle_deg)))
     return valid & (np.clip(dot, -1.0, 1.0) >= threshold) & (np.abs(candidate[..., 2] / candidate_norm) >= float(min_abs_nz))
-
-
-def qchain_stl_acceptance_from_slopes(
-    *,
-    sx: np.ndarray,
-    sy: np.ndarray,
-    ref_sx: float,
-    ref_sy: float,
-    max_normal_angle_deg: float = QCHAIN_MAX_NORMAL_ANGLE_DEG,
-    min_abs_nz: float = QCHAIN_MIN_ABS_NZ,
-) -> np.ndarray:
-    """Preserve the solver's graph-normal slope acceptance semantics."""
-
-    sx_arr = np.asarray(sx, dtype=float)
-    sy_arr = np.asarray(sy, dtype=float)
-    if sx_arr.shape != sy_arr.shape:
-        raise ValueError("sx and sy must have the same shape")
-    candidate = outward_normal_from_slopes(sx=sx_arr, sy=sy_arr, sheet="upper")
-    reference = outward_normal_from_slopes(
-        sx=np.asarray(float(ref_sx)), sy=np.asarray(float(ref_sy)), sheet="upper"
-    )
-    return qchain_stl_acceptance(
-        candidate_normal_out=candidate,
-        reference_normal_out=reference,
-        max_normal_angle_deg=max_normal_angle_deg,
-        min_abs_nz=min_abs_nz,
-    )

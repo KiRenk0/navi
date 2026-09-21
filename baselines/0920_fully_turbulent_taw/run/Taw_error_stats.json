@@ -1,0 +1,231 @@
+{
+  "schema": "n8-taw-error-stats/v1",
+  "status": "PASS",
+  "case_id": "ma8_a5_h40km_geometry0920_smoke",
+  "source_csv": "fluent_export/adiabatic_wall_csv/287pa_251k_40km_5alpha_8ma.csv",
+  "source_csv_sha256": "74d7097f8bb5bbca500f7ffd3e091f77899920bc1ef4c2074706fbb848e31e62",
+  "freestream": {
+    "source": "ussa1976",
+    "T_inf_K": 250.3496461024211,
+    "p_inf_Pa": 287.1439554634397,
+    "rho_inf_kg_m3": 0.003995678140481709,
+    "altitude_input_m": 40000.0,
+    "altitude_used_for_freestream": true
+  },
+  "sheets": {
+    "upper": {
+      "status": "PASS",
+      "raw_fluent_source_rows": 21250,
+      "geometric_sheet_source_rows": 8398,
+      "valid_observations": 6122,
+      "valid_predictions": 5995,
+      "paired_source_rows": 6122,
+      "comparison_supported_rows": 5995,
+      "mapping_unsupported_rows": 127,
+      "unique_lf_targets": 1889,
+      "target_pool_size": 5787,
+      "valid_lf_canonical_points": 5787,
+      "mapping_distance_m": {
+        "count": 6122,
+        "min": 6.980886118333576e-05,
+        "mean": 0.0075444003511806815,
+        "median": 0.006404240270657745,
+        "p95": 0.017884220406647607,
+        "max": 0.024321177959670207
+      },
+      "mapping_support_limit_m": {
+        "count": 6122,
+        "min": 0.0003942848042658471,
+        "mean": 0.03228193680811572,
+        "median": 0.0318452560528225,
+        "p95": 0.059373700800841,
+        "max": 0.07681080902818839
+      },
+      "supported_mapping_distance_m": {
+        "count": 5995,
+        "min": 6.980886118333576e-05,
+        "mean": 0.007495851861842156,
+        "median": 0.006281791108176567,
+        "p95": 0.017885257690534125,
+        "max": 0.024321177959670207
+      },
+      "fluent_surface_class_counts": {
+        "windward": 5208,
+        "leeward": 196,
+        "near_tangent": 718,
+        "invalid": 0
+      },
+      "target_surface_class_counts": {
+        "windward": 5221,
+        "leeward": 184,
+        "near_tangent": 717,
+        "invalid": 0
+      },
+      "surface_class_cross_counts": {
+        "windward": {
+          "windward": 5135,
+          "leeward": 0,
+          "near_tangent": 73,
+          "invalid": 0
+        },
+        "leeward": {
+          "windward": 0,
+          "leeward": 147,
+          "near_tangent": 49,
+          "invalid": 0
+        },
+        "near_tangent": {
+          "windward": 86,
+          "leeward": 37,
+          "near_tangent": 595,
+          "invalid": 0
+        },
+        "invalid": {
+          "windward": 0,
+          "leeward": 0,
+          "near_tangent": 0,
+          "invalid": 0
+        }
+      },
+      "signed_error_K": {
+        "count": 5995,
+        "min": -201.55487937640237,
+        "mean": 43.80524098367131,
+        "median": 70.56507909380343,
+        "p95": 116.14174926262285,
+        "max": 153.87313338755894
+      },
+      "absolute_error_K": {
+        "count": 5995,
+        "min": 0.0006124536080278631,
+        "mean": 71.0834081945826,
+        "median": 82.92863624189113,
+        "p95": 121.90159312748251,
+        "max": 201.55487937640237
+      },
+      "signed_relative_error_pct": {
+        "count": 5995,
+        "min": -6.946966993752241,
+        "mean": 1.7145000464378348,
+        "median": 2.6782635196708746,
+        "p95": 4.4916324366575795,
+        "max": 6.0309212029399655
+      },
+      "absolute_relative_error_pct": {
+        "count": 5995,
+        "min": 2.2661840895127823e-05,
+        "mean": 2.691339129582931,
+        "median": 3.146131984468346,
+        "p95": 4.674428502921563,
+        "max": 6.946966993752241
+      }
+    },
+    "lower": {
+      "status": "PASS",
+      "raw_fluent_source_rows": 21250,
+      "geometric_sheet_source_rows": 7690,
+      "valid_observations": 4835,
+      "valid_predictions": 4628,
+      "paired_source_rows": 4835,
+      "comparison_supported_rows": 4628,
+      "mapping_unsupported_rows": 207,
+      "unique_lf_targets": 1680,
+      "target_pool_size": 6110,
+      "valid_lf_canonical_points": 6110,
+      "mapping_distance_m": {
+        "count": 4835,
+        "min": 7.908816933789661e-05,
+        "mean": 0.009625564786303569,
+        "median": 0.009640945696779698,
+        "p95": 0.019203845751061533,
+        "max": 0.024162378403023436
+      },
+      "mapping_support_limit_m": {
+        "count": 4835,
+        "min": 0.000749418934375289,
+        "mean": 0.03572452710042178,
+        "median": 0.0338865382688411,
+        "p95": 0.06188353791474902,
+        "max": 0.07771023959875717
+      },
+      "supported_mapping_distance_m": {
+        "count": 4628,
+        "min": 7.908816933789661e-05,
+        "mean": 0.009626643846034845,
+        "median": 0.009656855019580704,
+        "p95": 0.01927868465082523,
+        "max": 0.024162378403023436
+      },
+      "fluent_surface_class_counts": {
+        "windward": 4835,
+        "leeward": 0,
+        "near_tangent": 0,
+        "invalid": 0
+      },
+      "target_surface_class_counts": {
+        "windward": 4835,
+        "leeward": 0,
+        "near_tangent": 0,
+        "invalid": 0
+      },
+      "surface_class_cross_counts": {
+        "windward": {
+          "windward": 4835,
+          "leeward": 0,
+          "near_tangent": 0,
+          "invalid": 0
+        },
+        "leeward": {
+          "windward": 0,
+          "leeward": 0,
+          "near_tangent": 0,
+          "invalid": 0
+        },
+        "near_tangent": {
+          "windward": 0,
+          "leeward": 0,
+          "near_tangent": 0,
+          "invalid": 0
+        },
+        "invalid": {
+          "windward": 0,
+          "leeward": 0,
+          "near_tangent": 0,
+          "invalid": 0
+        }
+      },
+      "signed_error_K": {
+        "count": 4628,
+        "min": -164.62973285706084,
+        "mean": 53.48213553319683,
+        "median": 81.69711877138275,
+        "p95": 111.59065238859581,
+        "max": 138.15338891246392
+      },
+      "absolute_error_K": {
+        "count": 4628,
+        "min": 0.05659481605516703,
+        "mean": 68.40828985431769,
+        "median": 89.0707936632391,
+        "p95": 113.53826311054377,
+        "max": 164.62973285706084
+      },
+      "signed_relative_error_pct": {
+        "count": 4628,
+        "min": -5.688744519568766,
+        "mean": 2.055347619321162,
+        "median": 3.09881687477532,
+        "p95": 4.283610798162174,
+        "max": 5.355840844669231
+      },
+      "absolute_relative_error_pct": {
+        "count": 4628,
+        "min": 0.0020819360235518752,
+        "mean": 2.588123925299335,
+        "median": 3.3787336852495065,
+        "p95": 4.3377470194805765,
+        "max": 5.688744519568766
+      }
+    }
+  }
+}

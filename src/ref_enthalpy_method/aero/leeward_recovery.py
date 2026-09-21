@@ -1,6 +1,6 @@
 """Leeward freestream-recovery TPG Taw diagnostic — pure provider.
 
-Does not depend on windward cache, fixed-wall heat-flux, or any legacy leeward functions.
+This provider is independent of the windward edge cache.
 The same pure function is intended to be called separately for upper and lower sheets later.
 """
 

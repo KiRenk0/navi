@@ -1,0 +1,35 @@
+vehicle_spec:
+  vehicle_id: htv2_faceted3d_0920
+
+  planform:
+    c_root_m: 3.616861
+    b_half_m: 1.030984
+    sweep_le_deg: 72.0
+
+  faceted3d:
+    sx_up: 0.17632698070846498
+    sy_up: -0.5426786456862612
+    sx_lo: -0.05240777928304121
+    sy_lo: 0.16129455951933025
+
+    edge_state:
+      use_effective_alpha: true
+      use_effective_mach: false
+
+    cp_model: newtonian_like
+    cp_newtonian_A: 0.38
+    cp_newtonian_n: 1.15
+
+    chord_min_m: 0.02
+
+    planform:
+      outline_csv: "../../data/geometry/0920/outline_xz_right_0920.csv"
+      outline_x_col: "x_m"
+      outline_span_col: "z_m"
+      outline_span_sign: -1.0
+
+    surface:
+      stl: "../../data/geometry/0920/htv2_0920_aligned_clean_ascii.stl"
+      unit: "mm"
+      span_sign: -1.0
+      right_half_only: true

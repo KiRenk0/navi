@@ -1,0 +1,149 @@
+{
+  "schema": "n8-taw-run-summary/v4",
+  "status": "PASS",
+  "case_id": "ma8_a5_h40km_geometry0920_smoke",
+  "inputs": {
+    "mach": 8.0,
+    "alpha_deg": 5.0,
+    "T_inf_K": 250.3496461024211,
+    "p_inf_Pa": 287.1439554634397,
+    "h_label_km": 40.0,
+    "altitude_input_m": 40000.0,
+    "altitude_used_for_freestream": true,
+    "atmosphere_model": "ussa1976",
+    "freestream_source": "ussa1976",
+    "freestream_semantics": "USSA1976 from geometric altitude",
+    "observation_freestream_identity": {
+      "T_inf_K": 251.0,
+      "p_inf_Pa": 287.0,
+      "h_label_km": 40.0
+    },
+    "observation_csv": "fluent_export/adiabatic_wall_csv/287pa_251k_40km_5alpha_8ma.csv",
+    "source_csv_sha256": "74d7097f8bb5bbca500f7ffd3e091f77899920bc1ef4c2074706fbb848e31e62"
+  },
+  "contracts": {
+    "temperature": "Taw only",
+    "flow_regime": "fully turbulent",
+    "final_surfaces": [
+      "geometric upper",
+      "geometric lower"
+    ],
+    "taw_dispatch_schema": "n8-taw-dispatch/v3",
+    "surface_normal": "N8 incidence classification and windward candidate slopes use angle-weighted continuous STL vertex normals",
+    "normal_model_schema": "stl-angle-weighted-continuous-normal/v1",
+    "normal_crease_angle_deg": 20.0,
+    "normal_responsibility": "STL faces retain position, geometric sheet, triangle identity, support, and audit ownership; continuous normals own N8 incidence and windward slopes; smoothing never crosses the crease threshold",
+    "geometry_authority": {
+      "release": "0920",
+      "vehicle_spec": "specs/vehicles/htv2_faceted3d_0920.yaml",
+      "stl": "data/geometry/0920/htv2_0920_aligned_clean_ascii.stl",
+      "outline": "data/geometry/0920/outline_xz_right_0920.csv"
+    },
+    "near_tangent": "s <= 0 uses freestream recovery; 0 < s < 0.05 uses a C1 smoothstep blend in enthalpy space; s >= 0.05 uses the fully turbulent windward candidate",
+    "candidate_fields": "windward and freestream-recovery Taw candidates plus the windward blend weight are serialized for every applicable geometry point",
+    "geometry_failure_semantics": "the product node table contains only authoritative graph-skin nodes; structured-grid exclusions remain in a typed audit table",
+    "domain_topology": {
+      "schema": "n8-taw-domain-topology/v1",
+      "sha256": "ef0f6076344fb91962694799f78384280243c64fd5763c96203f186633e130e4",
+      "node_count": 11897,
+      "triangle_count": 22404,
+      "structured_exclusion_count": 361
+    },
+    "provider_coverage": "provider_valid equals geometry_valid",
+    "surface_connectivity": "explicit graph-skin-clipped triangle_node_ids shared by plotting and local mapping support; topology terminates on skin/cap edges",
+    "pairing": "Fluent source rows preserved; comparison valid only within each target vertex's local valid-triangle support radius",
+    "surface_rendering": "flat colors on explicit domain triangles; no reshape or invalid vertex mask defines the product boundary",
+    "comparison_rendering": "filled triangular contours from supported Fluent projected samples; sparse unsupported samples remain excluded from statistics and are interpolated over within the supported-sample convex hull",
+    "error_direction": "prediction - observation",
+    "signed_relative_error_color_limit_pct": 10.0,
+    "signed_relative_error_auto_range_pct": {
+      "upper": {
+        "min": -6.946966993752241,
+        "max": 6.0309212029399655
+      },
+      "lower": {
+        "min": -5.688744519568766,
+        "max": 5.355840844669231
+      }
+    },
+    "projection_cache": {
+      "schema": "exact-projection-cache/v1",
+      "algorithm": "n3a.5b-exact-bvh/v1",
+      "identity_scope": "canonical_geometry",
+      "key": "946a8a57d1249eec9a0996ce296c409f4055b39457d85aec8236a120c73b799f",
+      "hit": true,
+      "path": "baselines/0920_fully_turbulent_taw/projection_cache/946a8a57d1249eec9a0996ce296c409f4055b39457d85aec8236a120c73b799f.npz",
+      "sha256": "de90c7d211c3e819fb2448414b874e2800681674d14db6669d8379923643c73c",
+      "identity": {
+        "projection_input_geometry_sha256": "f8e831b08dd86283bb69dc2f5be5fdb636e160a801ce97ec4d9382098b611c23",
+        "fluent_canonical_geometry_sha256": "f8e831b08dd86283bb69dc2f5be5fdb636e160a801ce97ec4d9382098b611c23",
+        "triangle_canonical_sha256": "4be1d8cac4b0dc1c1455edfb593feab919968ce5d1bef77cb4ead46057ea86db"
+      }
+    }
+  },
+  "surface_nodes": 11897,
+  "surface_triangles": 22404,
+  "structured_exclusions": 361,
+  "valid_points": {
+    "upper": 5787,
+    "lower": 6110
+  },
+  "geometry_valid_points": {
+    "upper": 5787,
+    "lower": 6110
+  },
+  "surface_status": {
+    "upper": "PASS",
+    "lower": "PASS"
+  },
+  "artifacts": {
+    "Taw_surface_fields.npz": {
+      "byte_size": 1945565,
+      "sha256": "a785aac089308ee6c4dd76b22441ddaddafc44a2174f66dd5b5f632818d7abf2"
+    },
+    "Taw_error_stats.json": {
+      "byte_size": 6815,
+      "sha256": "6f54cd7ae60ae8abe1137ee996b1b2b3d131b5d6f450fdb7790b399111e76fbf"
+    },
+    "Taw_surface_upper.png": {
+      "byte_size": 103750,
+      "sha256": "5119422ce23bf73cd0c7d4b51702bae030af5475f29b0d160aff6fdeb984ebb8"
+    },
+    "Taw_surface_lower.png": {
+      "byte_size": 61491,
+      "sha256": "581b01edbd3decc056d7043fc6e7313f3307de2c464148daaf3787c90de508df"
+    },
+    "Taw_provider_upper.png": {
+      "byte_size": 51255,
+      "sha256": "ae189f43144b6a40f495e0a9ec435cb41a53aeef460640d3a6d48bcf58148180"
+    },
+    "Taw_provider_lower.png": {
+      "byte_size": 43283,
+      "sha256": "4079bad7f8ab6d680e8c3a077e73b234344024b95f28b8bb126ca52310bc62b5"
+    },
+    "Taw_validity_upper.png": {
+      "byte_size": 41993,
+      "sha256": "b5dace984348167f4dbb2987bc4911717fa9783ca1bdab43ade9e66c15d6e7fb"
+    },
+    "Taw_validity_lower.png": {
+      "byte_size": 42429,
+      "sha256": "8c18fcb6f7471a986e85c640c37c56f99636f6c5d612686b776ffeedb44729ad"
+    },
+    "Taw_error_vs_fluent_upper.png": {
+      "byte_size": 64618,
+      "sha256": "aba80815f3a99eed274a83bca21bcc598ada5e24b56a9b17e7ee4eb128321227"
+    },
+    "Taw_error_vs_fluent_lower.png": {
+      "byte_size": 63044,
+      "sha256": "e52c7835f793317e59e9bab0b6e374909fd2dc0949350c9df3508a954e0526a0"
+    },
+    "Taw_error_vs_fluent_upper_auto_range.png": {
+      "byte_size": 67453,
+      "sha256": "654cd4102bc5c04653de2e70b13808f2aa4341541abef42504fc59e737d3b0b6"
+    },
+    "Taw_error_vs_fluent_lower_auto_range.png": {
+      "byte_size": 67049,
+      "sha256": "9ded46301ef953a799c6daf0a0c41a6e8fbb2faac7a2bb5248ebca3adb98f424"
+    }
+  }
+}

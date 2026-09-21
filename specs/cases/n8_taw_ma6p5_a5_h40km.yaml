@@ -15,7 +15,7 @@ gas:
   prandtl: 0.72
 
 geometry:
-  vehicle_spec: specs/vehicles/htv2_faceted3d_0629.yaml
+  vehicle_spec: specs/vehicles/htv2_faceted3d_0920.yaml
   fluent_x_offset_m: 0.030
   projection_gate_m: 0.005
 

@@ -29,11 +29,13 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ..aero.busemann import busemann_cp, compute_cp
-from ..aero.edge_conditions import compute_edge_conditions, effective_alpha, effective_ma_inf
-from ..aero.transition import transition_reynolds, transition_weight
-from ..config.lf_qw import LfQwConfig
-from ..heatflux.windward import windward_ref_enthalpy_branches
+from ..aero.edge_conditions import (
+    compute_edge_conditions,
+    effective_alpha,
+    effective_ma_inf,
+)
+from ..aero.pressure_coefficient import newtonian_like_cp
+from ..config.windward_taw import WindwardTawConfig
 from ..types import EdgeConditions, GasModel
 
 
@@ -54,8 +56,7 @@ class WindwardEdgeCacheFaceted3D:
     edges: list[EdgeConditions]  # length nx
     x_over_c: np.ndarray  # (nx,)
     x_phys: np.ndarray  # (nx,)
-    lf_cfg: LfQwConfig
-    transition_x_over_c: float | None
+    taw_cfg: WindwardTawConfig
     alpha_edge_rad: float = float("nan")
     alpha_effective_rad: float = float("nan")
     mach_edge: float = float("nan")
@@ -80,13 +81,6 @@ class WindwardEdgeCacheFaceted3D:
 _EDGE_MAE_FLOOR = 1.0
 _CP0_BISECT_ITERS = 28
 _CP0_BISECT_TOL = 1e-6
-
-# Dhawan-Narasimha Simon ZPG closure constants (hardcoded, matching solver_faceted3d.py diagnostic)
-_DN_CONST_0p412 = 0.412
-_DN_CONST_0p664 = 0.664
-_DN_CONST_124 = 124.0
-_DN_XI_99 = float(np.sqrt(-np.log(0.01) / _DN_CONST_0p412))
-
 
 def resolve_faceted3d_edge_inflow(
     *,
@@ -273,7 +267,7 @@ def _regularize_cp0_for_supersonic_edge(
 def build_windward_edge_cache_faceted3d(
     *,
     gas: GasModel,
-    lf_cfg: LfQwConfig,
+    taw_cfg: WindwardTawConfig,
     mach: float,
     alpha_deg: float,
     sweep_le_deg: float,
@@ -284,12 +278,10 @@ def build_windward_edge_cache_faceted3d(
     xc_grid: np.ndarray,
     sx_arr: np.ndarray,
     sy_arr: np.ndarray,
-    transition_x_over_c: float | None,
     cp0_override: float | None = None,
     use_effective_alpha: bool = True,
     use_effective_mach: bool = False,
     x_phys_override: np.ndarray | None = None,
-    cp_model: str = "busemann",
     cp_newtonian_A: float = 0.38,
     cp_newtonian_n: float = 1.15,
 ) -> WindwardEdgeCacheFaceted3D:
@@ -319,7 +311,7 @@ def build_windward_edge_cache_faceted3d(
         raise ValueError("sx_arr and sy_arr must have the same length as xc_grid")
 
     # Internal x clamp for strip-theory evaluation (does not affect sampling grid)
-    x_min_over_c = float(getattr(lf_cfg, "x_model").x_min_over_c) if hasattr(lf_cfg, "x_model") else 0.003
+    x_min_over_c = float(taw_cfg.x_min_over_c)
     x_eff_over_c = np.maximum(x_over_c, max(x_min_over_c, 0.0))
     if x_phys_override is None:
         x_phys = np.maximum(x_eff_over_c * float(chord_m), 1e-6)
@@ -330,8 +322,8 @@ def build_windward_edge_cache_faceted3d(
         x_phys = np.maximum(x_phys, 1e-6)
 
     # phi clamp
-    phi_clamp = bool(lf_cfg.phi_clamp.enable)
-    phi_min = float(lf_cfg.phi_clamp.phi_min_rad)
+    phi_clamp = bool(taw_cfg.phi_clamp.enable)
+    phi_min = float(taw_cfg.phi_clamp.phi_min_rad)
 
     # Cp0 at leading edge should not depend on the first sampling point.
     # If x/c does not start at 0, extrapolate (sx, sy) to x/c=0 using the first two points.
@@ -344,15 +336,16 @@ def build_windward_edge_cache_faceted3d(
             if x1 != x0:
                 sx0 = float(sx_arr[0] + (0.0 - x0) * (float(sx_arr[1]) - float(sx_arr[0])) / (x1 - x0))
                 sy0 = float(sy_arr[0] + (0.0 - x0) * (float(sy_arr[1]) - float(sy_arr[0])) / (x1 - x0))
-    except Exception:
+    except (IndexError, TypeError, ValueError, OverflowError):
         sx0 = float(sx_arr[0])
         sy0 = float(sy_arr[0])
 
     phi0 = _phi_from_slopes_3d(alpha_e=alpha_e, sx=sx0, sy=sy0)
     if phi_clamp and phi0 <= phi_min:
         phi0 = phi_min
-    cp0_raw = float(compute_cp(ma_inf=mach_edge, phi_rad=float(phi0),
-                               cp_model=cp_model, newtonian_A=cp_newtonian_A, newtonian_n=cp_newtonian_n))
+    cp0_raw = newtonian_like_cp(
+        phi_rad=float(phi0), A=cp_newtonian_A, n=cp_newtonian_n
+    )
 
     phi_arr = np.full_like(x_over_c, np.nan, dtype=float)
     cp_arr = np.full_like(x_over_c, np.nan, dtype=float)
@@ -361,10 +354,11 @@ def build_windward_edge_cache_faceted3d(
         if phi_clamp and phi <= phi_min:
             phi = phi_min
         phi_arr[i] = float(phi)
-        cp_arr[i] = float(compute_cp(ma_inf=mach_edge, phi_rad=float(phi),
-                                     cp_model=cp_model, newtonian_A=cp_newtonian_A, newtonian_n=cp_newtonian_n))
+        cp_arr[i] = newtonian_like_cp(
+            phi_rad=float(phi), A=cp_newtonian_A, n=cp_newtonian_n
+        )
 
-    raw_edges, min_ma_raw, collapsed_raw = _build_edges_for_cp0(
+    _raw_edges, min_ma_raw, collapsed_raw = _build_edges_for_cp0(
         gas=gas,
         mach_edge=float(mach_edge),
         p_inf=float(p_inf),
@@ -438,7 +432,10 @@ def build_windward_edge_cache_faceted3d(
     tpg_ve2_neg_count: int = 0
 
     if getattr(gas, "tpg", None) is not None:
-        from ..aero.edge_conditions import get_tpg_ve2_neg_count, reset_tpg_ve2_neg_count
+        from ..aero.edge_conditions import (
+            get_tpg_ve2_neg_count,
+            reset_tpg_ve2_neg_count,
+        )
 
         reset_tpg_ve2_neg_count()
         tpg = gas.tpg
@@ -448,11 +445,11 @@ def build_windward_edge_cache_faceted3d(
         h0_val = h_inf_tpg + 0.5 * v_inf * v_inf
         h0_tpg = h0_val
 
-        nx_val = int(len(edges))
+        nx_val = len(edges)
         taw_arr = np.full(nx_val, np.nan, dtype=float)
         Pr = float(gas.prandtl)
         # Recovery: fully turbulent, fixed Pr^(1/3).
-        # Taw is decoupled from q-chain transition weighting (w_tr).
+        # Taw uses the fully turbulent recovery factor directly.
         r_aw = Pr ** (1.0 / 3.0)
 
         for i in range(nx_val):
@@ -473,8 +470,7 @@ def build_windward_edge_cache_faceted3d(
         edges=edges,
         x_over_c=x_over_c,
         x_phys=x_phys,
-        lf_cfg=lf_cfg,
-        transition_x_over_c=transition_x_over_c,
+        taw_cfg=taw_cfg,
         alpha_edge_rad=float(inflow.alpha_edge_rad),
         alpha_effective_rad=float(inflow.alpha_effective_rad),
         mach_edge=float(inflow.mach_edge),
@@ -495,152 +491,3 @@ def build_windward_edge_cache_faceted3d(
         h0_tpg=h0_tpg,
         tpg_ve2_neg_count=tpg_ve2_neg_count,
     )
-
-
-def windward_q_distribution_from_Tw(
-    *,
-    gas: GasModel,
-    cache: WindwardEdgeCacheFaceted3D,
-    Tw: np.ndarray,
-    include_leading_edge: bool = False,
-) -> np.ndarray:
-    """Same semantics as aero/windward_cache.py (faceted 3D cache variant).
-
-    Phase 3-B: Dhawan-Narasimha physical-q wiring.
-
-    When weighting == "dhawan_narasimha", this function finds the onset index
-    along the current strip, computes a Simon ZPG lambda_m closure (hardcoded
-    constants, no YAML/config keys), then passes x_tr_phys and lambda_m into
-    transition_weight for each point.
-
-    Fallback: if onset not found, lambda_m is non-positive/non-finite, or edge
-    quantities are invalid, the strip reverts to fully laminar (w=0).
-    """
-
-    _DN_WEIGHTING = "dhawan_narasimha"
-
-    Tw = np.asarray(Tw, dtype=float).reshape(-1)
-    if Tw.size != cache.x_over_c.size:
-        raise ValueError("Tw must have same length as cache.x_over_c")
-
-    q = np.full_like(Tw, np.nan, dtype=float)
-    i0 = 0 if bool(include_leading_edge) else 1
-    weighting = str(cache.lf_cfg.transition.weighting).strip().lower()
-    is_dn = weighting == _DN_WEIGHTING
-
-    if is_dn:
-        onset_idx = None
-        for j in range(i0, Tw.size):
-            if not np.isfinite(float(Tw[j])):
-                continue
-            branches_j = windward_ref_enthalpy_branches(
-                gas=gas, edge=cache.edges[j], x=float(cache.x_phys[j]), h_w=float(gas.h_from_T(float(Tw[j])))
-            )
-            re_x_lam_j = float(branches_j.Re_x_star_lam)
-            if not np.isfinite(re_x_lam_j) or re_x_lam_j <= 0.0:
-                continue
-            re_tri_j = float(transition_reynolds(ma_e=float(cache.edges[j].ma_e)))
-            if re_x_lam_j >= re_tri_j:
-                onset_idx = j
-                break
-
-        dn_x_tr_phys: float | None = None
-        dn_lambda_m: float | None = None
-        if onset_idx is not None:
-            o_edge = cache.edges[onset_idx]
-            rho_e = float(o_edge.rho_e)
-            v_e = float(o_edge.v_e)
-            mu_e = float(o_edge.mu_e)
-            x_tr = float(cache.x_phys[onset_idx])
-            if (
-                np.isfinite(rho_e) and rho_e > 0.0
-                and np.isfinite(v_e) and v_e > 0.0
-                and np.isfinite(mu_e) and mu_e > 0.0
-                and np.isfinite(x_tr) and x_tr > 0.0
-            ):
-                Re_x_tr = rho_e * v_e * x_tr / mu_e
-                if Re_x_tr > 0.0:
-                    Re_theta_tr = _DN_CONST_0p664 * np.sqrt(Re_x_tr)
-                    Re_L_tr = _DN_CONST_124 * (Re_theta_tr ** 1.5)
-                    L_tr = Re_L_tr * mu_e / (rho_e * v_e)
-                    lm = float(L_tr / _DN_XI_99)
-                    if np.isfinite(lm) and lm > 0.0:
-                        dn_x_tr_phys = x_tr
-                        dn_lambda_m = lm
-
-    for i in range(i0, Tw.size):
-        Tw_i = float(Tw[i])
-        if not np.isfinite(Tw_i):
-            continue
-        h_w = float(gas.h_from_T(Tw_i))
-        q_lam, q_turb, re_lam, _re_turb = windward_ref_enthalpy_branches(
-            gas=gas, edge=cache.edges[i], x=float(cache.x_phys[i]), h_w=h_w
-        )
-        re_tri = float(transition_reynolds(ma_e=float(cache.edges[i].ma_e)))
-
-        if is_dn and dn_lambda_m is not None:
-            w = float(
-                transition_weight(
-                    enable=True,
-                    re_measure=1.0,
-                    re_tri=1.0,
-                    weighting=_DN_WEIGHTING,
-                    x_phys=float(cache.x_phys[i]),
-                    x_tr_phys=float(dn_x_tr_phys),
-                    lambda_m=float(dn_lambda_m),
-                )
-            )
-        else:
-            w = float(
-                transition_weight(
-                    enable=bool(cache.lf_cfg.transition.enable),
-                    re_measure=float(re_lam),
-                    re_tri=re_tri,
-                    weighting=weighting,
-                    width_decades=float(cache.lf_cfg.transition.width_decades),
-                    delta_decades=float(cache.lf_cfg.transition.delta_decades),
-                    x_over_c=float(cache.x_over_c[i]),
-                    transition_x_over_c=cache.transition_x_over_c,
-                    x_phys=float(cache.x_phys[i]),
-                )
-            )
-        q[i] = (1.0 - w) * float(q_lam) + w * float(q_turb)
-    return q
-
-
-def windward_q_at_index(
-    *,
-    gas: GasModel,
-    cache: WindwardEdgeCacheFaceted3D,
-    i: int,
-    Tw_i: float,
-) -> float:
-    """Same semantics as aero/windward_cache.py (faceted 3D cache variant)."""
-
-    i = int(i)
-    if i < 0:
-        raise ValueError("windward_q_at_index expects i>=0.")
-    if i >= cache.x_over_c.size:
-        raise IndexError("i out of range for cache")
-    Tw_i = float(Tw_i)
-    if not np.isfinite(Tw_i):
-        return float("nan")
-    h_w = float(gas.h_from_T(Tw_i))
-    q_lam, q_turb, re_lam, _re_turb = windward_ref_enthalpy_branches(
-        gas=gas, edge=cache.edges[i], x=float(cache.x_phys[i]), h_w=h_w
-    )
-    re_tri = float(transition_reynolds(ma_e=float(cache.edges[i].ma_e)))
-    w = float(
-        transition_weight(
-            enable=bool(cache.lf_cfg.transition.enable),
-            re_measure=float(re_lam),
-            re_tri=re_tri,
-            weighting=str(cache.lf_cfg.transition.weighting),
-            width_decades=float(cache.lf_cfg.transition.width_decades),
-            delta_decades=float(cache.lf_cfg.transition.delta_decades),
-            x_over_c=float(cache.x_over_c[i]),
-            transition_x_over_c=cache.transition_x_over_c,
-            x_phys=float(cache.x_phys[i]),
-        )
-    )
-    return float((1.0 - w) * float(q_lam) + w * float(q_turb))

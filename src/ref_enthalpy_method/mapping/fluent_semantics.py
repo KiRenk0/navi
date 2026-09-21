@@ -335,7 +335,7 @@ def _build_geometry_qa(
     gate = projection.projection_gate_pass
     consistency = _consistency_checks(projection, semantics, round_trip)
     return {
-        "schema": "faceted3d-phase4b-geometry-qa/v1",
+        "schema": "0920-taw-geometry-qa/v1",
         "identity": {
             "point_count": int(semantics.projected_xyz.shape[0]),
             "triangle_count": int(projection.triangle_count),
@@ -387,10 +387,8 @@ def integrate_fluent_projected_semantics(
     chord_min_m: float,
     upper_reference_normal_out: np.ndarray,
     lower_reference_normal_out: np.ndarray,
-    outline_x_m: np.ndarray | None = None,
-    outline_span_m: np.ndarray | None = None,
-    c_root_m: float | None = None,
-    planform_half_angle_deg: float | None = None,
+    outline_x_m: np.ndarray,
+    outline_span_m: np.ndarray,
 ) -> FluentProjectedSemanticsIntegration:
     """Connect exact canonical Fluent projection to raw projected geometry semantics."""
 
@@ -406,8 +404,6 @@ def integrate_fluent_projected_semantics(
         lower_reference_normal_out=lower_reference_normal_out,
         outline_x_m=outline_x_m,
         outline_span_m=outline_span_m,
-        c_root_m=c_root_m,
-        planform_half_angle_deg=planform_half_angle_deg,
     )
     round_trip = _ordering_round_trip(semantics, geometry)
     qa = _build_geometry_qa(projection, semantics, round_trip)

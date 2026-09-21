@@ -6,7 +6,7 @@ from dataclasses import dataclass, fields
 
 import numpy as np
 
-from .faceted3d import outline_planform_xle_chord, triangle_planform_xle_chord
+from .faceted3d import outline_planform_xle_chord
 from .local_incidence import (
     INCIDENCE_EPSILON,
     NORMAL_SOURCE_INVALID,
@@ -173,10 +173,8 @@ def build_projected_geometry_semantics(
     chord_min_m: float,
     upper_reference_normal_out: np.ndarray,
     lower_reference_normal_out: np.ndarray,
-    outline_x_m: np.ndarray | None = None,
-    outline_span_m: np.ndarray | None = None,
-    c_root_m: float | None = None,
-    planform_half_angle_deg: float | None = None,
+    outline_x_m: np.ndarray,
+    outline_span_m: np.ndarray,
 ) -> ProjectedGeometrySemantics:
     """Build immutable semantics in exact input point ordering."""
 
@@ -196,11 +194,10 @@ def build_projected_geometry_semantics(
         raise ValueError("planform_b_half_m must be finite and greater than zero")
     if not np.isfinite(chord_min) or chord_min <= 0.0:
         raise ValueError("chord_min_m must be finite and greater than zero")
-    has_outline = outline_x_m is not None or outline_span_m is not None
-    if has_outline and (outline_x_m is None or outline_span_m is None):
-        raise ValueError("outline_x_m and outline_span_m must be provided together")
-    if not has_outline and (c_root_m is None or planform_half_angle_deg is None):
-        raise ValueError("triangular fallback requires c_root_m and planform_half_angle_deg")
+    outline_x = np.asarray(outline_x_m, dtype=float)
+    outline_span = np.asarray(outline_span_m, dtype=float)
+    if outline_x.ndim != 1 or outline_span.ndim != 1:
+        raise ValueError("required 0920 outline arrays must be one-dimensional")
 
     triangle_sheet = classify_triangle_geometric_sheets(triangle_array)
     sheet = np.asarray(triangle_sheet[ids], dtype=np.int8)
@@ -246,18 +243,11 @@ def build_projected_geometry_semantics(
     x_over_c = np.full(points.shape[0], np.nan, dtype=np.float64)
     parameterization_valid = np.zeros(points.shape[0], dtype=bool)
     for index, (x_m, span_m) in enumerate(points[:, :2]):
-        if has_outline:
-            x_le, chord = outline_planform_xle_chord(
-                span_m=float(span_m),
-                outline_x_m=np.asarray(outline_x_m, dtype=float),
-                outline_span_m=np.asarray(outline_span_m, dtype=float),
-            )
-        else:
-            x_le, chord = triangle_planform_xle_chord(
-                span_m=float(span_m),
-                c_root_m=float(c_root_m),
-                half_angle_deg=float(planform_half_angle_deg),
-            )
+        x_le, chord = outline_planform_xle_chord(
+            span_m=float(span_m),
+            outline_x_m=outline_x,
+            outline_span_m=outline_span,
+        )
         valid = np.isfinite(x_le) and np.isfinite(chord) and chord >= chord_min and chord > 0.0
         if valid:
             x_over_c[index] = (float(x_m) - x_le) / chord

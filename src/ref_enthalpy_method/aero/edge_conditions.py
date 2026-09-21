@@ -63,17 +63,17 @@ def _compute_edge_conditions_tpg(
     T_inf_val = float(T_inf)
     rho_inf_val = float(rho_inf)
 
-    k_legacy = float(gas.gamma)
+    gamma = float(gas.gamma)
 
     a_inf = float(tpg.a_T(T_inf_val))
     v_inf = float(ma_eff) * a_inf
     h_inf_tpg = float(tpg.h_from_T(T_inf_val))
     h0 = h_inf_tpg + 0.5 * v_inf * v_inf
 
-    pe_over_pinf = 1.0 + (k_legacy / 2.0) * (float(ma_eff) ** 2) * float(cp_pressure)
+    pe_over_pinf = 1.0 + (gamma / 2.0) * (float(ma_eff) ** 2) * float(cp_pressure)
     p_e = pe_over_pinf * p_inf
 
-    pc_over_pinf = 1.0 + (k_legacy / 2.0) * (float(ma_eff) ** 2) * float(cp0_pressure)
+    pc_over_pinf = 1.0 + (gamma / 2.0) * (float(ma_eff) ** 2) * float(cp0_pressure)
     p_c = pc_over_pinf * p_inf
 
     rhoc_over_rhoinf = (6.0 * pc_over_pinf + 1.0) / (pc_over_pinf + 6.0)

@@ -12,7 +12,6 @@ from dataclasses import dataclass
 
 import numpy as np
 
-
 # Fluent Cp(T) table (ideal-gas air, piecewise-polynomial, no chemistry)
 # Source: Phase 2E-P2 specification table (Fluent corrected adiabatic wall comparison)
 _FLUENT_CP_T_K = np.array(

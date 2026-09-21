@@ -57,24 +57,6 @@ def transform_fluent_xyz_to_solver(
 
 
 @dataclass(frozen=True)
-class CanonicalGeometryComparison:
-    shape_equal: bool
-    dtype_equal: bool
-    numerical_exact_equal: bool
-    c_order_bytes_equal: bool
-    maximum_absolute_coordinate_difference: float
-
-    @property
-    def equal(self) -> bool:
-        return (
-            self.shape_equal
-            and self.dtype_equal
-            and self.numerical_exact_equal
-            and self.c_order_bytes_equal
-        )
-
-
-@dataclass(frozen=True)
 class FluentSurfaceGeometry:
     """Immutable Fluent geometry rows and their deterministic canonical identity.
 
@@ -206,32 +188,4 @@ def read_fluent_surface_geometry_csv(
         canonical_index=_readonly_copy(np.arange(count), dtype=np.int64),
         canonical_to_source_row=_readonly_copy(canonical_to_source, dtype=np.int64),
         source_to_canonical_row=_readonly_copy(source_to_canonical, dtype=np.int64),
-    )
-
-
-def compare_canonical_geometry(
-    left: FluentSurfaceGeometry,
-    right: FluentSurfaceGeometry,
-) -> CanonicalGeometryComparison:
-    """Compare canonical coordinates exactly, without tolerance-based equivalence."""
-    left_xyz = left.canonical_solver_xyz
-    right_xyz = right.canonical_solver_xyz
-    shape_equal = left_xyz.shape == right_xyz.shape
-    dtype_equal = left_xyz.dtype == right_xyz.dtype
-    numerical_exact_equal = shape_equal and bool(np.array_equal(left_xyz, right_xyz))
-    c_order_bytes_equal = (
-        shape_equal
-        and dtype_equal
-        and left_xyz.tobytes(order="C") == right_xyz.tobytes(order="C")
-    )
-    if shape_equal:
-        maximum_difference = float(np.max(np.abs(left_xyz - right_xyz), initial=0.0))
-    else:
-        maximum_difference = float("inf")
-    return CanonicalGeometryComparison(
-        shape_equal=shape_equal,
-        dtype_equal=dtype_equal,
-        numerical_exact_equal=numerical_exact_equal,
-        c_order_bytes_equal=c_order_bytes_equal,
-        maximum_absolute_coordinate_difference=maximum_difference,
     )

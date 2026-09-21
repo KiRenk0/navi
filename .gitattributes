@@ -20,8 +20,9 @@
 # Frozen runs, CFD exports, datasets, and binary artifacts must retain
 # their exact stored bytes. Do not normalize their line endings.
 runs/** -text
+baselines/** -text -diff
 fluent_export/** -text
-*.csv -text
+*.csv -text -diff
 
 *.npz binary
 *.npy binary

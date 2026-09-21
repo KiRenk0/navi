@@ -1,4 +1,3 @@
-from .lf_qw import LfQwConfig, PhiClampConfig, StagnationConfig, TransitionBlendConfig
+from .windward_taw import PhiClampConfig, WindwardTawConfig
 
-__all__ = ["LfQwConfig", "PhiClampConfig", "StagnationConfig", "TransitionBlendConfig"]
-
+__all__ = ["PhiClampConfig", "WindwardTawConfig"]

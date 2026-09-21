@@ -17,11 +17,11 @@ class N8DomainTopology:
     node_y_over_b: np.ndarray
     parameter_row: np.ndarray
     parameter_column: np.ndarray
-    legacy_phase9_canonical_index: np.ndarray
+    structured_canonical_index: np.ndarray
     domain_role: np.ndarray
     source_stl_triangle_id: np.ndarray
     source_stl_edge_id: np.ndarray
-    interpolation_legacy_indices: np.ndarray
+    interpolation_structured_indices: np.ndarray
     interpolation_weights: np.ndarray
     triangle_node_ids: np.ndarray
     triangle_source_stl_triangle_id: np.ndarray
@@ -234,11 +234,11 @@ def build_n8_domain_topology(
     x_over_c: np.ndarray,
     y_over_b: np.ndarray,
     geometry_valid: np.ndarray,
-    legacy_source_stl_triangle_id: np.ndarray,
+    structured_source_stl_triangle_id: np.ndarray,
     mesh: AsciiStlMesh,
     triangle_sheet: np.ndarray,
     sheet_code: int,
-    legacy_sheet_offset: int,
+    structured_sheet_offset: int,
 ) -> N8DomainTopology:
     """Intersect the structured sampling mesh with one authoritative STL sheet."""
 
@@ -247,10 +247,10 @@ def build_n8_domain_topology(
     xc = np.asarray(x_over_c, dtype=np.float64)
     yb = np.asarray(y_over_b, dtype=np.float64)
     geometry = np.asarray(geometry_valid, dtype=np.bool_)
-    legacy_source = np.asarray(legacy_source_stl_triangle_id, dtype=np.int64)
+    structured_source = np.asarray(structured_source_stl_triangle_id, dtype=np.int64)
     if x.ndim != 2 or not (
         x.shape == span.shape == xc.shape == yb.shape == geometry.shape
-        == legacy_source.shape
+        == structured_source.shape
     ):
         raise ValueError("structured parameter grids must be matching 2D arrays")
     sheets = np.asarray(triangle_sheet, dtype=np.int8)
@@ -282,21 +282,21 @@ def build_n8_domain_topology(
     flat_xc = xc.reshape(-1)
     flat_yb = yb.reshape(-1)
     flat_geometry = geometry.reshape(-1)
-    flat_legacy_source = legacy_source.reshape(-1)
+    flat_structured_source = structured_source.reshape(-1)
     node_records: list[dict[str, object]] = []
     node_lookup: dict[tuple[float, float, int], int] = {}
     product_triangles: list[tuple[int, int, int]] = []
     product_sources: list[int] = []
     triangle_signatures: set[tuple[int, int, int]] = set()
 
-    for legacy_vertices in structured_triangles:
-        legacy = np.asarray(legacy_vertices, dtype=np.int64)
-        subject = flat_xy[legacy]
+    for structured_vertices in structured_triangles:
+        structured = np.asarray(structured_vertices, dtype=np.int64)
+        subject = flat_xy[structured]
         if not np.all(np.isfinite(subject)) or abs(_signed_area(subject)) <= 1.0e-16:
             continue
-        fully_supported = bool(np.all(flat_geometry[legacy]))
+        fully_supported = bool(np.all(flat_geometry[structured]))
         if fully_supported:
-            source_candidates = flat_legacy_source[legacy]
+            source_candidates = flat_structured_source[structured]
             source_candidates = source_candidates[source_candidates >= 0]
             if source_candidates.size == 0:
                 raise ValueError("supported structured triangle has no STL source")
@@ -330,7 +330,7 @@ def build_n8_domain_topology(
                     continue
                 direct_candidates = np.flatnonzero(weights >= 1.0 - 2.0e-10)
                 direct_local = (
-                    int(legacy[int(direct_candidates[0])])
+                    int(structured[int(direct_candidates[0])])
                     if direct_candidates.size
                     else -1
                 )
@@ -354,16 +354,16 @@ def build_n8_domain_topology(
                         {
                             "x_m": float(point[0]),
                             "span_m": float(point[1]),
-                            "x_over_c": float(weights @ flat_xc[legacy]),
-                            "y_over_b": float(weights @ flat_yb[legacy]),
+                            "x_over_c": float(weights @ flat_xc[structured]),
+                            "y_over_b": float(weights @ flat_yb[structured]),
                             "parameter_row": (
                                 direct_local // nx if direct_local >= 0 else -1
                             ),
                             "parameter_column": (
                                 direct_local % nx if direct_local >= 0 else -1
                             ),
-                            "legacy_index": (
-                                int(legacy_sheet_offset + direct_local)
+                            "structured_index": (
+                                int(structured_sheet_offset + direct_local)
                                 if direct_local >= 0
                                 else -1
                             ),
@@ -372,7 +372,7 @@ def build_n8_domain_topology(
                             ),
                             "source_triangle_id": source_id,
                             "source_edge_id": source_edge_id,
-                            "interpolation_indices": legacy + int(legacy_sheet_offset),
+                            "interpolation_indices": structured + int(structured_sheet_offset),
                             "interpolation_weights": weights,
                         }
                     )
@@ -419,11 +419,11 @@ def build_n8_domain_topology(
         node_y_over_b=array("y_over_b", np.float64),
         parameter_row=array("parameter_row", np.int64),
         parameter_column=array("parameter_column", np.int64),
-        legacy_phase9_canonical_index=array("legacy_index", np.int64),
+        structured_canonical_index=array("structured_index", np.int64),
         domain_role=array("domain_role", "<U16"),
         source_stl_triangle_id=array("source_triangle_id", np.int64),
         source_stl_edge_id=array("source_edge_id", np.int64),
-        interpolation_legacy_indices=np.asarray(
+        interpolation_structured_indices=np.asarray(
             [record["interpolation_indices"] for record in records], dtype=np.int64
         ),
         interpolation_weights=np.asarray(

@@ -505,8 +505,10 @@ def load_projection_cache(
         raise FileNotFoundError(f"Cache file does not exist: {path}")
 
     try:
-        with path.open("rb") as cache_file:
-            with np.load(cache_file, allow_pickle=False) as data:
+        with path.open("rb") as cache_file, np.load(
+            cache_file, allow_pickle=False
+        ) as data:
+
                 try:
                     manifest_json = bytes(data["manifest_json"]).decode("utf-8")
                     manifest = json.loads(manifest_json)
@@ -549,7 +551,7 @@ def load_projection_cache(
                     ) from exc
     except (CacheIdentityMismatchError, CacheIntegrityError):
         raise
-    except (ValueError, OSError, IOError, EOFError, zipfile.BadZipFile) as exc:
+    except (ValueError, OSError, EOFError, zipfile.BadZipFile) as exc:
         raise CacheIntegrityError(
             f"Failed to load cache file: {path}: {exc}"
         ) from exc

@@ -1,0 +1,6 @@
+schema: n8-taw-sampling/v1
+sampling:
+  mode: mystery
+  x_over_c: {start: 0.0, end: 1.0, count: 3}
+  y_over_b: {start: 0.0, end: 1.0, count: 3}
+  point_order: sheet_then_y_over_b_then_x_over_c

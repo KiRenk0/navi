@@ -20,13 +20,7 @@ from ref_enthalpy_method.aero.windward_cache_faceted3d import (
     build_windward_edge_cache_faceted3d,
 )
 from ref_enthalpy_method.atmosphere.ussa1976 import ussa1976
-from ref_enthalpy_method.config.lf_qw import (
-    LfQwConfig,
-    PhiClampConfig,
-    StagnationConfig,
-    TransitionBlendConfig,
-    XModelConfig,
-)
+from ref_enthalpy_method.config.windward_taw import PhiClampConfig, WindwardTawConfig
 from ref_enthalpy_method.gas.thermo import make_fluent_tpg_thermo
 from ref_enthalpy_method.gas.transport import mu_sutherland
 from ref_enthalpy_method.geometry.faceted3d import (
@@ -75,13 +69,13 @@ from ref_enthalpy_method.mapping.fluent_semantics import (
     semantic_valid_mask,
 )
 from ref_enthalpy_method.mapping.fluent_surface import read_fluent_surface_geometry_csv
-from ref_enthalpy_method.mapping.fluent_wall_temperature import (
-    read_fluent_wall_temperature_source,
-)
 from ref_enthalpy_method.mapping.observation_binding import (
     build_observation_binding,
     require_exact_freestream_pair,
     validate_observation_binding,
+)
+from ref_enthalpy_method.mapping.wall_temperature_source import (
+    read_fluent_wall_temperature_source,
 )
 from ref_enthalpy_method.types import GasModel
 
@@ -110,6 +104,17 @@ _TOPOLOGY_SCHEMA = "n8-taw-domain-topology/v1"
 _NORMAL_MODEL_SCHEMA = "stl-angle-weighted-continuous-normal/v1"
 _NORMAL_CREASE_ANGLE_DEG = 20.0
 _MAPPING_UNSUPPORTED = "MAPPING_UNSUPPORTED"
+_VEHICLE_SPEC = "specs/vehicles/htv2_faceted3d_0920.yaml"
+_VEHICLE_ID = "htv2_faceted3d_0920"
+_STL_PATH = "data/geometry/0920/htv2_0920_aligned_clean_ascii.stl"
+_OUTLINE_PATH = "data/geometry/0920/outline_xz_right_0920.csv"
+_PROJECTION_CACHE_KEY = (
+    "946a8a57d1249eec9a0996ce296c409f4055b39457d85aec8236a120c73b799f"
+)
+_PROJECTION_CACHE_PATH = (
+    "baselines/0920_fully_turbulent_taw/projection_cache/"
+    f"{_PROJECTION_CACHE_KEY}.npz"
+)
 
 
 @dataclass(frozen=True)
@@ -386,6 +391,8 @@ def load_n8_taw_case_spec(path: str | Path, *, repo_root: str | Path) -> N8TawCa
     )
     if not result.case_id or result.h_label_km < 0.0:
         raise ValueError("case_id must be nonempty and h_label_km must be nonnegative")
+    if result.vehicle_spec != _VEHICLE_SPEC:
+        raise ValueError(f"geometry.vehicle_spec must be exactly {_VEHICLE_SPEC!r}")
     _repo_path(root, result.observation_csv, label="case.observation_csv")
     _repo_path(root, result.vehicle_spec, label="geometry.vehicle_spec")
     _repo_path(root, result.sampling_spec, label="sampling.spec")
@@ -433,6 +440,8 @@ def _load_geometry_inputs(repo_root: Path, case: N8TawCaseSpec) -> _GeometryInpu
     )
     raw = _load_yaml(vehicle_path)
     vehicle = _mapping(raw.get("vehicle_spec"), label="vehicle_spec")
+    if vehicle.get("vehicle_id") != _VEHICLE_ID:
+        raise ValueError(f"vehicle_spec.vehicle_id must be exactly {_VEHICLE_ID!r}")
     planform = _mapping(vehicle.get("planform"), label="vehicle_spec.planform")
     faceted = _mapping(vehicle.get("faceted3d"), label="vehicle_spec.faceted3d")
     f3 = Faceted3DConfig.from_faceted3d_spec(dict(faceted))
@@ -440,6 +449,10 @@ def _load_geometry_inputs(repo_root: Path, case: N8TawCaseSpec) -> _GeometryInpu
         raise ValueError("N8 geometry requires explicit outline CSV and STL")
     outline_path = (vehicle_path.parent / f3.outline_csv_path).resolve()
     stl_path = (vehicle_path.parent / f3.surface_stl_path).resolve()
+    if outline_path != (repo_root / _OUTLINE_PATH).resolve():
+        raise ValueError(f"0920 outline path must be exactly {_OUTLINE_PATH!r}")
+    if stl_path != (repo_root / _STL_PATH).resolve():
+        raise ValueError(f"0920 STL path must be exactly {_STL_PATH!r}")
     for value, label in ((outline_path, "outline"), (stl_path, "STL")):
         try:
             value.relative_to(repo_root)
@@ -533,13 +546,12 @@ def dispatch_taw_predictions(
     windward_taw_K: np.ndarray,
     recovery_taw_K: np.ndarray,
     gas: GasModel,
-    transition_epsilon: float = INCIDENCE_EPSILON,
+    near_tangent_epsilon: float = INCIDENCE_EPSILON,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Continuously dispatch Taw from recovery to the windward edge model.
 
-    Negative and zero incidence use the freestream-recovery limit.  Positive
-    near-tangent incidence transitions in enthalpy space with a C1 smoothstep;
-    pure windward routing starts at the diagnostic incidence epsilon.
+    Negative and zero incidence use the freestream-recovery limit. Positive
+    near-tangent incidence uses a C1 smoothstep into the windward provider.
     """
 
     incidence = np.asarray(incidence_s, dtype=np.float64)
@@ -548,9 +560,9 @@ def dispatch_taw_predictions(
     recovery = np.asarray(recovery_taw_K, dtype=np.float64)
     if not (incidence.shape == geometry.shape == windward.shape == recovery.shape):
         raise ValueError("Taw dispatch arrays must have identical shapes")
-    epsilon = float(transition_epsilon)
+    epsilon = float(near_tangent_epsilon)
     if not np.isfinite(epsilon) or epsilon <= 0.0:
-        raise ValueError("transition_epsilon must be finite and positive")
+        raise ValueError("near_tangent_epsilon must be finite and positive")
     if not callable(gas.h_from_T) or not callable(gas.T_from_h):
         raise TypeError("gas enthalpy conversion functions must be callable")
 
@@ -563,15 +575,15 @@ def dispatch_taw_predictions(
     finite_incidence = np.isfinite(incidence)
     dispatched = geometry & finite_incidence
     recovery_mask = dispatched & (incidence <= 0.0)
-    transition_mask = dispatched & (incidence > 0.0) & (incidence < epsilon)
+    near_tangent_mask = dispatched & (incidence > 0.0) & (incidence < epsilon)
     windward_mask = dispatched & (incidence >= epsilon)
 
     windward_weight[recovery_mask] = 0.0
-    scaled = np.clip(incidence[transition_mask] / epsilon, 0.0, 1.0)
-    windward_weight[transition_mask] = scaled * scaled * (3.0 - 2.0 * scaled)
+    scaled = np.clip(incidence[near_tangent_mask] / epsilon, 0.0, 1.0)
+    windward_weight[near_tangent_mask] = scaled * scaled * (3.0 - 2.0 * scaled)
     windward_weight[windward_mask] = 1.0
     provider[recovery_mask] = "leeward_recovery"
-    provider[transition_mask] = "near_tangent_blend"
+    provider[near_tangent_mask] = "near_tangent_blend"
     provider[windward_mask] = "windward_turbulent"
     reason[dispatched] = ""
 
@@ -584,8 +596,8 @@ def dispatch_taw_predictions(
         windward_mask & windward_finite
     ]
 
-    transition_ready = transition_mask & recovery_finite & windward_finite
-    for index in np.flatnonzero(transition_ready):
+    near_tangent_ready = near_tangent_mask & recovery_finite & windward_finite
+    for index in np.flatnonzero(near_tangent_ready):
         recovery_h = float(gas.h_from_T(float(recovery[index])))
         windward_h = float(gas.h_from_T(float(windward[index])))
         weight = float(windward_weight[index])
@@ -607,6 +619,26 @@ def dispatch_taw_predictions(
     unresolved = dispatched & ~valid & (reason == "")
     reason[unresolved] = "provider_nonfinite"
     return prediction, provider, valid, reason, windward_weight
+
+
+def _structured_cell_triangles(valid_vertices: np.ndarray) -> np.ndarray:
+    """Build valid triangles for the structured sampling topology."""
+    valid = np.asarray(valid_vertices, dtype=np.bool_)
+    if valid.ndim != 2:
+        raise ValueError("structured validity must be two-dimensional")
+    ny, nx = valid.shape
+    triangles: list[tuple[int, int, int]] = []
+    for row in range(ny - 1):
+        for column in range(nx - 1):
+            top_left = row * nx + column
+            top_right = top_left + 1
+            bottom_left = (row + 1) * nx + column
+            bottom_right = bottom_left + 1
+            if valid[row, column] and valid[row, column + 1] and valid[row + 1, column + 1]:
+                triangles.append((top_left, top_right, bottom_right))
+            if valid[row, column] and valid[row + 1, column + 1] and valid[row + 1, column]:
+                triangles.append((top_left, bottom_right, bottom_left))
+    return np.asarray(triangles, dtype=np.int64).reshape(-1, 3)
 
 
 def _structured_mapping_support_radius(
@@ -642,7 +674,7 @@ def _structured_mapping_support_radius(
     return support
 
 
-def _build_lf_surface_fields(
+def _build_structured_surface_fields(
     *,
     case: N8TawCaseSpec,
     sampling: N8SamplingSpec,
@@ -654,7 +686,7 @@ def _build_lf_surface_fields(
     shape = (sampling.ny, sampling.nx)
     sampler = SurfaceSlopeSampler(mesh=geometry.mesh)
     triangle_sheet = classify_triangle_geometric_sheets(geometry.triangles)
-    legacy_normal_triangle_sheet = classify_triangle_geometric_sheets(
+    local_normal_triangle_sheet = classify_triangle_geometric_sheets(
         geometry.triangles, propagate_components=False
     )
     normal_field = ContinuousStlNormalField(
@@ -662,9 +694,9 @@ def _build_lf_surface_fields(
         triangle_sheet=triangle_sheet,
         crease_angle_deg=_NORMAL_CREASE_ANGLE_DEG,
     )
-    legacy_normal_field = ContinuousStlNormalField(
+    local_normal_field = ContinuousStlNormalField(
         mesh=geometry.mesh,
-        triangle_sheet=legacy_normal_triangle_sheet,
+        triangle_sheet=local_normal_triangle_sheet,
         crease_angle_deg=_NORMAL_CREASE_ANGLE_DEG,
     )
     sheet_data: dict[str, dict[str, np.ndarray]] = {}
@@ -749,8 +781,8 @@ def _build_lf_surface_fields(
                     data["geometry_failure_reason"][j, i] = "invalid_surface_normal"
                     continue
                 selected_normal_field = (
-                    legacy_normal_field
-                    if int(legacy_normal_triangle_sheet[int(triangle_id)])
+                    local_normal_field
+                    if int(local_normal_triangle_sheet[int(triangle_id)])
                     == sheet_codes[sheet]
                     else normal_field
                 )
@@ -790,12 +822,9 @@ def _build_lf_surface_fields(
 
     rho_inf = case.p_inf_Pa / (case.R_J_per_kgK * case.T_inf_K)
     V_inf = case.mach * float(gas.tpg.a_T(case.T_inf_K))
-    lf_cfg = LfQwConfig(
-        phi_clamp=PhiClampConfig(enable=True, warn=False, phi_min_rad=1.0e-8),
-        transition=TransitionBlendConfig(enable=False, weighting="step"),
-        x_model=XModelConfig(x_min_over_c=0.003),
-        stagnation=StagnationConfig(),
-        q_stag_ratio_warn=2.0,
+    taw_cfg = WindwardTawConfig(
+        phi_clamp=PhiClampConfig(enable=True, phi_min_rad=1.0e-8),
+        x_min_over_c=0.003,
     )
     for sheet in _SHEETS:
         data = sheet_data[sheet]
@@ -815,7 +844,7 @@ def _build_lf_surface_fields(
             x_phys = np.maximum(xc * chord_eff, max(0.003 * chord_eff, 1.0e-6))
             cache = build_windward_edge_cache_faceted3d(
                 gas=gas,
-                lf_cfg=lf_cfg,
+                taw_cfg=taw_cfg,
                 mach=case.mach,
                 alpha_deg=case.alpha_deg,
                 sweep_le_deg=geometry.sweep_le_deg,
@@ -826,11 +855,9 @@ def _build_lf_surface_fields(
                 xc_grid=xc,
                 sx_arr=sx_row,
                 sy_arr=sy_row,
-                transition_x_over_c=None,
                 use_effective_alpha=geometry.f3.edge_use_effective_alpha,
                 use_effective_mach=geometry.f3.edge_use_effective_mach,
                 x_phys_override=x_phys,
-                cp_model=geometry.f3.cp_model,
                 cp_newtonian_A=geometry.f3.cp_newtonian_A,
                 cp_newtonian_n=geometry.f3.cp_newtonian_n,
             )
@@ -980,7 +1007,7 @@ def _topology_hash(
 
 def _build_domain_conforming_product(
     *,
-    legacy_fields: Mapping[str, np.ndarray],
+    structured_fields: Mapping[str, np.ndarray],
     case: N8TawCaseSpec,
     sampling: N8SamplingSpec,
     geometry: _GeometryInputs,
@@ -1002,20 +1029,20 @@ def _build_domain_conforming_product(
         offset = 0 if sheet == "upper" else count_per_sheet
         sheet_slice = slice(offset, offset + count_per_sheet)
         topologies[sheet] = build_n8_domain_topology(
-            x_m=np.asarray(legacy_fields["x_m"])[sheet_slice].reshape(shape),
-            span_m=np.asarray(legacy_fields["span_m"])[sheet_slice].reshape(shape),
-            x_over_c=np.asarray(legacy_fields["x_over_c"])[sheet_slice].reshape(shape),
-            y_over_b=np.asarray(legacy_fields["y_over_b"])[sheet_slice].reshape(shape),
-            geometry_valid=np.asarray(legacy_fields["geometry_valid"])[
+            x_m=np.asarray(structured_fields["x_m"])[sheet_slice].reshape(shape),
+            span_m=np.asarray(structured_fields["span_m"])[sheet_slice].reshape(shape),
+            x_over_c=np.asarray(structured_fields["x_over_c"])[sheet_slice].reshape(shape),
+            y_over_b=np.asarray(structured_fields["y_over_b"])[sheet_slice].reshape(shape),
+            geometry_valid=np.asarray(structured_fields["geometry_valid"])[
                 sheet_slice
             ].reshape(shape),
-            legacy_source_stl_triangle_id=np.asarray(legacy_fields["triangle_id"])[
+            structured_source_stl_triangle_id=np.asarray(structured_fields["triangle_id"])[
                 sheet_slice
             ].reshape(shape),
             mesh=geometry.mesh,
             triangle_sheet=triangle_sheet,
             sheet_code=sheet_codes[sheet],
-            legacy_sheet_offset=offset,
+            structured_sheet_offset=offset,
         )
 
     node_offsets: dict[str, int] = {}
@@ -1051,11 +1078,11 @@ def _build_domain_conforming_product(
             for sheet in _SHEETS
         ]
     )
-    legacy_index = np.concatenate(
-        [topologies[sheet].legacy_phase9_canonical_index for sheet in _SHEETS]
+    structured_index = np.concatenate(
+        [topologies[sheet].structured_canonical_index for sheet in _SHEETS]
     )
     interpolation_indices = np.concatenate(
-        [topologies[sheet].interpolation_legacy_indices for sheet in _SHEETS],
+        [topologies[sheet].interpolation_structured_indices for sheet in _SHEETS],
         axis=0,
     )
     interpolation_weights = np.concatenate(
@@ -1065,7 +1092,7 @@ def _build_domain_conforming_product(
     source_triangle = np.concatenate(
         [topologies[sheet].source_stl_triangle_id for sheet in _SHEETS]
     )
-    direct = legacy_index >= 0
+    direct = structured_index >= 0
     inserted = ~direct
 
     product: dict[str, np.ndarray] = {
@@ -1087,7 +1114,7 @@ def _build_domain_conforming_product(
         "parameter_column": np.concatenate(
             [topologies[sheet].parameter_column for sheet in _SHEETS]
         ),
-        "legacy_phase9_canonical_index": legacy_index,
+        "structured_canonical_index": structured_index,
         "domain_role": np.concatenate(
             [topologies[sheet].domain_role for sheet in _SHEETS]
         ),
@@ -1118,16 +1145,16 @@ def _build_domain_conforming_product(
     )
 
     for key in node_float_fields:
-        product[key][direct] = np.asarray(legacy_fields[key])[legacy_index[direct]]
-    product["normal_out"][direct] = np.asarray(legacy_fields["normal_out"])[
-        legacy_index[direct]
+        product[key][direct] = np.asarray(structured_fields[key])[structured_index[direct]]
+    product["normal_out"][direct] = np.asarray(structured_fields["normal_out"])[
+        structured_index[direct]
     ]
     product["stl_face_normal_out"][direct] = np.asarray(
-        legacy_fields["stl_face_normal_out"]
-    )[legacy_index[direct]]
+        structured_fields["stl_face_normal_out"]
+    )[structured_index[direct]]
     product["source_stl_triangle_id"][direct] = np.asarray(
-        legacy_fields["triangle_id"], dtype=np.int64
-    )[legacy_index[direct]]
+        structured_fields["triangle_id"], dtype=np.int64
+    )[structured_index[direct]]
 
     triangles = geometry.triangles
     for node_id in np.flatnonzero(inserted):
@@ -1191,15 +1218,15 @@ def _build_domain_conforming_product(
     product["Taw_recovery_candidate_K"][inserted] = recovery.Taw_tpg[inserted]
 
     parent_geometry = np.asarray(
-        legacy_fields["geometry_valid"], dtype=np.bool_
+        structured_fields["geometry_valid"], dtype=np.bool_
     )[interpolation_indices]
-    legacy_windward = np.asarray(
-        legacy_fields["Taw_windward_candidate_K"], dtype=np.float64
+    structured_windward = np.asarray(
+        structured_fields["Taw_windward_candidate_K"], dtype=np.float64
     )
     for node_id in np.flatnonzero(inserted & (product["incidence_s"] > 0.0)):
         parent_indices = interpolation_indices[node_id]
         weights = interpolation_weights[node_id]
-        parent_candidate = legacy_windward[parent_indices]
+        parent_candidate = structured_windward[parent_indices]
         if np.all(parent_geometry[node_id]) and np.all(np.isfinite(parent_candidate)):
             product["Taw_windward_candidate_K"][node_id] = float(
                 weights @ parent_candidate
@@ -1216,16 +1243,13 @@ def _build_domain_conforming_product(
             raise ValueError("inserted windward node has no planform chord")
         chord_eff = max(chord, geometry.f3.chord_min_m)
         node_xc = float(product["x_over_c"][node_id])
-        lf_cfg = LfQwConfig(
-            phi_clamp=PhiClampConfig(enable=True, warn=False, phi_min_rad=1.0e-8),
-            transition=TransitionBlendConfig(enable=False, weighting="step"),
-            x_model=XModelConfig(x_min_over_c=0.003),
-            stagnation=StagnationConfig(),
-            q_stag_ratio_warn=2.0,
+        taw_cfg = WindwardTawConfig(
+            phi_clamp=PhiClampConfig(enable=True, phi_min_rad=1.0e-8),
+            x_min_over_c=0.003,
         )
         cache = build_windward_edge_cache_faceted3d(
             gas=gas,
-            lf_cfg=lf_cfg,
+            taw_cfg=taw_cfg,
             mach=case.mach,
             alpha_deg=case.alpha_deg,
             sweep_le_deg=geometry.sweep_le_deg,
@@ -1236,13 +1260,11 @@ def _build_domain_conforming_product(
             xc_grid=np.asarray([node_xc]),
             sx_arr=np.asarray([product["sx"][node_id]]),
             sy_arr=np.asarray([product["sy"][node_id]]),
-            transition_x_over_c=None,
             use_effective_alpha=geometry.f3.edge_use_effective_alpha,
             use_effective_mach=geometry.f3.edge_use_effective_mach,
             x_phys_override=np.asarray(
                 [max(node_xc * chord_eff, max(0.003 * chord_eff, 1.0e-6))]
             ),
-            cp_model=geometry.f3.cp_model,
             cp_newtonian_A=geometry.f3.cp_newtonian_A,
             cp_newtonian_n=geometry.f3.cp_newtonian_n,
         )
@@ -1282,21 +1304,21 @@ def _build_domain_conforming_product(
         }
     )
 
-    excluded = ~np.asarray(legacy_fields["geometry_valid"], dtype=np.bool_)
+    excluded = ~np.asarray(structured_fields["geometry_valid"], dtype=np.bool_)
     excluded_reason = np.asarray(
-        legacy_fields["geometry_failure_reason"], dtype="<U32"
+        structured_fields["geometry_failure_reason"], dtype="<U32"
     )[excluded].copy()
 
-    product["excluded_legacy_phase9_canonical_index"] = np.flatnonzero(
+    product["excluded_structured_canonical_index"] = np.flatnonzero(
         excluded
     ).astype(np.int64)
     product["excluded_geometric_sheet"] = np.asarray(
-        legacy_fields["geometric_sheet"]
+        structured_fields["geometric_sheet"]
     )[excluded]
-    product["excluded_x_m"] = np.asarray(legacy_fields["x_m"])[excluded]
-    product["excluded_span_m"] = np.asarray(legacy_fields["span_m"])[excluded]
-    product["excluded_x_over_c"] = np.asarray(legacy_fields["x_over_c"])[excluded]
-    product["excluded_y_over_b"] = np.asarray(legacy_fields["y_over_b"])[excluded]
+    product["excluded_x_m"] = np.asarray(structured_fields["x_m"])[excluded]
+    product["excluded_span_m"] = np.asarray(structured_fields["span_m"])[excluded]
+    product["excluded_x_over_c"] = np.asarray(structured_fields["x_over_c"])[excluded]
+    product["excluded_y_over_b"] = np.asarray(structured_fields["y_over_b"])[excluded]
     product["excluded_geometry_failure_reason"] = excluded_reason
     product["excluded_domain_classification"] = np.full(
         np.count_nonzero(excluded),
@@ -1590,91 +1612,6 @@ def _sha256(path: Path) -> str:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
-
-
-def _structured_cell_triangles(valid_vertices: np.ndarray) -> np.ndarray:
-    """Build each valid original-grid triangle without masking its sibling."""
-
-    valid = np.asarray(valid_vertices, dtype=np.bool_)
-    if valid.ndim != 2:
-        raise ValueError("structured plot validity must be two-dimensional")
-    ny, nx = valid.shape
-    triangles: list[tuple[int, int, int]] = []
-    for j in range(ny - 1):
-        for i in range(nx - 1):
-            top_left = j * nx + i
-            top_right = top_left + 1
-            bottom_left = (j + 1) * nx + i
-            bottom_right = bottom_left + 1
-            if valid[j, i] and valid[j, i + 1] and valid[j + 1, i + 1]:
-                triangles.append((top_left, top_right, bottom_right))
-            if valid[j, i] and valid[j + 1, i + 1] and valid[j + 1, i]:
-                triangles.append((top_left, bottom_right, bottom_left))
-    return np.asarray(triangles, dtype=np.int64).reshape(-1, 3)
-
-
-def _plot_structured_surface(
-    *,
-    path: Path,
-    x_m: np.ndarray,
-    span_m: np.ndarray,
-    values: np.ndarray,
-    title: str,
-    colorbar_label: str,
-    cmap: str,
-    vmin: float | None = None,
-    vmax: float | None = None,
-) -> None:
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    import matplotlib.tri as mtri
-
-    x = np.asarray(x_m, dtype=np.float64)
-    span = np.asarray(span_m, dtype=np.float64)
-    z = np.asarray(values, dtype=np.float64)
-    if x.ndim != 2 or x.shape != span.shape or x.shape != z.shape:
-        raise ValueError(
-            "structured surface plot inputs must be matching two-dimensional grids"
-        )
-    finite = np.isfinite(x) & np.isfinite(span) & np.isfinite(z)
-    triangles = _structured_cell_triangles(finite)
-    if triangles.size == 0:
-        raise ValueError(f"plot {path.name} has no fully valid structured cells")
-    used = np.unique(triangles)
-    compact_index = np.full(x.size, -1, dtype=np.int64)
-    compact_index[used] = np.arange(used.size, dtype=np.int64)
-    compact_triangles = compact_index[triangles]
-    x_used = x.reshape(-1)[used]
-    span_used = span.reshape(-1)[used]
-    z_used = z.reshape(-1)[used]
-    fig, ax = plt.subplots(figsize=(8.0, 4.8), dpi=180)
-    try:
-        triangulation = mtri.Triangulation(
-            x_used,
-            span_used,
-            triangles=compact_triangles,
-        )
-        artist = ax.tripcolor(
-            triangulation,
-            z_used,
-            shading="flat",
-            cmap=cmap,
-            vmin=vmin,
-            vmax=vmax,
-        )
-    except (RuntimeError, ValueError) as error:
-        plt.close(fig)
-        raise ValueError(f"structured contour failed for {path.name}") from error
-    fig.colorbar(artist, ax=ax, label=colorbar_label)
-    ax.set_title(title, fontsize=10)
-    ax.set_xlabel("x (m)")
-    ax.set_ylabel("span (m)")
-    ax.set_aspect("equal", adjustable="box")
-    fig.tight_layout()
-    fig.savefig(path)
-    plt.close(fig)
 
 
 def _plot_explicit_surface(
@@ -1997,7 +1934,7 @@ def validate_n8_run_artifacts(run_dir: str | Path) -> dict[str, Any]:
         if int(sheet_stats.get("comparison_supported_rows", 0)) <= 0:
             raise ValueError(f"{sheet} has no locally supported comparisons")
         if int(sheet_stats.get("unique_lf_targets", 0)) <= 0:
-            raise ValueError(f"{sheet} has no unique LF target")
+            raise ValueError(f"{sheet} has no unique Taw target")
     projection_cache = summary.get("contracts", {}).get("projection_cache")
     if not isinstance(projection_cache, Mapping):
         raise TypeError("N8 summary has no projection-cache contract")
@@ -2030,7 +1967,7 @@ def validate_n8_run_artifacts(run_dir: str | Path) -> dict[str, Any]:
     with np.load(directory / "Taw_surface_fields.npz", allow_pickle=False) as archive:
         required = {
             "node_id",
-            "legacy_phase9_canonical_index",
+            "structured_canonical_index",
             "geometric_sheet",
             "domain_role",
             "source_stl_triangle_id",
@@ -2041,7 +1978,7 @@ def validate_n8_run_artifacts(run_dir: str | Path) -> dict[str, Any]:
             "triangle_source_stl_triangle_id",
             "domain_topology_schema",
             "domain_topology_sha256",
-            "excluded_legacy_phase9_canonical_index",
+            "excluded_structured_canonical_index",
             "excluded_geometry_failure_reason",
             "surface_class",
             "surface_class_code",
@@ -2250,7 +2187,7 @@ def validate_n8_run_artifacts(run_dir: str | Path) -> dict[str, Any]:
         needs_windward = geometry_valid & (weight > 0.0)
         if not np.all(np.isfinite(windward[needs_windward])):
             raise ValueError(
-                "N8 windward candidate does not cover its transition domain"
+                "N8 windward candidate does not cover its near-tangent domain"
             )
         if not (
             np.all(provider[geometry_valid & (weight == 0.0)] == "leeward_recovery")
@@ -2372,7 +2309,7 @@ def run_n8_taw_case(
     if freestream.source == "explicit_custom":
         _require_override("T_inf_K", freestream.T_inf_K, observation_case.T_inf_K)
         _require_override("p_inf_Pa", freestream.p_inf_Pa, observation_case.p_inf_Pa)
-    elif Decimal(str(float(freestream.altitude_input_m) / 1000.0)) != Decimal(
+    elif Decimal(str(freestream.altitude_input_m)) / Decimal(1000) != Decimal(
         str(observation_case.h_label_km)
     ):
         raise ValueError(
@@ -2422,14 +2359,14 @@ def run_n8_taw_case(
     try:
         geometry_inputs = _load_geometry_inputs(root, case)
         gas = _gas_model(case)
-        legacy_fields = _build_lf_surface_fields(
+        structured_fields = _build_structured_surface_fields(
             case=case,
             sampling=sampling,
             geometry=geometry_inputs,
             gas=gas,
         )
         fields = _build_domain_conforming_product(
-            legacy_fields=legacy_fields,
+            structured_fields=structured_fields,
             case=case,
             sampling=sampling,
             geometry=geometry_inputs,
@@ -2447,7 +2384,7 @@ def run_n8_taw_case(
         if not np.any(valid & (fields["geometric_sheet"] == "upper")) or not np.any(
             valid & (fields["geometric_sheet"] == "lower")
         ):
-            raise ValueError("upper and lower LF Taw fields must both be nonempty")
+            raise ValueError("upper and lower Taw fields must both be nonempty")
 
         fluent_geometry = read_fluent_surface_geometry_csv(
             csv_path, x_offset_m=case.fluent_x_offset_m
@@ -2473,24 +2410,22 @@ def run_n8_taw_case(
             **projection_identity_kwargs,
         )
         projection_identity["fluent_source_geometry_sha256"] = canonical_geometry_sha256
-        projection_cache_key = hashlib.sha256(
-            json.dumps(
-                projection_identity,
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode("utf-8")
-        ).hexdigest()
-        projection_cache_path = (
-            runs_root / "_projection_cache" / f"{projection_cache_key}.npz"
+        projection_cache_key = _PROJECTION_CACHE_KEY
+        projection_cache_path = _repo_path(
+            root, _PROJECTION_CACHE_PATH, label="formal projection cache"
         )
-        projection_cache_hit = projection_cache_path.is_file()
+        if not projection_cache_path.is_file():
+            raise FileNotFoundError(
+                f"required 0920 baseline projection cache not found: {projection_cache_path}"
+            )
+        projection_cache_hit = True
         projection = project_fluent_surface_with_cache(
             fluent_geometry,
             geometry_inputs.triangles,
             projection_gate_m=case.projection_gate_m,
             use_bvh=True,
             cache_path=projection_cache_path,
-            write_cache=True,
+            write_cache=False,
             geometry_identity_kwargs=projection_identity_kwargs,
             cache_identity_scope="canonical_geometry",
         )
@@ -2767,10 +2702,12 @@ def run_n8_taw_case(
                     "support, and audit ownership; continuous normals own N8 incidence "
                     "and windward slopes; smoothing never crosses the crease threshold"
                 ),
-                "historical_scope": (
-                    "frozen Group 8 and N6/N7 certification retain their original "
-                    "normal semantics and are not retrospectively recomputed"
-                ),
+                "geometry_authority": {
+                    "release": "0920",
+                    "vehicle_spec": _VEHICLE_SPEC,
+                    "stl": _STL_PATH,
+                    "outline": _OUTLINE_PATH,
+                },
                 "near_tangent": (
                     "s <= 0 uses freestream recovery; 0 < s < 0.05 uses a C1 "
                     "smoothstep blend in enthalpy space; s >= 0.05 uses the "
@@ -2782,15 +2719,15 @@ def run_n8_taw_case(
                 ),
                 "geometry_failure_semantics": (
                     "the product node table contains only authoritative graph-skin "
-                    "nodes; legacy phase9 exclusions remain in a typed audit table"
+                    "nodes; structured-grid exclusions remain in a typed audit table"
                 ),
                 "domain_topology": {
                     "schema": _TOPOLOGY_SCHEMA,
                     "sha256": str(fields["domain_topology_sha256"]),
                     "node_count": int(fields["node_id"].size),
                     "triangle_count": int(fields["triangle_id"].size),
-                    "legacy_exclusion_count": int(
-                        fields["excluded_legacy_phase9_canonical_index"].size
+                    "structured_exclusion_count": int(
+                        fields["excluded_structured_canonical_index"].size
                     ),
                 },
                 "provider_coverage": "provider_valid equals geometry_valid",
@@ -2833,18 +2770,18 @@ def run_n8_taw_case(
                     },
                 },
             },
-            "lf_product_nodes": int(fields["node_id"].size),
-            "lf_product_triangles": int(fields["triangle_id"].size),
-            "legacy_phase9_exclusions": int(
-                fields["excluded_legacy_phase9_canonical_index"].size
+            "surface_nodes": int(fields["node_id"].size),
+            "surface_triangles": int(fields["triangle_id"].size),
+            "structured_exclusions": int(
+                fields["excluded_structured_canonical_index"].size
             ),
-            "lf_valid_points": {
+            "valid_points": {
                 sheet: int(
                     np.count_nonzero(valid & (fields["geometric_sheet"] == sheet))
                 )
                 for sheet in _SHEETS
             },
-            "lf_geometry_valid_points": {
+            "geometry_valid_points": {
                 sheet: int(
                     np.count_nonzero(
                         geometry_valid & (fields["geometric_sheet"] == sheet)
