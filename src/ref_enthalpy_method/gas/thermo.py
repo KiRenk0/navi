@@ -1,10 +1,4 @@
-"""Thermodynamics utilities.
-
-Used by:
-- Reference enthalpy method: Eckert reference enthalpy (2.38)
-- Wall enthalpy model: h_w = cp_gas * T_w (see note near 2.57-2.58)
-- Route A-TPG: thermally-perfect-gas adiabatic wall temperature (Phase 2E-P2)
-"""
+"""Thermodynamic properties matching the Fluent air material definition."""
 
 from __future__ import annotations
 
@@ -12,106 +6,145 @@ from dataclasses import dataclass
 
 import numpy as np
 
-# Fluent Cp(T) table (ideal-gas air, piecewise-polynomial, no chemistry)
-# Source: Phase 2E-P2 specification table (Fluent corrected adiabatic wall comparison)
-_FLUENT_CP_T_K = np.array(
-    [200.0, 226.509, 250.0, 300.0, 400.0, 500.0, 700.0, 1000.0,
-     1500.0, 1857.0, 2000.0, 2232.0, 2500.0, 2700.0, 3000.0,
-     3500.0, 4000.0, 4500.0, 5000.0, 5500.0, 6000.0],
-    dtype=float,
-)
-_FLUENT_CP_J_kgK = np.array(
-    [1002.4, 1002.6, 1003.1, 1004.9, 1013.5, 1029.5, 1075.0, 1140.7,
-     1211.1, 1240.5, 1250.2, 1262.9, 1275.4, 1283.5, 1294.0,
-     1308.0, 1319.2, 1328.8, 1338.0, 1348.1, 1360.1],
-    dtype=float,
+
+@dataclass(frozen=True)
+class NASA9PiecewiseCp:
+    """Fluent's seven-coefficient NASA-9 Cp polynomial for one material."""
+
+    bounds_K: tuple[tuple[float, float], ...]
+    coefficients: tuple[tuple[float, ...], ...]
+
+    def _temperature(self, T: float) -> float:
+        value = float(T)
+        if not np.isfinite(value):
+            raise ValueError("temperature must be finite")
+        return float(np.clip(value, self.bounds_K[0][0], self.bounds_K[-1][1]))
+
+    def _range_index(self, T: float) -> int:
+        for index, (_, upper) in enumerate(self.bounds_K):
+            if T <= upper:
+                return index
+        return len(self.bounds_K) - 1
+
+    def _coefficients_at(self, T: float) -> tuple[float, ...]:
+        return self.coefficients[self._range_index(T)]
+
+    @staticmethod
+    def _cp_primitive(coefficients: tuple[float, ...], T: float) -> float:
+        a1, a2, a3, a4, a5, a6, a7 = coefficients
+        return (-a1 / T + a2 * np.log(T) + a3 * T + 0.5 * a4 * T**2
+                + (a5 / 3.0) * T**3 + 0.25 * a6 * T**4 + 0.2 * a7 * T**5)
+
+    @staticmethod
+    def _entropy_primitive(coefficients: tuple[float, ...], T: float) -> float:
+        a1, a2, a3, a4, a5, a6, a7 = coefficients
+        return (-0.5 * a1 / T**2 - a2 / T + a3 * np.log(T) + a4 * T
+                + 0.5 * a5 * T**2 + (a6 / 3.0) * T**3 + 0.25 * a7 * T**4)
+
+    def cp(self, T: float) -> float:
+        value = self._temperature(T)
+        a1, a2, a3, a4, a5, a6, a7 = self._coefficients_at(value)
+        return float(a1 / value**2 + a2 / value + a3 + a4 * value
+                     + a5 * value**2 + a6 * value**3 + a7 * value**4)
+
+    def _integral(self, T: float, primitive: str) -> float:
+        value = self._temperature(T)
+        reference = self.bounds_K[0][0]
+        primitive_fn = self._cp_primitive if primitive == "enthalpy" else self._entropy_primitive
+        integral = 0.0
+        for index, (lower, upper) in enumerate(self.bounds_K):
+            if value <= lower:
+                break
+            end = min(value, upper)
+            start = max(reference, lower)
+            coefficients = self.coefficients[index]
+            integral += primitive_fn(coefficients, end) - primitive_fn(coefficients, start)
+            if value <= upper:
+                break
+        return float(integral)
+
+    def h_from_T(self, T: float) -> float:
+        return self._integral(T, "enthalpy")
+
+    def s0_from_T(self, T: float) -> float:
+        return self._integral(T, "entropy")
+
+    def _invert(self, value: float, *, quantity: str) -> float:
+        target = float(value)
+        if not np.isfinite(target):
+            raise ValueError(f"{quantity} must be finite")
+        lower = self.bounds_K[0][0]
+        upper = self.bounds_K[-1][1]
+        function = self.h_from_T if quantity == "enthalpy" else self.s0_from_T
+        target = float(np.clip(target, function(lower), function(upper)))
+        for _ in range(64):
+            middle = 0.5 * (lower + upper)
+            if function(middle) < target:
+                lower = middle
+            else:
+                upper = middle
+        return float(0.5 * (lower + upper))
+
+    def T_from_h(self, h: float) -> float:
+        return self._invert(h, quantity="enthalpy")
+
+    def T_from_s0(self, s0: float) -> float:
+        return self._invert(s0, quantity="entropy")
+
+
+_FLUENT_AIR_NASA9_CP = NASA9PiecewiseCp(
+    bounds_K=((200.0, 1000.0), (1000.0, 6000.0)),
+    coefficients=(
+        (2.898903e6, -5.649626e4, 1.437799e3, -1.653609,
+         3.062254e-3, -2.279138e-6, 6.272365e-10),
+        (6.932494e7, -3.610532e5, 1.476665e3, -6.138349e-2,
+         2.027963e-5, -3.075525e-9, 1.888054e-13),
+    ),
 )
 
 
 @dataclass(frozen=True)
 class TPGThermo:
-    """Thermally-perfect-gas thermo model from tabulated Cp(T).
+    """Thermally-perfect gas derived from Fluent's NASA-9 Cp definition."""
 
-    Constructs h(T) = integral Cp dT, s0(T) = integral Cp/T dT,
-    gamma(T) = Cp/(Cp-R), a(T) = sqrt(gamma R T).
-
-    All dimensional quantities in SI units.
-    """
-
-    T_table: np.ndarray  # K
-    cp_table: np.ndarray  # J/(kg K)
-    h_table: np.ndarray  # J/kg (cumulative from T[0])
-    s0_table: np.ndarray  # J/(kg K) (cumulative from T[0])
-    gamma_table: np.ndarray
-    a_table: np.ndarray  # m/s
+    cp_model: NASA9PiecewiseCp
     R: float = 287.0
 
     def h_from_T(self, T: float) -> float:
-        return float(np.interp(float(T), self.T_table.ravel(), self.h_table.ravel()))
+        return self.cp_model.h_from_T(T)
 
     def T_from_h(self, h: float) -> float:
-        return float(np.interp(float(h), self.h_table.ravel(), self.T_table.ravel()))
+        return self.cp_model.T_from_h(h)
 
     def s0_from_T(self, T: float) -> float:
-        return float(np.interp(float(T), self.T_table.ravel(), self.s0_table.ravel()))
+        return self.cp_model.s0_from_T(T)
 
     def T_from_s0(self, s0: float) -> float:
-        return float(np.interp(float(s0), self.s0_table.ravel(), self.T_table.ravel()))
+        return self.cp_model.T_from_s0(s0)
 
     def cp(self, T: float) -> float:
-        return float(np.interp(float(T), self.T_table.ravel(), self.cp_table.ravel()))
+        return self.cp_model.cp(T)
 
     def gamma_T(self, T: float) -> float:
-        cp_val = self.cp(float(T))
-        return float(cp_val / (cp_val - self.R))
+        cp_value = self.cp(T)
+        return float(cp_value / (cp_value - self.R))
 
     def a_T(self, T: float) -> float:
-        g = float(self.gamma_T(float(T)))
-        return float(np.sqrt(g * float(self.R) * float(T)))
+        value = self.cp_model._temperature(T)
+        return float(np.sqrt(self.gamma_T(value) * self.R * value))
 
     def vector_h_from_T(self, T: np.ndarray) -> np.ndarray:
-        return np.interp(np.asarray(T, dtype=float).ravel(), self.T_table.ravel(), self.h_table.ravel())
+        return np.asarray([self.h_from_T(value) for value in np.asarray(T).ravel()])
 
     def vector_T_from_h(self, h: np.ndarray) -> np.ndarray:
-        return np.interp(np.asarray(h, dtype=float).ravel(), self.h_table.ravel(), self.T_table.ravel())
+        return np.asarray([self.T_from_h(value) for value in np.asarray(h).ravel()])
 
     def vector_gamma_T(self, T: np.ndarray) -> np.ndarray:
-        cp_arr = np.interp(np.asarray(T, dtype=float).ravel(), self.T_table.ravel(), self.cp_table.ravel())
-        return cp_arr / (cp_arr - self.R)
+        return np.asarray([self.gamma_T(value) for value in np.asarray(T).ravel()])
 
     def vector_a_T(self, T: np.ndarray) -> np.ndarray:
-        g = self.vector_gamma_T(np.asarray(T, dtype=float).ravel())
-        return np.sqrt(g * self.R * np.asarray(T, dtype=float).ravel())
-
-
-def _cumulative_trapezoid(y: np.ndarray, x: np.ndarray) -> np.ndarray:
-    z = np.zeros_like(y, dtype=float)
-    z[0] = 0.0
-    for i in range(1, len(z)):
-        z[i] = z[i - 1] + 0.5 * (float(y[i]) + float(y[i - 1])) * (float(x[i]) - float(x[i - 1]))
-    return z
+        return np.asarray([self.a_T(value) for value in np.asarray(T).ravel()])
 
 
 def make_fluent_tpg_thermo(R: float = 287.0) -> TPGThermo:
-    T = _FLUENT_CP_T_K.copy()
-    cp = _FLUENT_CP_J_kgK.copy()
-
-    h = _cumulative_trapezoid(cp, T)
-    h = h - h[0]
-
-    integrand = cp / np.maximum(T, 1e-12)
-    s0 = _cumulative_trapezoid(integrand, T)
-    s0 = s0 - s0[0]
-
-    gamma_arr = cp / (cp - R)
-    a_arr = np.sqrt(gamma_arr * R * T)
-
-    return TPGThermo(
-        T_table=T,
-        cp_table=cp,
-        h_table=h,
-        s0_table=s0,
-        gamma_table=gamma_arr,
-        a_table=a_arr,
-        R=R,
-    )
+    return TPGThermo(cp_model=_FLUENT_AIR_NASA9_CP, R=float(R))

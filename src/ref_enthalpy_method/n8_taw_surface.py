@@ -22,7 +22,11 @@ from ref_enthalpy_method.aero.windward_cache_faceted3d import (
 from ref_enthalpy_method.atmosphere.ussa1976 import ussa1976
 from ref_enthalpy_method.config.windward_taw import PhiClampConfig, WindwardTawConfig
 from ref_enthalpy_method.gas.thermo import make_fluent_tpg_thermo
-from ref_enthalpy_method.gas.transport import mu_sutherland
+from ref_enthalpy_method.gas.transport import (
+    density_ideal_gas,
+    k_kinetic_theory,
+    mu_sutherland,
+)
 from ref_enthalpy_method.geometry.faceted3d import (
     Faceted3DConfig,
     load_outline_csv,
@@ -300,7 +304,9 @@ def resolve_n8_freestream(
         source="ussa1976",
         T_inf_K=float(atmosphere.T),
         p_inf_Pa=float(atmosphere.p),
-        rho_inf_kg_m3=float(atmosphere.rho),
+        rho_inf_kg_m3=density_ideal_gas(
+            float(atmosphere.p), float(atmosphere.T), R=R
+        ),
         altitude_input_m=altitude_m,
         altitude_used_for_freestream=True,
     )
@@ -556,6 +562,10 @@ def _gas_model(case: N8TawCaseSpec) -> GasModel:
         h_from_T=tpg.h_from_T,
         T_from_h=tpg.T_from_h,
         mu=mu_sutherland,
+        rho=lambda p_Pa, T_K: density_ideal_gas(p_Pa, T_K, R=case.R_J_per_kgK),
+        k=lambda T_K: k_kinetic_theory(
+            T_K, cp=tpg.cp, mu=mu_sutherland, R=case.R_J_per_kgK
+        ),
         tpg=tpg,
         prandtl=case.prandtl,
     )
@@ -850,7 +860,7 @@ def _build_structured_surface_fields(
                 data["geometry_failure_reason"][j, i] = ""
         sheet_data[sheet] = data
 
-    rho_inf = case.p_inf_Pa / (case.R_J_per_kgK * case.T_inf_K)
+    rho_inf = gas.rho(case.p_inf_Pa, case.T_inf_K)
     V_inf = case.mach * float(gas.tpg.a_T(case.T_inf_K))
     taw_cfg = WindwardTawConfig(
         phi_clamp=PhiClampConfig(enable=True, phi_min_rad=1.0e-8),
@@ -1234,7 +1244,7 @@ def _build_domain_conforming_product(
             )
         )
 
-    rho_inf = case.p_inf_Pa / (case.R_J_per_kgK * case.T_inf_K)
+    rho_inf = gas.rho(case.p_inf_Pa, case.T_inf_K)
     V_inf = case.mach * float(gas.tpg.a_T(case.T_inf_K))
     recovery = build_freestream_recovery(
         mask=np.ones(node_count, dtype=np.bool_),

@@ -447,11 +447,6 @@ def build_windward_edge_cache_faceted3d(
 
         nx_val = len(edges)
         taw_arr = np.full(nx_val, np.nan, dtype=float)
-        Pr = float(gas.prandtl)
-        # Recovery: fully turbulent, fixed Pr^(1/3).
-        # Taw uses the fully turbulent recovery factor directly.
-        r_aw = Pr ** (1.0 / 3.0)
-
         for i in range(nx_val):
             e = edges[i]
             T_e_i = float(e.T_e)
@@ -459,6 +454,7 @@ def build_windward_edge_cache_faceted3d(
             if not (np.isfinite(T_e_i) and np.isfinite(V_e_i)):
                 continue
 
+            r_aw = float(gas.prandtl_at_T(T_e_i)) ** (1.0 / 3.0)
             h_e_val = float(tpg.h_from_T(T_e_i))
             h_aw_val = h_e_val + r_aw * 0.5 * V_e_i * V_e_i
             taw_arr[i] = float(tpg.T_from_h(h_aw_val))

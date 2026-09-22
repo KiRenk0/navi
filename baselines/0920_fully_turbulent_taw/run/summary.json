@@ -58,12 +58,12 @@
     "signed_relative_error_color_limit_pct": 10.0,
     "signed_relative_error_auto_range_pct": {
       "upper": {
-        "min": -8.386401314663553,
-        "max": 8.279883349769696
+        "min": -7.674977811431421,
+        "max": 9.12072854153357
       },
       "lower": {
-        "min": -8.323251122435078,
-        "max": 6.072247900493713
+        "min": -7.618978420558421,
+        "max": 6.865096054484361
       }
     },
     "projection_cache": {
@@ -98,20 +98,20 @@
   },
   "artifacts": {
     "Taw_surface_fields.npz": {
-      "byte_size": 4760308,
-      "sha256": "5cad564279f818e10f2c661f5834399ce31cb7300a334626b347bd354c9136c2"
+      "byte_size": 4755458,
+      "sha256": "9fde32e0159c79ac9b3505a3b9dbdc64da7216baf2b49bb74beaedd9e7718e2d"
     },
     "Taw_error_stats.json": {
-      "byte_size": 6854,
-      "sha256": "103310f76a840601da252b67af62c3535e67733af377b7c0f554b9c8a97e13cc"
+      "byte_size": 6847,
+      "sha256": "83a652dc658982a9e2bdf43ee194cbc83c125b44c03c7e4ea2e6cfbb551fb41d"
     },
     "Taw_surface_upper.png": {
-      "byte_size": 86448,
-      "sha256": "e7c3265163cfbc0818fdaa20023a5fca756111ec08d683cab24cad6a9bb8cb8d"
+      "byte_size": 86760,
+      "sha256": "b9869bd87abebe353643865db81bb8dc70a3e095b3d4e20ed28512800709ec51"
     },
     "Taw_surface_lower.png": {
-      "byte_size": 68397,
-      "sha256": "4343b8df6cb2666d05973aae2d16bf2cd04ac21e9b4527eac71d8109b31ae4b4"
+      "byte_size": 69672,
+      "sha256": "05b0204f52a6eb68314f886ddea8647fabc37675b26758fbb950032889cc8645"
     },
     "Taw_provider_upper.png": {
       "byte_size": 52233,
@@ -130,20 +130,20 @@
       "sha256": "7d191beb401e85a99805898769eb0e51319a3f6eadc1f3e7c3389eb42f522af0"
     },
     "Taw_error_vs_fluent_upper.png": {
-      "byte_size": 66797,
-      "sha256": "1f5672604307e98247208b9649f3702a682cb9aa2992d702c12930d604cf497f"
+      "byte_size": 67520,
+      "sha256": "10372523facd592499434241cdd6b45b2e6f814433daa0346392ddef2c5450bf"
     },
     "Taw_error_vs_fluent_lower.png": {
-      "byte_size": 65020,
-      "sha256": "842125fdbaebbfdf5845bf8225a3aa06405ecd33041933348885d7d8967fe262"
+      "byte_size": 64897,
+      "sha256": "cbd9b3304d1b1ea5517e37c92cc2795234e72136e7284a6864517b75b96e2202"
     },
     "Taw_error_vs_fluent_upper_auto_range.png": {
-      "byte_size": 67517,
-      "sha256": "3c354f8146fd682a301be91b7afed69cfc09c75b65a80656d5d1503b01be8d27"
+      "byte_size": 67622,
+      "sha256": "d06dc97efb31dd950b25c7f5e236d6cfcbd2ac09c1565229c9ecf4eaae531233"
     },
     "Taw_error_vs_fluent_lower_auto_range.png": {
-      "byte_size": 66112,
-      "sha256": "9b684ebeddfa6d389b5fef935004d4747d2f950631b8d9784f003266f6feda92"
+      "byte_size": 66471,
+      "sha256": "6c3c1de02ce0ef67f642a618dce18c0e51498a7336c470d13ddac70630ff540a"
     }
   }
 }

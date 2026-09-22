@@ -55,7 +55,7 @@ def build_leeward_freestream_recovery(
                   Ma_e = Ma_inf, h_e = gas.h_from_T(T_inf), mu_e = gas.mu(T_inf).
 
     Recovery:
-        r_aw   = gas.prandtl ** (1/3)
+        r_aw   = Pr(T_e) ** (1/3), where Pr(T) = mu(T) Cp(T) / k(T)
         h_aw   = h_e + r_aw * V_e**2 / 2
         Taw_tpg = gas.T_from_h(h_aw)
 
@@ -128,7 +128,7 @@ def build_leeward_freestream_recovery(
     Taw_tpg = float_template.copy()
 
     if np.any(mask):
-        pr = float(gas.prandtl)
+        pr = float(gas.prandtl_at_T(T_inf))
         r_aw = pr ** (1.0 / 3.0)
         # h_aw = h_e + r_aw * V_e^2 / 2
         h_aw_arr = h_e[mask] + r_aw * 0.5 * V_e[mask] * V_e[mask]

@@ -84,7 +84,7 @@ def _compute_edge_conditions_tpg(
     s0_e = s0_c + R * float(np.log(max(float(p_e) / max(float(p_c), 1e-12), 1e-12)))
     T_e = float(tpg.T_from_s0(float(s0_e)))
 
-    rho_e = float(p_e) / (R * float(T_e)) if float(T_e) > 0 else rho_inf_val
+    rho_e = float(gas.rho(p_e, T_e)) if float(T_e) > 0 else rho_inf_val
 
     h_e_tpg = float(tpg.h_from_T(T_e))
     ve_sq = float(2.0 * (h0 - h_e_tpg))
