@@ -109,12 +109,17 @@ _VEHICLE_ID = "htv2_faceted3d_0920"
 _STL_PATH = "data/geometry/0920/htv2_0920_aligned_clean_ascii.stl"
 _OUTLINE_PATH = "data/geometry/0920/outline_xz_right_0920.csv"
 _PROJECTION_CACHE_KEY = (
-    "946a8a57d1249eec9a0996ce296c409f4055b39457d85aec8236a120c73b799f"
+    "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269"
 )
 _PROJECTION_CACHE_PATH = (
     "baselines/0920_fully_turbulent_taw/projection_cache/"
     f"{_PROJECTION_CACHE_KEY}.npz"
 )
+_DEFAULT_COORDINATE_ORDER = "x,up,span"
+_COORDINATE_ORDER_TRANSFORMS = {
+    "x,span,up": "(x+0.030, span=y, up=z)",
+    "x,up,span": "(x+0.030, span=z, up=y)",
+}
 
 
 @dataclass(frozen=True)
@@ -131,7 +136,9 @@ class N8TawCaseSpec:
     prandtl: float
     vehicle_spec: str
     fluent_x_offset_m: float
+    fluent_coordinate_order: str
     projection_gate_m: float
+    projection_cache: str
     sampling_spec: str
     signed_relative_error_limit_pct: float
 
@@ -354,11 +361,22 @@ def load_n8_taw_case_spec(path: str | Path, *, repo_root: str | Path) -> N8TawCa
         label="case",
     )
     _exact_keys(gas, {"gamma", "R_J_per_kgK", "prandtl"}, label="gas")
-    _exact_keys(
-        geometry,
-        {"vehicle_spec", "fluent_x_offset_m", "projection_gate_m"},
-        label="geometry",
-    )
+    geometry_required = {
+        "vehicle_spec",
+        "fluent_x_offset_m",
+        "projection_gate_m",
+    }
+    geometry_optional = {"fluent_coordinate_order", "projection_cache"}
+    geometry_actual = set(geometry)
+    if not geometry_required.issubset(geometry_actual) or (
+        geometry_actual - geometry_required - geometry_optional
+    ):
+        raise ValueError(
+            "geometry fields must contain exactly the required fields plus "
+            "optional coordinate/cache fields; "
+            f"missing={sorted(geometry_required - geometry_actual)} "
+            f"extra={sorted(geometry_actual - geometry_required - geometry_optional)}"
+        )
     _exact_keys(sampling, {"spec"}, label="sampling")
     _exact_keys(plot, {"signed_relative_error_limit_pct"}, label="plot")
 
@@ -377,10 +395,16 @@ def load_n8_taw_case_spec(path: str | Path, *, repo_root: str | Path) -> N8TawCa
         fluent_x_offset_m=_finite(
             geometry["fluent_x_offset_m"], label="geometry.fluent_x_offset_m"
         ),
+        fluent_coordinate_order=str(
+            geometry.get("fluent_coordinate_order", _DEFAULT_COORDINATE_ORDER)
+        ),
         projection_gate_m=_finite(
             geometry["projection_gate_m"],
             label="geometry.projection_gate_m",
             positive=True,
+        ),
+        projection_cache=str(
+            geometry.get("projection_cache", _PROJECTION_CACHE_PATH)
         ),
         sampling_spec=str(sampling["spec"]),
         signed_relative_error_limit_pct=_finite(
@@ -393,8 +417,14 @@ def load_n8_taw_case_spec(path: str | Path, *, repo_root: str | Path) -> N8TawCa
         raise ValueError("case_id must be nonempty and h_label_km must be nonnegative")
     if result.vehicle_spec != _VEHICLE_SPEC:
         raise ValueError(f"geometry.vehicle_spec must be exactly {_VEHICLE_SPEC!r}")
+    if result.fluent_coordinate_order not in _COORDINATE_ORDER_TRANSFORMS:
+        raise ValueError(
+            "geometry.fluent_coordinate_order must be exactly "
+            "'x,span,up' or 'x,up,span'"
+        )
     _repo_path(root, result.observation_csv, label="case.observation_csv")
     _repo_path(root, result.vehicle_spec, label="geometry.vehicle_spec")
+    _repo_path(root, result.projection_cache, label="geometry.projection_cache")
     _repo_path(root, result.sampling_spec, label="sampling.spec")
     return result
 
@@ -2323,8 +2353,17 @@ def run_n8_taw_case(
     )
 
     csv_path = _repo_path(root, case.observation_csv, label="case.observation_csv")
-    binding = build_observation_binding(root, csv_path=case.observation_csv)
-    binding_ok, binding_error = validate_observation_binding(binding, repo_root=root)
+    solver_transform = _COORDINATE_ORDER_TRANSFORMS[case.fluent_coordinate_order]
+    binding = build_observation_binding(
+        root,
+        csv_path=case.observation_csv,
+        solver_transform=solver_transform,
+    )
+    binding_ok, binding_error = validate_observation_binding(
+        binding,
+        repo_root=root,
+        solver_transform=solver_transform,
+    )
     if not binding_ok:
         raise ValueError(f"observation binding failed: {binding_error}")
     if freestream.source == "explicit_custom":
@@ -2387,7 +2426,9 @@ def run_n8_taw_case(
             raise ValueError("upper and lower Taw fields must both be nonempty")
 
         fluent_geometry = read_fluent_surface_geometry_csv(
-            csv_path, x_offset_m=case.fluent_x_offset_m
+            csv_path,
+            x_offset_m=case.fluent_x_offset_m,
+            coordinate_order=case.fluent_coordinate_order,
         )
         canonical_geometry_sha256 = hashlib.sha256(
             np.ascontiguousarray(fluent_geometry.canonical_solver_xyz).tobytes(
@@ -2410,13 +2451,13 @@ def run_n8_taw_case(
             **projection_identity_kwargs,
         )
         projection_identity["fluent_source_geometry_sha256"] = canonical_geometry_sha256
-        projection_cache_key = _PROJECTION_CACHE_KEY
+        projection_cache_key = Path(case.projection_cache).stem
         projection_cache_path = _repo_path(
-            root, _PROJECTION_CACHE_PATH, label="formal projection cache"
+            root, case.projection_cache, label="formal projection cache"
         )
         if not projection_cache_path.is_file():
             raise FileNotFoundError(
-                f"required 0920 baseline projection cache not found: {projection_cache_path}"
+                f"required projection cache not found: {projection_cache_path}"
             )
         projection_cache_hit = True
         projection = project_fluent_surface_with_cache(

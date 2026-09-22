@@ -14,3 +14,7 @@ scripts/run_n8_taw_case.py
   -> fully turbulent TPG Taw field
   -> summary.json / Taw_surface_fields.npz / plots
 ```
+
+The active comparison case
+`specs/cases/n8_taw_ma5_a10_h60km.yaml` uses the same Taw pipeline with an
+explicit `x, up, span` Fluent coordinate transform and its projection cache.

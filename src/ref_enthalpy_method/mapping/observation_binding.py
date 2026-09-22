@@ -278,6 +278,7 @@ def build_observation_binding(
     repo_root: str | Path,
     *,
     csv_path: str,
+    solver_transform: str = "(x+0.030, span=y, up=z)",
 ) -> FluentObservationBinding:
     filename_identity = _identity_from_csv_path(csv_path)
     raw_identity = _read_csv_raw_identity(repo_root, csv_path)
@@ -295,7 +296,7 @@ def build_observation_binding(
         observation_unit="K",
         coordinate_unit="m",
         fluent_source_convention="(x,y,z)",
-        solver_transform="(x+0.030, span=y, up=z)",
+        solver_transform=solver_transform,
         validation_policy="fail-closed",
     )
 
@@ -304,6 +305,7 @@ def validate_observation_binding(
     binding: FluentObservationBinding | dict[str, Any],
     *,
     repo_root: str | Path,
+    solver_transform: str = "(x+0.030, span=y, up=z)",
 ) -> tuple[bool, str]:
     if isinstance(binding, dict):
         extra = set(binding) - _ALLOWED_FIELDS
@@ -337,7 +339,7 @@ def validate_observation_binding(
         "observation_unit": "K",
         "coordinate_unit": "m",
         "fluent_source_convention": "(x,y,z)",
-        "solver_transform": "(x+0.030, span=y, up=z)",
+        "solver_transform": solver_transform,
         "validation_policy": "fail-closed",
     }
     for name, expected in expected_metadata.items():

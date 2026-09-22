@@ -25,11 +25,11 @@ scripts/run_n8_taw_case.py
 python -m pip install -r .\requirements.txt
 $env:PYTHONPATH = (Resolve-Path .\src)
 python .\scripts\run_n8_taw_case.py `
-  --case .\specs\cases\n8_taw_ma8_a5_h40km.yaml `
-  --mach 8 `
-  --alpha_deg 5 `
-  --h_m 40000 `
-  --run_dir .\runs\n8_taw_surface\official_0920_taw_smoke
+  --case .\specs\cases\n8_taw_ma5_a10_h60km.yaml `
+  --mach 5 `
+  --alpha_deg 10 `
+  --h_m 60000 `
+  --run_dir .\runs\n8_taw_surface\official_0920_taw
 ```
 
 运行结果必须包含 `summary.json`、`Taw_surface_fields.npz`、误差统计和上下表面图，并遵循当前 88-field Taw schema。
@@ -45,6 +45,25 @@ python .\scripts\tools\0920_taw_baseline.py `
   --replay
 ```
 
+## 新网格比较
+
+新的 Fluent 网格比较使用
+`specs/cases/n8_taw_ma5_a10_h60km.yaml`，对应
+`fluent_export/adiabatic_wall_csv/21.96pa_247.02k_60km_10alpha_5ma.csv`。
+该导出的原始列顺序为 `x, up, span`，case 会使用对应的 projection cache。运行后生成
+`Taw_error_vs_fluent_upper.png` 和
+`Taw_error_vs_fluent_lower.png`：
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path .\src)
+python .\scripts\run_n8_taw_case.py `
+  --case .\specs\cases\n8_taw_ma5_a10_h60km.yaml `
+  --mach 5 `
+  --alpha_deg 10 `
+  --h_m 60000 `
+  --run_dir .\runs\n8_taw_surface\newgrid_ma5_a10_h60km
+```
+
 ## 测试
 
 ```powershell
@@ -52,7 +71,7 @@ $env:PYTHONPATH = (Resolve-Path .\src)
 python -m pytest -q
 ```
 
-默认测试覆盖全部 13 个 case authority、source identity、baseline manifest 和
+默认测试覆盖当前 case authority、source identity、baseline manifest 和
 88-field artifact contract。正式集成验证会实际运行 CLI 并逐字段 replay NPZ：
 
 ```powershell

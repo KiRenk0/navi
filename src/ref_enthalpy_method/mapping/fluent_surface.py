@@ -10,12 +10,17 @@ from pathlib import Path
 
 import numpy as np
 
-_REQUIRED_COLUMNS = (
-    "cellnumber",
+_COORDINATE_COLUMNS = (
     "x-coordinate",
     "y-coordinate",
     "z-coordinate",
 )
+_REQUIRED_COLUMNS = _COORDINATE_COLUMNS
+_IDENTIFIER_COLUMNS = ("cellnumber", "nodenumber")
+_COORDINATE_ORDERS = {
+    "x,span,up": (1, 2),
+    "x,up,span": (2, 1),
+}
 
 
 def _readonly_copy(value: np.ndarray, *, dtype: np.dtype | type) -> np.ndarray:
@@ -32,12 +37,14 @@ def transform_fluent_xyz_to_solver(
     raw_xyz: np.ndarray,
     *,
     x_offset_m: float,
+    coordinate_order: str = "x,span,up",
 ) -> np.ndarray:
-    """Convert Fluent ``(x, y, z)`` metres to solver ``(x, span, up)`` metres.
+    """Convert Fluent metres to solver ``(x, span, up)`` metres.
 
-    The caller must supply the finite x offset explicitly. No axis exchange,
-    sign change, scaling, unit inference, absolute value, fitting, or automatic
-    translation is performed.
+    ``coordinate_order`` explicitly declares whether raw columns are
+    ``(x, span, up)`` or ``(x, up, span)``. The caller must supply the finite
+    x offset explicitly. No sign change, scaling, unit inference, absolute
+    value, fitting, or automatic translation is performed.
     """
     source = np.asarray(raw_xyz, dtype=np.float64)
     if source.ndim != 2 or source.shape[1] != 3:
@@ -50,9 +57,17 @@ def transform_fluent_xyz_to_solver(
         raise ValueError("x_offset_m must be a finite scalar") from error
     if not np.isfinite(offset):
         raise ValueError("x_offset_m must be a finite scalar")
+    try:
+        span_index, up_index = _COORDINATE_ORDERS[coordinate_order]
+    except (KeyError, TypeError) as error:
+        raise ValueError(
+            "coordinate_order must be exactly 'x,span,up' or 'x,up,span'"
+        ) from error
 
     solver_xyz = np.array(source, dtype=np.float64, copy=True, order="C")
     solver_xyz[:, 0] += offset
+    solver_xyz[:, 1] = source[:, span_index]
+    solver_xyz[:, 2] = source[:, up_index]
     return solver_xyz
 
 
@@ -114,6 +129,7 @@ def read_fluent_surface_geometry_csv(
     source_path: str | Path,
     *,
     x_offset_m: float,
+    coordinate_order: str = "x,span,up",
 ) -> FluentSurfaceGeometry:
     """Read only Fluent geometry fields and establish canonical row identity."""
     path = Path(source_path).resolve()
@@ -140,10 +156,19 @@ def read_fluent_surface_geometry_csv(
         raise ValueError(
             "duplicate CSV header(s) after normalization: " + ", ".join(duplicates)
         )
+    identifier_columns = [
+        name for name in _IDENTIFIER_COLUMNS if name in normalized_header
+    ]
+    if len(identifier_columns) != 1:
+        raise ValueError(
+            "Fluent CSV must contain exactly one identifier column: "
+            "cellnumber or nodenumber"
+        )
     missing = [name for name in _REQUIRED_COLUMNS if name not in normalized_header]
     if missing:
         raise ValueError("missing required Fluent geometry column(s): " + ", ".join(missing))
     columns = {name: normalized_header.index(name) for name in _REQUIRED_COLUMNS}
+    identifier_column = normalized_header.index(identifier_columns[0])
 
     cellnumbers: list[str] = []
     coordinates: list[tuple[float, float, float]] = []
@@ -153,13 +178,13 @@ def read_fluent_surface_geometry_csv(
         required_max_index = max(columns.values())
         if len(row) <= required_max_index:
             raise ValueError(f"incomplete data row at CSV line {csv_line_number}")
-        cellnumber = row[columns["cellnumber"]].strip()
+        cellnumber = row[identifier_column].strip()
         if not cellnumber:
             raise ValueError(f"empty cellnumber at CSV line {csv_line_number}")
         try:
             xyz = tuple(
                 np.float64(row[columns[name]].strip())
-                for name in _REQUIRED_COLUMNS[1:]
+                for name in _COORDINATE_COLUMNS
             )
         except (TypeError, ValueError) as error:
             raise ValueError(
@@ -174,7 +199,11 @@ def read_fluent_surface_geometry_csv(
         raise ValueError("Fluent geometry CSV contains no data rows")
 
     raw_xyz = np.asarray(coordinates, dtype=np.float64)
-    solver_xyz = transform_fluent_xyz_to_solver(raw_xyz, x_offset_m=x_offset_m)
+    solver_xyz = transform_fluent_xyz_to_solver(
+        raw_xyz,
+        x_offset_m=x_offset_m,
+        coordinate_order=coordinate_order,
+    )
     canonical_to_source, source_to_canonical = _canonical_mappings(solver_xyz)
     count = raw_xyz.shape[0]
 

@@ -28,7 +28,7 @@ STL = "data/geometry/0920/htv2_0920_aligned_clean_ascii.stl"
 OUTLINE = "data/geometry/0920/outline_xz_right_0920.csv"
 PROJECTION_CACHE = (
     "baselines/0920_fully_turbulent_taw/projection_cache/"
-    "946a8a57d1249eec9a0996ce296c409f4055b39457d85aec8236a120c73b799f.npz"
+    "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269.npz"
 )
 CASE_PATHS = tuple(sorted((ROOT / "specs/cases").glob("n8_taw_*.yaml")))
 
@@ -48,8 +48,8 @@ def _subprocess_environment() -> dict[str, str]:
 
 
 @pytest.mark.parametrize("case_path", CASE_PATHS, ids=lambda path: path.stem)
-def test_all_13_cases_use_the_single_0920_authority(case_path: Path) -> None:
-    assert len(CASE_PATHS) == 13
+def test_all_active_cases_use_the_single_0920_authority(case_path: Path) -> None:
+    assert len(CASE_PATHS) == 1
     case = load_n8_taw_case_spec(case_path, repo_root=ROOT)
     assert case.vehicle_spec == VEHICLE
     assert case.sampling_spec == SAMPLING
@@ -83,7 +83,9 @@ def test_missing_required_outline_fails_explicitly() -> None:
 def test_case_fluent_geometry_matches_formal_projection_identity(case_path: Path) -> None:
     case = load_n8_taw_case_spec(case_path, repo_root=ROOT)
     source = read_fluent_surface_geometry_csv(
-        ROOT / case.observation_csv, x_offset_m=case.fluent_x_offset_m
+        ROOT / case.observation_csv,
+        x_offset_m=case.fluent_x_offset_m,
+        coordinate_order=case.fluent_coordinate_order,
     )
     canonical = np.ascontiguousarray(source.canonical_solver_xyz)
     identity = json.loads((BASELINE / "manifest.json").read_text(encoding="utf-8"))[
@@ -113,7 +115,7 @@ def test_source_identity_matches_baseline_manifest() -> None:
     assert manifest["thermal_target"] == "adiabatic_wall_temperature"
     paths = {
         "case_spec": ROOT
-        / "specs/cases/n8_taw_ma8_a5_h40km_geometry0920_smoke.yaml",
+        / "specs/cases/n8_taw_ma5_a10_h60km.yaml",
         "vehicle_spec": ROOT / VEHICLE,
         "stl": ROOT / STL,
         "outline": ROOT / OUTLINE,
@@ -191,13 +193,13 @@ def test_official_cli_produces_valid_taw_artifacts() -> None:
                 sys.executable,
                 "scripts/run_n8_taw_case.py",
                 "--case",
-                "specs/cases/n8_taw_ma8_a5_h40km.yaml",
+                "specs/cases/n8_taw_ma5_a10_h60km.yaml",
                 "--mach",
-                "8",
-                "--alpha_deg",
                 "5",
+                "--alpha_deg",
+                "10",
                 "--h_m",
-                "40000",
+                "60000",
                 "--run_dir",
                 str(run_dir.relative_to(ROOT)),
             ],

@@ -1,25 +1,25 @@
 {
   "schema": "n8-taw-run-summary/v4",
   "status": "PASS",
-  "case_id": "ma8_a5_h40km_geometry0920_smoke",
+  "case_id": "ma5_a10_h60km",
   "inputs": {
-    "mach": 8.0,
-    "alpha_deg": 5.0,
-    "T_inf_K": 250.3496461024211,
-    "p_inf_Pa": 287.1439554634397,
-    "h_label_km": 40.0,
-    "altitude_input_m": 40000.0,
+    "mach": 5.0,
+    "alpha_deg": 10.0,
+    "T_inf_K": 247.02088477279673,
+    "p_inf_Pa": 21.958666139698373,
+    "h_label_km": 60.0,
+    "altitude_input_m": 60000.0,
     "altitude_used_for_freestream": true,
     "atmosphere_model": "ussa1976",
     "freestream_source": "ussa1976",
     "freestream_semantics": "USSA1976 from geometric altitude",
     "observation_freestream_identity": {
-      "T_inf_K": 251.0,
-      "p_inf_Pa": 287.0,
-      "h_label_km": 40.0
+      "T_inf_K": 247.02,
+      "p_inf_Pa": 21.96,
+      "h_label_km": 60.0
     },
-    "observation_csv": "fluent_export/adiabatic_wall_csv/287pa_251k_40km_5alpha_8ma.csv",
-    "source_csv_sha256": "74d7097f8bb5bbca500f7ffd3e091f77899920bc1ef4c2074706fbb848e31e62"
+    "observation_csv": "fluent_export/adiabatic_wall_csv/21.96pa_247.02k_60km_10alpha_5ma.csv",
+    "source_csv_sha256": "586cc0074d7f4edcde08e5feb7a809297cfa51d23778e08b57108c51217e668f"
   },
   "contracts": {
     "temperature": "Taw only",
@@ -58,25 +58,25 @@
     "signed_relative_error_color_limit_pct": 10.0,
     "signed_relative_error_auto_range_pct": {
       "upper": {
-        "min": -6.946966993752241,
-        "max": 6.0309212029399655
+        "min": -8.386401314663553,
+        "max": 8.279883349769696
       },
       "lower": {
-        "min": -5.688744519568766,
-        "max": 5.355840844669231
+        "min": -8.323251122435078,
+        "max": 6.072247900493713
       }
     },
     "projection_cache": {
       "schema": "exact-projection-cache/v1",
       "algorithm": "n3a.5b-exact-bvh/v1",
       "identity_scope": "canonical_geometry",
-      "key": "946a8a57d1249eec9a0996ce296c409f4055b39457d85aec8236a120c73b799f",
+      "key": "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269",
       "hit": true,
-      "path": "baselines/0920_fully_turbulent_taw/projection_cache/946a8a57d1249eec9a0996ce296c409f4055b39457d85aec8236a120c73b799f.npz",
-      "sha256": "de90c7d211c3e819fb2448414b874e2800681674d14db6669d8379923643c73c",
+      "path": "baselines/0920_fully_turbulent_taw/projection_cache/122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269.npz",
+      "sha256": "d5a6d68e6e4867d8d3b456fd79440cb204652fa6871848305267cb49c6179a1a",
       "identity": {
-        "projection_input_geometry_sha256": "f8e831b08dd86283bb69dc2f5be5fdb636e160a801ce97ec4d9382098b611c23",
-        "fluent_canonical_geometry_sha256": "f8e831b08dd86283bb69dc2f5be5fdb636e160a801ce97ec4d9382098b611c23",
+        "projection_input_geometry_sha256": "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269",
+        "fluent_canonical_geometry_sha256": "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269",
         "triangle_canonical_sha256": "4be1d8cac4b0dc1c1455edfb593feab919968ce5d1bef77cb4ead46057ea86db"
       }
     }
@@ -98,52 +98,52 @@
   },
   "artifacts": {
     "Taw_surface_fields.npz": {
-      "byte_size": 1945565,
-      "sha256": "a785aac089308ee6c4dd76b22441ddaddafc44a2174f66dd5b5f632818d7abf2"
+      "byte_size": 4760308,
+      "sha256": "5cad564279f818e10f2c661f5834399ce31cb7300a334626b347bd354c9136c2"
     },
     "Taw_error_stats.json": {
-      "byte_size": 6815,
-      "sha256": "6f54cd7ae60ae8abe1137ee996b1b2b3d131b5d6f450fdb7790b399111e76fbf"
+      "byte_size": 6854,
+      "sha256": "103310f76a840601da252b67af62c3535e67733af377b7c0f554b9c8a97e13cc"
     },
     "Taw_surface_upper.png": {
-      "byte_size": 103750,
-      "sha256": "5119422ce23bf73cd0c7d4b51702bae030af5475f29b0d160aff6fdeb984ebb8"
+      "byte_size": 86448,
+      "sha256": "e7c3265163cfbc0818fdaa20023a5fca756111ec08d683cab24cad6a9bb8cb8d"
     },
     "Taw_surface_lower.png": {
-      "byte_size": 61491,
-      "sha256": "581b01edbd3decc056d7043fc6e7313f3307de2c464148daaf3787c90de508df"
+      "byte_size": 68397,
+      "sha256": "4343b8df6cb2666d05973aae2d16bf2cd04ac21e9b4527eac71d8109b31ae4b4"
     },
     "Taw_provider_upper.png": {
-      "byte_size": 51255,
-      "sha256": "ae189f43144b6a40f495e0a9ec435cb41a53aeef460640d3a6d48bcf58148180"
+      "byte_size": 52233,
+      "sha256": "2decf1f6f1b90498655613f62747e59f173918cc2b7b5c147ed0eb5b90b18e98"
     },
     "Taw_provider_lower.png": {
-      "byte_size": 43283,
-      "sha256": "4079bad7f8ab6d680e8c3a077e73b234344024b95f28b8bb126ca52310bc62b5"
+      "byte_size": 43550,
+      "sha256": "295142fc955f4ef9c41776729a66690e00ea752858e679069a98a2c4e53d78e0"
     },
     "Taw_validity_upper.png": {
-      "byte_size": 41993,
-      "sha256": "b5dace984348167f4dbb2987bc4911717fa9783ca1bdab43ade9e66c15d6e7fb"
+      "byte_size": 42329,
+      "sha256": "bd22b3a1f4d959de7c1b1e1a9d3e8b8ac3b1937d2b323916df558318159dfecb"
     },
     "Taw_validity_lower.png": {
-      "byte_size": 42429,
-      "sha256": "8c18fcb6f7471a986e85c640c37c56f99636f6c5d612686b776ffeedb44729ad"
+      "byte_size": 42699,
+      "sha256": "7d191beb401e85a99805898769eb0e51319a3f6eadc1f3e7c3389eb42f522af0"
     },
     "Taw_error_vs_fluent_upper.png": {
-      "byte_size": 64618,
-      "sha256": "aba80815f3a99eed274a83bca21bcc598ada5e24b56a9b17e7ee4eb128321227"
+      "byte_size": 66797,
+      "sha256": "1f5672604307e98247208b9649f3702a682cb9aa2992d702c12930d604cf497f"
     },
     "Taw_error_vs_fluent_lower.png": {
-      "byte_size": 63044,
-      "sha256": "e52c7835f793317e59e9bab0b6e374909fd2dc0949350c9df3508a954e0526a0"
+      "byte_size": 65020,
+      "sha256": "842125fdbaebbfdf5845bf8225a3aa06405ecd33041933348885d7d8967fe262"
     },
     "Taw_error_vs_fluent_upper_auto_range.png": {
-      "byte_size": 67453,
-      "sha256": "654cd4102bc5c04653de2e70b13808f2aa4341541abef42504fc59e737d3b0b6"
+      "byte_size": 67517,
+      "sha256": "3c354f8146fd682a301be91b7afed69cfc09c75b65a80656d5d1503b01be8d27"
     },
     "Taw_error_vs_fluent_lower_auto_range.png": {
-      "byte_size": 67049,
-      "sha256": "9ded46301ef953a799c6daf0a0c41a6e8fbb2faac7a2bb5248ebca3adb98f424"
+      "byte_size": 66112,
+      "sha256": "9b684ebeddfa6d389b5fef935004d4747d2f950631b8d9784f003266f6feda92"
     }
   }
 }
