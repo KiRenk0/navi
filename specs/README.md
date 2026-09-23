@@ -25,7 +25,9 @@ retaining source and interpolation identities.
 
 The active comparison case
 `cases/n8_taw_ma5_a10_h60km.yaml` uses the Fluent source
-`21.96pa_247.02k_60km_10alpha_5ma.csv`, whose raw coordinate order is
-`x, up, span`; its projection cache is the active 0920 comparison cache. Plot
-ranges are derived from valid comparison data and therefore are not case-spec
-inputs.
+`21.96pa_247.02k_60km_10alpha_5ma.csv`, the refreshed `vehicle60` wall export.
+Its raw coordinate order is `x, up, span`, and its 76,892-point wall geometry
+shares the single active 0920 comparison cache with other matching `vehicle`
+exports. `fluid*` volume-field exports are not comparison geometry inputs.
+Plot ranges are derived from valid comparison data and therefore are not
+case-spec inputs.

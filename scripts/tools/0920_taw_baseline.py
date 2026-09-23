@@ -58,7 +58,7 @@ def build_manifest(*, repo_root: Path, baseline_dir: Path) -> dict[str, Any]:
     expected_cache_path = (
         baseline_dir
         / "projection_cache"
-        / "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269.npz"
+        / "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b.npz"
     ).resolve()
     if cache_path != expected_cache_path:
         raise ValueError("run summary does not reference the formal baseline projection cache")

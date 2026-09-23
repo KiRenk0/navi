@@ -71,16 +71,19 @@ python .\scripts\tools\0920_taw_baseline.py `
 ```
 
 当前 baseline 中，Ma=5 时 `Cp,max=1.80877`；此前锁定的鼻尖对照位置上，代码
-Taw 约为上表面 `1353.66 K`、下表面 `1377.46 K`。鼻尖 `x<0.1 m` 区域相对
-Fluent 的误差范围为上表面约 `-2.72%` 到 `+3.47%`、下表面约 `-2.47%` 到
-`+2.08%`。
+Taw 约为上表面 `1353.66 K`、下表面 `1377.46 K`。使用更新后的 76,892 点
+Fluent 壁面结果时，鼻尖 `x<0.1 m` 区域相对误差范围为上表面约 `-1.68%`
+到 `+2.27%`、下表面约 `-1.59%` 到 `+0.99%`。
 
-## 新网格比较
+## Fluent 壁面比较
 
-新的 Fluent 网格比较使用
+正式 Fluent 壁面比较使用
 `specs/cases/n8_taw_ma5_a10_h60km.yaml`，对应
-`fluent_export/adiabatic_wall_csv/21.96pa_247.02k_60km_10alpha_5ma.csv`。
-该导出的原始列顺序为 `x, up, span`，case 会使用对应的 projection cache。运行后生成
+`fluent_export/adiabatic_wall_csv/21.96pa_247.02k_60km_10alpha_5ma.csv`。该文件是
+更新后的 `vehicle60` 壁面导出，使用与当前其他 `vehicle` 壁面导出相同的 76,892
+点坐标；原始列顺序为 `x, up, span`，并统一复用 canonical geometry SHA-256
+为 `2e83e2cd...32506b` 的 projection cache。`fluid*` 流场导出不参与壁面投影或
+温度误差比较。运行后生成
 `Taw_error_vs_fluent_upper_auto_range.png` 和
 `Taw_error_vs_fluent_lower_auto_range.png`。同时生成按鼻尖区域有效误差独立调整色标的
 `Taw_error_vs_fluent_upper_nose_x_lt_0p1m_auto_range.png` 和

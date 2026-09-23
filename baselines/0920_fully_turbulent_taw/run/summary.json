@@ -19,7 +19,7 @@
       "h_label_km": 60.0
     },
     "observation_csv": "fluent_export/adiabatic_wall_csv/21.96pa_247.02k_60km_10alpha_5ma.csv",
-    "source_csv_sha256": "586cc0074d7f4edcde08e5feb7a809297cfa51d23778e08b57108c51217e668f"
+    "source_csv_sha256": "3d58526ce0f4c881bdd0e2c1c21798de3078419184a32eac2bc077b82870639b"
   },
   "contracts": {
     "temperature": "Taw only",
@@ -71,10 +71,10 @@
             181,
             321
           ],
-          "extrapolated_grid_points": 3326,
-          "spacing_reference_p95_m": 0.0021017581422541095,
-          "max_distance_m": 0.003721045961792201,
-          "distance_limit_m": 0.006305274426762328,
+          "extrapolated_grid_points": 2721,
+          "spacing_reference_p95_m": 0.0021099946633727235,
+          "max_distance_m": 0.003545446443282507,
+          "distance_limit_m": 0.006329983990118171,
           "max_spacing_factor": 3.0
         },
         "lower": {
@@ -83,45 +83,45 @@
             181,
             321
           ],
-          "extrapolated_grid_points": 3397,
-          "spacing_reference_p95_m": 0.002104799513246624,
-          "max_distance_m": 0.0038419040775206996,
-          "distance_limit_m": 0.006314398539739872,
+          "extrapolated_grid_points": 2776,
+          "spacing_reference_p95_m": 0.002118076254982381,
+          "max_distance_m": 0.004138371284677279,
+          "distance_limit_m": 0.006354228764947144,
           "max_spacing_factor": 3.0
         }
       }
     },
     "signed_relative_error_auto_range_pct": {
       "upper": {
-        "min": -2.724595079630148,
-        "max": 9.12072854153357
+        "min": -1.6848444816003196,
+        "max": 8.928848269338301
       },
       "lower": {
-        "min": -2.4735326870252097,
-        "max": 6.316694606465709
+        "min": -1.5860898775714685,
+        "max": 4.309153751976655
       }
     },
     "nose_signed_relative_error_auto_range_pct": {
       "upper": {
-        "min": -2.724595079630148,
-        "max": 3.468785956637717
+        "min": -1.6848444816003196,
+        "max": 2.2670655924854843
       },
       "lower": {
-        "min": -2.4735326870252097,
-        "max": 2.083902436989773
+        "min": -1.5860898775714685,
+        "max": 0.9884712911674725
       }
     },
     "projection_cache": {
       "schema": "exact-projection-cache/v1",
       "algorithm": "n3a.5b-exact-bvh/v1",
       "identity_scope": "canonical_geometry",
-      "key": "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269",
+      "key": "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b",
       "hit": true,
-      "path": "baselines/0920_fully_turbulent_taw/projection_cache/122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269.npz",
-      "sha256": "61c3472e1435d6e407736e963ff709e6229a764536a6ae197eadc1eb351eaf33",
+      "path": "baselines/0920_fully_turbulent_taw/projection_cache/2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b.npz",
+      "sha256": "d58a3579ecf0920db7bc91c236b002d7ed36e76d5a696451dec808b00b2722bc",
       "identity": {
-        "projection_input_geometry_sha256": "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269",
-        "fluent_canonical_geometry_sha256": "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269",
+        "projection_input_geometry_sha256": "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b",
+        "fluent_canonical_geometry_sha256": "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b",
         "triangle_canonical_sha256": "4be1d8cac4b0dc1c1455edfb593feab919968ce5d1bef77cb4ead46057ea86db"
       }
     }
@@ -143,12 +143,12 @@
   },
   "artifacts": {
     "Taw_surface_fields.npz": {
-      "byte_size": 4745688,
-      "sha256": "3ace8ab15d8049f86193442a783c29d4facb5dec9aa0bdfd4769d42bb598b2fc"
+      "byte_size": 4666636,
+      "sha256": "32638bf0e4372afa5e9b6cb13fcf12a818935f11c5505a8a8188782f0f5fa286"
     },
     "Taw_error_stats.json": {
-      "byte_size": 6854,
-      "sha256": "41e2bb0c9770c75ab37844e7c675b6f94c8753f82ec8b078c17a75c88e05111d"
+      "byte_size": 6866,
+      "sha256": "e0d4230f5ce470ee227b2c2eb0efdc0c9ac1eaf2cccec295efb2f95fb5200e8b"
     },
     "Taw_surface_upper.png": {
       "byte_size": 59388,
@@ -175,20 +175,20 @@
       "sha256": "7d191beb401e85a99805898769eb0e51319a3f6eadc1f3e7c3389eb42f522af0"
     },
     "Taw_error_vs_fluent_upper_auto_range.png": {
-      "byte_size": 67813,
-      "sha256": "60431a5ba24f083cc612acbbc457a99f9d9594468969c7c19c2d6a5078fa7346"
+      "byte_size": 69741,
+      "sha256": "615fbc4de1622917af03274ebda8b71bcd25b93a544d708678d36f9acc745d51"
     },
     "Taw_error_vs_fluent_lower_auto_range.png": {
-      "byte_size": 72633,
-      "sha256": "5b8adb5956cad4ff9e6e532878209303e6abdc7caa3baff5df82d8a49bc0374e"
+      "byte_size": 70904,
+      "sha256": "04d75dc5d205029b5f8fd0d4a761cc2fef26c590136d7b97e67e68db8b3bb943"
     },
     "Taw_error_vs_fluent_upper_nose_x_lt_0p1m_auto_range.png": {
-      "byte_size": 98127,
-      "sha256": "9ad7ceabf0ff39fe3c64646a568a58c7e2daae4cf00ca729ce308f4555c1472a"
+      "byte_size": 104662,
+      "sha256": "ae3643e00edf1e547af60269d5e948fa835bc57fe03b62a4be31483b58ffbb41"
     },
     "Taw_error_vs_fluent_lower_nose_x_lt_0p1m_auto_range.png": {
-      "byte_size": 102322,
-      "sha256": "43edfc00e243efabc851bef51f2f63345a3cbc41c9bfc5529d80991745c2f2d0"
+      "byte_size": 114280,
+      "sha256": "9523830891fb818bde9564f890db00bde459781724ff0ab9680e199725846041"
     }
   }
 }

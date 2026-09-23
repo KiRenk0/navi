@@ -18,7 +18,7 @@ geometry:
   fluent_x_offset_m: 0.030
   fluent_coordinate_order: x,up,span
   projection_gate_m: 0.005
-  projection_cache: baselines/0920_fully_turbulent_taw/projection_cache/122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269.npz
+  projection_cache: baselines/0920_fully_turbulent_taw/projection_cache/2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b.npz
 
 sampling:
   spec: specs/sampling/n8_taw_surface_grid_81x41.yaml

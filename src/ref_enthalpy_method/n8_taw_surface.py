@@ -116,7 +116,7 @@ _VEHICLE_ID = "htv2_faceted3d_0920"
 _STL_PATH = "data/geometry/0920/htv2_0920_aligned_clean_ascii.stl"
 _OUTLINE_PATH = "data/geometry/0920/outline_xz_right_0920.csv"
 _PROJECTION_CACHE_KEY = (
-    "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269"
+    "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b"
 )
 _PROJECTION_CACHE_PATH = (
     "baselines/0920_fully_turbulent_taw/projection_cache/"

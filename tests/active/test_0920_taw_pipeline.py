@@ -28,7 +28,7 @@ STL = "data/geometry/0920/htv2_0920_aligned_clean_ascii.stl"
 OUTLINE = "data/geometry/0920/outline_xz_right_0920.csv"
 PROJECTION_CACHE = (
     "baselines/0920_fully_turbulent_taw/projection_cache/"
-    "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269.npz"
+    "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b.npz"
 )
 CASE_PATHS = tuple(sorted((ROOT / "specs/cases").glob("n8_taw_*.yaml")))
 

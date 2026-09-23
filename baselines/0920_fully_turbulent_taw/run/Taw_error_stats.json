@@ -3,7 +3,7 @@
   "status": "PASS",
   "case_id": "ma5_a10_h60km",
   "source_csv": "fluent_export/adiabatic_wall_csv/21.96pa_247.02k_60km_10alpha_5ma.csv",
-  "source_csv_sha256": "586cc0074d7f4edcde08e5feb7a809297cfa51d23778e08b57108c51217e668f",
+  "source_csv_sha256": "3d58526ce0f4c881bdd0e2c1c21798de3078419184a32eac2bc077b82870639b",
   "freestream": {
     "source": "ussa1976",
     "T_inf_K": 247.02088477279673,
@@ -15,69 +15,69 @@
   "sheets": {
     "upper": {
       "status": "PASS",
-      "raw_fluent_source_rows": 77421,
-      "geometric_sheet_source_rows": 33524,
-      "valid_observations": 33524,
-      "valid_predictions": 33098,
-      "paired_source_rows": 33524,
-      "comparison_supported_rows": 33098,
-      "mapping_unsupported_rows": 426,
-      "unique_lf_targets": 3684,
+      "raw_fluent_source_rows": 76892,
+      "geometric_sheet_source_rows": 33211,
+      "valid_observations": 33211,
+      "valid_predictions": 32786,
+      "paired_source_rows": 33211,
+      "comparison_supported_rows": 32786,
+      "mapping_unsupported_rows": 425,
+      "unique_lf_targets": 3647,
       "target_pool_size": 5787,
       "valid_lf_canonical_points": 5787,
       "mapping_distance_m": {
-        "count": 33524,
-        "min": 2.0117748245063183e-08,
-        "mean": 0.00923496558683813,
-        "median": 0.00924379229779733,
-        "p95": 0.01878967645741776,
-        "max": 0.02384392204361423
+        "count": 33211,
+        "min": 2.2380392002417444e-05,
+        "mean": 0.009231653694444451,
+        "median": 0.009274787282858426,
+        "p95": 0.01880815660269643,
+        "max": 0.025238043112605666
       },
       "mapping_support_limit_m": {
-        "count": 33524,
+        "count": 33211,
         "min": 0.00041996317078606094,
-        "mean": 0.04010301756576475,
-        "median": 0.0429804856895654,
+        "mean": 0.040212222753313466,
+        "median": 0.04343471192857749,
         "p95": 0.06188353783992916,
         "max": 0.07681080902818839
       },
       "supported_mapping_distance_m": {
-        "count": 33098,
-        "min": 2.0117748245063183e-08,
-        "mean": 0.00923334840425659,
-        "median": 0.00924396781734535,
-        "p95": 0.018808677586358385,
-        "max": 0.02384392204361423
+        "count": 32786,
+        "min": 2.2380392002417444e-05,
+        "mean": 0.00923266072686023,
+        "median": 0.009278416107409797,
+        "p95": 0.018830201216369663,
+        "max": 0.025238043112605666
       },
       "fluent_surface_class_counts": {
-        "windward": 9244,
-        "leeward": 1986,
-        "near_tangent": 22294,
+        "windward": 9185,
+        "leeward": 1954,
+        "near_tangent": 22072,
         "invalid": 0
       },
       "target_surface_class_counts": {
-        "windward": 10835,
-        "leeward": 1965,
-        "near_tangent": 20724,
+        "windward": 10774,
+        "leeward": 1956,
+        "near_tangent": 20481,
         "invalid": 0
       },
       "surface_class_cross_counts": {
         "windward": {
-          "windward": 8548,
-          "leeward": 19,
-          "near_tangent": 677,
+          "windward": 8488,
+          "leeward": 18,
+          "near_tangent": 679,
           "invalid": 0
         },
         "leeward": {
-          "windward": 47,
-          "leeward": 1687,
-          "near_tangent": 252,
+          "windward": 34,
+          "leeward": 1689,
+          "near_tangent": 231,
           "invalid": 0
         },
         "near_tangent": {
-          "windward": 2240,
-          "leeward": 259,
-          "near_tangent": 19795,
+          "windward": 2252,
+          "leeward": 249,
+          "near_tangent": 19571,
           "invalid": 0
         },
         "invalid": {
@@ -88,89 +88,89 @@
         }
       },
       "signed_error_K": {
-        "count": 33098,
-        "min": -37.50085355009378,
-        "mean": 40.37940099859834,
-        "median": 40.950587776322436,
-        "p95": 60.680288610904945,
-        "max": 106.69468032503869
+        "count": 32786,
+        "min": -22.400997902946983,
+        "mean": 36.192736054099086,
+        "median": 39.14159349454155,
+        "p95": 62.76155072040734,
+        "max": 104.63404732503886
       },
       "absolute_error_K": {
-        "count": 33098,
-        "min": 0.009671563296024033,
-        "mean": 41.43157123636003,
-        "median": 40.950587776322436,
-        "p95": 60.680288610904945,
-        "max": 106.69468032503869
+        "count": 32786,
+        "min": 0.003971104496713451,
+        "mean": 37.20113890113981,
+        "median": 39.14159349454155,
+        "p95": 62.76155072040734,
+        "max": 104.63404732503886
       },
       "signed_relative_error_pct": {
-        "count": 33098,
-        "min": -2.724595079630148,
-        "mean": 3.2835894245274373,
-        "median": 3.3119107562548757,
-        "p95": 4.990769831364792,
-        "max": 9.12072854153357
+        "count": 32786,
+        "min": -1.6848444816003196,
+        "mean": 2.9370532047413236,
+        "median": 3.162951484129723,
+        "p95": 5.169180067953953,
+        "max": 8.928848269338301
       },
       "absolute_relative_error_pct": {
-        "count": 33098,
-        "min": 0.0007527627294036727,
-        "mean": 3.3630566835884452,
-        "median": 3.3119107562548757,
-        "p95": 4.990769831364792,
-        "max": 9.12072854153357
+        "count": 32786,
+        "min": 0.0003094857441277647,
+        "mean": 3.014057550690318,
+        "median": 3.162951484129723,
+        "p95": 5.169180067953953,
+        "max": 8.928848269338301
       }
     },
     "lower": {
       "status": "PASS",
-      "raw_fluent_source_rows": 77421,
-      "geometric_sheet_source_rows": 34042,
-      "valid_observations": 34042,
-      "valid_predictions": 33342,
-      "paired_source_rows": 34042,
-      "comparison_supported_rows": 33342,
-      "mapping_unsupported_rows": 700,
-      "unique_lf_targets": 3779,
+      "raw_fluent_source_rows": 76892,
+      "geometric_sheet_source_rows": 33705,
+      "valid_observations": 33705,
+      "valid_predictions": 33003,
+      "paired_source_rows": 33705,
+      "comparison_supported_rows": 33003,
+      "mapping_unsupported_rows": 702,
+      "unique_lf_targets": 3755,
       "target_pool_size": 6110,
       "valid_lf_canonical_points": 6110,
       "mapping_distance_m": {
-        "count": 34042,
-        "min": 2.4080463037731314e-08,
-        "mean": 0.009193017421885283,
-        "median": 0.009199117341656031,
-        "p95": 0.018897452186930983,
-        "max": 0.024562254612414295
+        "count": 33705,
+        "min": 1.0004940269363576e-05,
+        "mean": 0.009192747454222081,
+        "median": 0.009258899950045422,
+        "p95": 0.018825420041999632,
+        "max": 0.024735947452762207
       },
       "mapping_support_limit_m": {
-        "count": 34042,
+        "count": 33705,
         "min": 0.0001688615379640084,
-        "mean": 0.039202205193967735,
-        "median": 0.0422383120594471,
-        "p95": 0.06139470101797653,
+        "mean": 0.03933187889893061,
+        "median": 0.04291662374587442,
+        "p95": 0.0616321604228939,
         "max": 0.07771023959875717
       },
       "supported_mapping_distance_m": {
-        "count": 33342,
-        "min": 2.4080463037731314e-08,
-        "mean": 0.009185412390470587,
-        "median": 0.009196631615667382,
-        "p95": 0.018928568969917497,
-        "max": 0.024562254612414295
+        "count": 33003,
+        "min": 1.0004940269363576e-05,
+        "mean": 0.009185673769357076,
+        "median": 0.009252721341926168,
+        "p95": 0.018852372803974605,
+        "max": 0.024735947452762207
       },
       "fluent_surface_class_counts": {
-        "windward": 34042,
+        "windward": 33705,
         "leeward": 0,
         "near_tangent": 0,
         "invalid": 0
       },
       "target_surface_class_counts": {
-        "windward": 34042,
+        "windward": 33705,
         "leeward": 0,
         "near_tangent": 0,
         "invalid": 0
       },
       "surface_class_cross_counts": {
         "windward": {
-          "windward": 34042,
+          "windward": 33705,
           "leeward": 0,
           "near_tangent": 0,
           "invalid": 0
@@ -195,36 +195,36 @@
         }
       },
       "signed_error_K": {
-        "count": 33342,
-        "min": -33.80461515386628,
-        "mean": 24.338480106853478,
-        "median": 26.527980512122667,
-        "p95": 42.90993171329823,
-        "max": 76.27520132216728
+        "count": 33003,
+        "min": -20.91525819556864,
+        "mean": 22.503789684419022,
+        "median": 25.339092943561127,
+        "p95": 42.59312716667788,
+        "max": 53.035055020934124
       },
       "absolute_error_K": {
-        "count": 33342,
-        "min": 0.003901595671322866,
-        "mean": 26.8886013743727,
-        "median": 26.679827701491377,
-        "p95": 42.90993171329823,
-        "max": 76.27520132216728
+        "count": 33003,
+        "min": 0.0018847152105081477,
+        "mean": 24.439925099762796,
+        "median": 25.339092943561127,
+        "p95": 42.59312716667788,
+        "max": 53.035055020934124
       },
       "signed_relative_error_pct": {
-        "count": 33342,
-        "min": -2.4735326870252097,
-        "mean": 1.9471524209734847,
-        "median": 2.1037181724416643,
-        "p95": 3.458092516594359,
-        "max": 6.316694606465709
+        "count": 33003,
+        "min": -1.5860898775714685,
+        "mean": 1.7980462025660375,
+        "median": 2.0095389854208894,
+        "p95": 3.4317312503090176,
+        "max": 4.309153751976655
       },
       "absolute_relative_error_pct": {
-        "count": 33342,
-        "min": 0.0003023020028099292,
-        "mean": 2.1380711020094503,
-        "median": 2.1100343976369285,
-        "p95": 3.458092516594359,
-        "max": 6.316694606465709
+        "count": 33003,
+        "min": 0.00014631589695379032,
+        "mean": 1.9450927429327738,
+        "median": 2.0095389854208894,
+        "p95": 3.4317312503090176,
+        "max": 4.309153751976655
       }
     }
   }

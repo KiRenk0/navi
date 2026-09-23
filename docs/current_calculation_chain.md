@@ -94,9 +94,11 @@ Both candidates and the blend weight are serialized for auditability.
 ## Fluent comparison and validation scope
 
 The active case `specs/cases/n8_taw_ma5_a10_h60km.yaml` uses the Fluent source
-`21.96pa_247.02k_60km_10alpha_5ma.csv` with the explicit `x, up, span`
-coordinate transform. Exact projection is bound to the canonical Fluent
-geometry and 0920 geometry identities.
+`21.96pa_247.02k_60km_10alpha_5ma.csv`, the refreshed `vehicle60` wall export,
+with the explicit `x, up, span` coordinate transform. It uses the shared
+76,892-point vehicle-wall geometry; `fluid*` volume-field exports are outside
+the wall comparison contract. Exact projection is bound to the canonical
+Fluent geometry and 0920 geometry identities.
 
 Full-surface error plots use their valid data range. Nose plots use `x<0.1 m`,
 a common `181 x 321` grid, and a controlled nearest-supported boundary
