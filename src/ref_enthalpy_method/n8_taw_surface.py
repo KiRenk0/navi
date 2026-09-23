@@ -20,7 +20,6 @@ from ref_enthalpy_method.aero.windward_cache_faceted3d import (
     build_windward_edge_cache_faceted3d,
 )
 from ref_enthalpy_method.atmosphere.ussa1976 import ussa1976
-from ref_enthalpy_method.config.windward_taw import PhiClampConfig, WindwardTawConfig
 from ref_enthalpy_method.gas.thermo import make_fluent_tpg_thermo
 from ref_enthalpy_method.gas.transport import (
     density_ideal_gas,
@@ -97,12 +96,16 @@ _EXPECTED_ARTIFACTS = (
     "Taw_provider_lower.png",
     "Taw_validity_upper.png",
     "Taw_validity_lower.png",
-    "Taw_error_vs_fluent_upper.png",
-    "Taw_error_vs_fluent_lower.png",
     "Taw_error_vs_fluent_upper_auto_range.png",
     "Taw_error_vs_fluent_lower_auto_range.png",
+    "Taw_error_vs_fluent_upper_nose_x_lt_0p1m_auto_range.png",
+    "Taw_error_vs_fluent_lower_nose_x_lt_0p1m_auto_range.png",
 )
 _SHEETS = ("upper", "lower")
+_NOSE_X_MAX_M = 0.1
+_NOSE_GRID_NX = 321
+_NOSE_GRID_NSPAN = 181
+_NOSE_EXTRAPOLATION_MAX_SPACING_FACTOR = 3.0
 _DISPATCH_SCHEMA = "n8-taw-dispatch/v3"
 _TOPOLOGY_SCHEMA = "n8-taw-domain-topology/v1"
 _NORMAL_MODEL_SCHEMA = "stl-angle-weighted-continuous-normal/v1"
@@ -137,14 +140,12 @@ class N8TawCaseSpec:
     h_label_km: float
     gamma: float
     R_J_per_kgK: float
-    prandtl: float
     vehicle_spec: str
     fluent_x_offset_m: float
     fluent_coordinate_order: str
     projection_gate_m: float
     projection_cache: str
     sampling_spec: str
-    signed_relative_error_limit_pct: float
 
 
 @dataclass(frozen=True)
@@ -215,8 +216,6 @@ class N8Freestream:
 class _GeometryInputs:
     f3: Faceted3DConfig
     b_half_m: float
-    c_root_m: float
-    sweep_le_deg: float
     outline_x_m: np.ndarray
     outline_span_m: np.ndarray
     mesh: AsciiStlMesh
@@ -342,7 +341,7 @@ def load_n8_taw_case_spec(path: str | Path, *, repo_root: str | Path) -> N8TawCa
     raw = _load_yaml(spec_path)
     _exact_keys(
         raw,
-        {"schema", "case", "gas", "geometry", "sampling", "plot"},
+        {"schema", "case", "gas", "geometry", "sampling"},
         label="N8 case root",
     )
     if raw["schema"] != _CASE_SCHEMA:
@@ -352,7 +351,6 @@ def load_n8_taw_case_spec(path: str | Path, *, repo_root: str | Path) -> N8TawCa
     gas = _mapping(raw["gas"], label="gas")
     geometry = _mapping(raw["geometry"], label="geometry")
     sampling = _mapping(raw["sampling"], label="sampling")
-    plot = _mapping(raw["plot"], label="plot")
     _exact_keys(
         case,
         {
@@ -366,7 +364,7 @@ def load_n8_taw_case_spec(path: str | Path, *, repo_root: str | Path) -> N8TawCa
         },
         label="case",
     )
-    _exact_keys(gas, {"gamma", "R_J_per_kgK", "prandtl"}, label="gas")
+    _exact_keys(gas, {"gamma", "R_J_per_kgK"}, label="gas")
     geometry_required = {
         "vehicle_spec",
         "fluent_x_offset_m",
@@ -384,7 +382,6 @@ def load_n8_taw_case_spec(path: str | Path, *, repo_root: str | Path) -> N8TawCa
             f"extra={sorted(geometry_actual - geometry_required - geometry_optional)}"
         )
     _exact_keys(sampling, {"spec"}, label="sampling")
-    _exact_keys(plot, {"signed_relative_error_limit_pct"}, label="plot")
 
     result = N8TawCaseSpec(
         case_id=str(case["case_id"]),
@@ -396,7 +393,6 @@ def load_n8_taw_case_spec(path: str | Path, *, repo_root: str | Path) -> N8TawCa
         h_label_km=_finite(case["h_label_km"], label="case.h_label_km"),
         gamma=_finite(gas["gamma"], label="gas.gamma", positive=True),
         R_J_per_kgK=_finite(gas["R_J_per_kgK"], label="gas.R_J_per_kgK", positive=True),
-        prandtl=_finite(gas["prandtl"], label="gas.prandtl", positive=True),
         vehicle_spec=str(geometry["vehicle_spec"]),
         fluent_x_offset_m=_finite(
             geometry["fluent_x_offset_m"], label="geometry.fluent_x_offset_m"
@@ -413,11 +409,6 @@ def load_n8_taw_case_spec(path: str | Path, *, repo_root: str | Path) -> N8TawCa
             geometry.get("projection_cache", _PROJECTION_CACHE_PATH)
         ),
         sampling_spec=str(sampling["spec"]),
-        signed_relative_error_limit_pct=_finite(
-            plot["signed_relative_error_limit_pct"],
-            label="plot.signed_relative_error_limit_pct",
-            positive=True,
-        ),
     )
     if not result.case_id or result.h_label_km < 0.0:
         raise ValueError("case_id must be nonempty and h_label_km must be nonnegative")
@@ -522,12 +513,6 @@ def _load_geometry_inputs(repo_root: Path, case: N8TawCaseSpec) -> _GeometryInpu
     return _GeometryInputs(
         f3=f3,
         b_half_m=b_half,
-        c_root_m=_finite(
-            planform.get("c_root_m"), label="vehicle planform.c_root_m", positive=True
-        ),
-        sweep_le_deg=_finite(
-            planform.get("sweep_le_deg"), label="vehicle planform.sweep_le_deg"
-        ),
         outline_x_m=np.asarray(outline_x, dtype=np.float64),
         outline_span_m=outline_span,
         vehicle_spec_path=vehicle_path,
@@ -567,7 +552,6 @@ def _gas_model(case: N8TawCaseSpec) -> GasModel:
             T_K, cp=tpg.cp, mu=mu_sutherland, R=case.R_J_per_kgK
         ),
         tpg=tpg,
-        prandtl=case.prandtl,
     )
 
 
@@ -862,10 +846,6 @@ def _build_structured_surface_fields(
 
     rho_inf = gas.rho(case.p_inf_Pa, case.T_inf_K)
     V_inf = case.mach * float(gas.tpg.a_T(case.T_inf_K))
-    taw_cfg = WindwardTawConfig(
-        phi_clamp=PhiClampConfig(enable=True, phi_min_rad=1.0e-8),
-        x_min_over_c=0.003,
-    )
     for sheet in _SHEETS:
         data = sheet_data[sheet]
         windward_taw = np.full(shape, np.nan, dtype=np.float64)
@@ -880,26 +860,17 @@ def _build_structured_surface_fields(
                 continue
             sx_row = np.where(np.isfinite(data["sx"][j]), data["sx"][j], ref_sx)
             sy_row = np.where(np.isfinite(data["sy"][j]), data["sy"][j], ref_sy)
-            chord_eff = max(chord, geometry.f3.chord_min_m)
-            x_phys = np.maximum(xc * chord_eff, max(0.003 * chord_eff, 1.0e-6))
             cache = build_windward_edge_cache_faceted3d(
                 gas=gas,
-                taw_cfg=taw_cfg,
                 mach=case.mach,
                 alpha_deg=case.alpha_deg,
-                sweep_le_deg=geometry.sweep_le_deg,
                 p_inf=case.p_inf_Pa,
                 rho_inf=rho_inf,
                 T_inf=case.T_inf_K,
-                chord_m=chord_eff,
                 xc_grid=xc,
                 sx_arr=sx_row,
                 sy_arr=sy_row,
-                use_effective_alpha=geometry.f3.edge_use_effective_alpha,
-                use_effective_mach=geometry.f3.edge_use_effective_mach,
-                x_phys_override=x_phys,
-                cp_newtonian_A=geometry.f3.cp_newtonian_A,
-                cp_newtonian_n=geometry.f3.cp_newtonian_n,
+                sheet=sheet,
             )
             if cache.taw_tpg is None:
                 raise ValueError(
@@ -1272,41 +1243,19 @@ def _build_domain_conforming_product(
                 weights @ parent_candidate
             )
             continue
-        chord = float(
-            outline_planform_xle_chord(
-                span_m=float(product["span_m"][node_id]),
-                outline_x_m=geometry.outline_x_m,
-                outline_span_m=geometry.outline_span_m,
-            )[1]
-        )
-        if not np.isfinite(chord) or chord <= 0.0:
-            raise ValueError("inserted windward node has no planform chord")
-        chord_eff = max(chord, geometry.f3.chord_min_m)
         node_xc = float(product["x_over_c"][node_id])
-        taw_cfg = WindwardTawConfig(
-            phi_clamp=PhiClampConfig(enable=True, phi_min_rad=1.0e-8),
-            x_min_over_c=0.003,
-        )
+        node_sheet = str(sheet_names[node_id])
         cache = build_windward_edge_cache_faceted3d(
             gas=gas,
-            taw_cfg=taw_cfg,
             mach=case.mach,
             alpha_deg=case.alpha_deg,
-            sweep_le_deg=geometry.sweep_le_deg,
             p_inf=case.p_inf_Pa,
             rho_inf=rho_inf,
             T_inf=case.T_inf_K,
-            chord_m=chord_eff,
             xc_grid=np.asarray([node_xc]),
             sx_arr=np.asarray([product["sx"][node_id]]),
             sy_arr=np.asarray([product["sy"][node_id]]),
-            use_effective_alpha=geometry.f3.edge_use_effective_alpha,
-            use_effective_mach=geometry.f3.edge_use_effective_mach,
-            x_phys_override=np.asarray(
-                [max(node_xc * chord_eff, max(0.003 * chord_eff, 1.0e-6))]
-            ),
-            cp_newtonian_A=geometry.f3.cp_newtonian_A,
-            cp_newtonian_n=geometry.f3.cp_newtonian_n,
+            sheet=node_sheet,
         )
         if cache.taw_tpg is None or not np.isfinite(cache.taw_tpg[0]):
             raise ValueError("inserted windward node has no Taw candidate")
@@ -1898,7 +1847,6 @@ def _plot_comparison_surface(
     colorbar_label: str,
     vmin: float,
     vmax: float,
-    extend: Literal["neither", "both"] = "both",
 ) -> None:
     import matplotlib
 
@@ -1937,11 +1885,10 @@ def _plot_comparison_surface(
             contour_z,
             levels=np.linspace(vmin, vmax, 41, dtype=np.float64),
             cmap="coolwarm",
-            extend=extend,
+            extend="neither",
         )
-        colorbar = fig.colorbar(artist, ax=ax, label=colorbar_label, extend=extend)
-        if extend == "neither":
-            colorbar.set_ticks(np.linspace(vmin, vmax, 7, dtype=np.float64))
+        colorbar = fig.colorbar(artist, ax=ax, label=colorbar_label)
+        colorbar.set_ticks(np.linspace(vmin, vmax, 7, dtype=np.float64))
         ax.set_facecolor("#eeeeee")
         ax.set_title(title, fontsize=10)
         ax.set_xlabel("x (m)")
@@ -1951,6 +1898,226 @@ def _plot_comparison_surface(
         fig.savefig(path)
     finally:
         plt.close(fig)
+
+
+def _clip_outline_to_x_max(
+    *, outline_x_m: np.ndarray, outline_span_m: np.ndarray, x_max_m: float
+) -> np.ndarray:
+    """Clip a closed planform polygon to x <= x_max_m."""
+
+    x = np.asarray(outline_x_m, dtype=np.float64).reshape(-1)
+    span = np.asarray(outline_span_m, dtype=np.float64).reshape(-1)
+    if (
+        x.shape != span.shape
+        or x.size < 3
+        or not (np.all(np.isfinite(x)) and np.all(np.isfinite(span)))
+    ):
+        raise ValueError("nose outline coordinates are invalid")
+    polygon = np.column_stack((x, span))
+    if np.allclose(polygon[0], polygon[-1], rtol=0.0, atol=1.0e-12):
+        polygon = polygon[:-1]
+
+    clipped: list[np.ndarray] = []
+    previous = polygon[-1]
+    previous_inside = bool(previous[0] <= x_max_m)
+    for current in polygon:
+        current_inside = bool(current[0] <= x_max_m)
+        if current_inside != previous_inside:
+            fraction = (x_max_m - previous[0]) / (current[0] - previous[0])
+            clipped.append(previous + fraction * (current - previous))
+        if current_inside:
+            clipped.append(current.copy())
+        previous = current
+        previous_inside = current_inside
+    result = np.asarray(clipped, dtype=np.float64)
+    if result.ndim != 2 or result.shape[0] < 3 or result.shape[1] != 2:
+        raise ValueError("nose outline clipping produced an invalid polygon")
+    return result
+
+
+def _plot_nose_comparison_surface(
+    *,
+    path: Path,
+    x_m: np.ndarray,
+    span_m: np.ndarray,
+    values: np.ndarray,
+    comparison_valid: np.ndarray,
+    mapping_support_limit_m: np.ndarray,
+    outline_x_m: np.ndarray,
+    outline_span_m: np.ndarray,
+    title: str,
+    colorbar_label: str,
+    vmin: float,
+    vmax: float,
+) -> dict[str, float | int | str | list[int]]:
+    """Interpolate onto the common nose grid and close its narrow edge-data gap."""
+
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import matplotlib.tri as mtri
+    from matplotlib.patches import Polygon
+    from matplotlib.path import Path as MplPath
+
+    x = np.asarray(x_m, dtype=np.float64)
+    span = np.asarray(span_m, dtype=np.float64)
+    z = np.asarray(values, dtype=np.float64)
+    supported = np.asarray(comparison_valid, dtype=np.bool_)
+    support_limit = np.asarray(mapping_support_limit_m, dtype=np.float64)
+    if not (x.shape == span.shape == z.shape == supported.shape == support_limit.shape):
+        raise ValueError("nose comparison plot arrays must have identical shapes")
+    nose_rows = np.isfinite(x) & (x < _NOSE_X_MAX_M)
+    if np.count_nonzero(supported & nose_rows) < 3:
+        raise ValueError("nose comparison has fewer than three supported samples")
+    contour_x, contour_span, contour_z, triangles, triangle_mask = (
+        _build_comparison_contour_mesh(
+            x_m=x[nose_rows],
+            span_m=span[nose_rows],
+            values=z[nose_rows],
+            comparison_valid=supported[nose_rows],
+            mapping_support_limit_m=support_limit[nose_rows],
+        )
+    )
+    nose_outline = _clip_outline_to_x_max(
+        outline_x_m=outline_x_m,
+        outline_span_m=outline_span_m,
+        x_max_m=_NOSE_X_MAX_M,
+    )
+    x_grid = np.linspace(
+        float(np.min(nose_outline[:, 0])),
+        _NOSE_X_MAX_M,
+        _NOSE_GRID_NX,
+        dtype=np.float64,
+    )
+    span_grid = np.linspace(
+        float(np.min(nose_outline[:, 1])),
+        float(np.max(nose_outline[:, 1])),
+        _NOSE_GRID_NSPAN,
+        dtype=np.float64,
+    )
+    grid_x, grid_span = np.meshgrid(x_grid, span_grid)
+    closed_outline = np.vstack((nose_outline, nose_outline[0]))
+    inside_outline = (
+        MplPath(closed_outline)
+        .contains_points(
+            np.column_stack((grid_x.ravel(), grid_span.ravel())), radius=1.0e-12
+        )
+        .reshape(grid_x.shape)
+    )
+
+    triangulation = mtri.Triangulation(
+        contour_x, contour_span, triangles=triangles, mask=triangle_mask
+    )
+    interpolated = np.ma.asarray(
+        mtri.LinearTriInterpolator(triangulation, contour_z)(grid_x, grid_span)
+    )
+    interpolation_mask = np.ma.getmaskarray(interpolated)
+    boundary_gap = inside_outline & interpolation_mask
+    filled_values = np.asarray(interpolated.filled(np.nan), dtype=np.float64)
+
+    mesh_edges = np.vstack(
+        (
+            triangles[:, (0, 1)],
+            triangles[:, (1, 2)],
+            triangles[:, (2, 0)],
+        )
+    )
+    mesh_edges.sort(axis=1)
+    mesh_edges = np.unique(mesh_edges, axis=0)
+    edge_lengths = np.linalg.norm(
+        np.column_stack((contour_x, contour_span))[mesh_edges[:, 0]]
+        - np.column_stack((contour_x, contour_span))[mesh_edges[:, 1]],
+        axis=1,
+    )
+    finite_edge_lengths = edge_lengths[np.isfinite(edge_lengths) & (edge_lengths > 0.0)]
+    if finite_edge_lengths.size == 0:
+        raise ValueError("nose comparison triangulation has no finite positive edges")
+    spacing_reference_m = float(np.percentile(finite_edge_lengths, 95.0))
+    extrapolation_limit_m = _NOSE_EXTRAPOLATION_MAX_SPACING_FACTOR * spacing_reference_m
+    extrapolation_max_distance_m = 0.0
+    if np.any(boundary_gap):
+        sample_xy = np.column_stack((contour_x, contour_span))
+        query_xy = np.column_stack((grid_x[boundary_gap], grid_span[boundary_gap]))
+        nearest_values = np.empty(query_xy.shape[0], dtype=np.float64)
+        nearest_distances = np.empty(query_xy.shape[0], dtype=np.float64)
+        for start in range(0, query_xy.shape[0], 256):
+            stop = min(start + 256, query_xy.shape[0])
+            delta = query_xy[start:stop, None, :] - sample_xy[None, :, :]
+            distance_squared = np.einsum("qsd,qsd->qs", delta, delta)
+            nearest = np.argmin(distance_squared, axis=1)
+            nearest_values[start:stop] = contour_z[nearest]
+            nearest_distances[start:stop] = np.sqrt(
+                distance_squared[np.arange(stop - start), nearest]
+            )
+        extrapolation_max_distance_m = float(np.max(nearest_distances))
+        if extrapolation_max_distance_m > extrapolation_limit_m * (1.0 + 1.0e-12):
+            raise ValueError(
+                "nose boundary data gap exceeds the controlled extrapolation limit: "
+                f"{extrapolation_max_distance_m:.6g} m > "
+                f"{extrapolation_limit_m:.6g} m"
+            )
+        filled_values[boundary_gap] = nearest_values
+
+    grid_values = np.ma.array(
+        filled_values,
+        mask=~inside_outline,
+    )
+    if np.count_nonzero(~np.ma.getmaskarray(grid_values)) == 0:
+        raise ValueError("nose comparison common grid has no supported values")
+
+    fig, ax = plt.subplots(figsize=(8.0, 4.8), dpi=180)
+    try:
+        ax.add_patch(
+            Polygon(
+                nose_outline,
+                closed=True,
+                facecolor="#eeeeee",
+                edgecolor="black",
+                linewidth=0.8,
+                zorder=0,
+            )
+        )
+        artist = ax.contourf(
+            grid_x,
+            grid_span,
+            grid_values,
+            levels=np.linspace(vmin, vmax, 41, dtype=np.float64),
+            cmap="coolwarm",
+            extend="neither",
+            zorder=1,
+        )
+        ax.plot(
+            closed_outline[:, 0],
+            closed_outline[:, 1],
+            color="black",
+            linewidth=0.8,
+            zorder=2,
+        )
+        colorbar = fig.colorbar(artist, ax=ax, label=colorbar_label)
+        colorbar.set_ticks(np.linspace(vmin, vmax, 7, dtype=np.float64))
+        ax.set_title(title, fontsize=10)
+        ax.set_xlabel("x (m)")
+        ax.set_ylabel("span (m)")
+        ax.set_xlim(float(np.min(nose_outline[:, 0])), _NOSE_X_MAX_M)
+        ax.set_ylim(
+            float(np.min(nose_outline[:, 1])),
+            float(np.max(nose_outline[:, 1])),
+        )
+        ax.set_aspect("equal", adjustable="box")
+        fig.tight_layout()
+        fig.savefig(path)
+    finally:
+        plt.close(fig)
+    return {
+        "method": "nearest-supported-error boundary extension",
+        "grid_shape": [_NOSE_GRID_NSPAN, _NOSE_GRID_NX],
+        "extrapolated_grid_points": int(np.count_nonzero(boundary_gap)),
+        "spacing_reference_p95_m": spacing_reference_m,
+        "max_distance_m": extrapolation_max_distance_m,
+        "distance_limit_m": extrapolation_limit_m,
+        "max_spacing_factor": _NOSE_EXTRAPOLATION_MAX_SPACING_FACTOR,
+    }
 
 
 def validate_n8_run_artifacts(run_dir: str | Path) -> dict[str, Any]:
@@ -1964,6 +2131,30 @@ def validate_n8_run_artifacts(run_dir: str | Path) -> dict[str, Any]:
         raise ValueError("N8 summary is not PASS")
     if stats.get("schema") != _STATS_SCHEMA or stats.get("status") != "PASS":
         raise ValueError("N8 error stats are not PASS")
+    if summary.get("contracts", {}).get("nose_error_plot_x_max_m") != _NOSE_X_MAX_M:
+        raise ValueError("N8 nose error plot threshold is inconsistent")
+    nose_plot_contract = summary.get("contracts", {}).get("nose_error_plot")
+    if not isinstance(nose_plot_contract, Mapping) or (
+        nose_plot_contract.get("boundary_extension_method")
+        != "nearest-supported-error boundary extension"
+        or nose_plot_contract.get("max_spacing_factor")
+        != _NOSE_EXTRAPOLATION_MAX_SPACING_FACTOR
+    ):
+        raise ValueError("N8 nose error plot boundary-extension contract is invalid")
+    for range_key in (
+        "signed_relative_error_auto_range_pct",
+        "nose_signed_relative_error_auto_range_pct",
+    ):
+        ranges = summary.get("contracts", {}).get(range_key)
+        if not isinstance(ranges, Mapping):
+            raise TypeError(f"N8 {range_key} contract is missing")
+        for sheet in _SHEETS:
+            sheet_range = ranges.get(sheet)
+            if not isinstance(sheet_range, Mapping) or not (
+                float(sheet_range.get("min", np.nan))
+                < float(sheet_range.get("max", np.nan))
+            ):
+                raise ValueError(f"N8 {range_key} contract is invalid for {sheet}")
     for sheet in _SHEETS:
         sheet_stats = stats.get("sheets", {}).get(sheet, {})
         if (
@@ -2613,6 +2804,8 @@ def run_n8_taw_case(
             f"h_label={case.h_label_km:g} km"
         )
         auto_error_ranges: dict[str, dict[str, float]] = {}
+        nose_auto_error_ranges: dict[str, dict[str, float]] = {}
+        nose_plot_diagnostics: dict[str, dict[str, float | int | str | list[int]]] = {}
         for sheet in _SHEETS:
             node_mask = np.asarray(fields["geometric_sheet"]) == sheet
             triangle_mask = (
@@ -2667,23 +2860,41 @@ def run_n8_taw_case(
             source_xy = projection.projected_xyz[comparison.source_canonical_index][
                 :, (0, 1)
             ]
-            _plot_comparison_surface(
-                path=temp_dir / f"Taw_error_vs_fluent_{sheet}.png",
-                x_m=source_xy[:, 0],
-                span_m=source_xy[:, 1],
-                values=comparison.signed_relative_error_pct,
-                comparison_valid=comparison.comparison_valid,
-                mapping_support_limit_m=comparison.mapping_support_limit_m,
-                title=f"Taw signed relative error vs Fluent | geometric {sheet}\n{title_context}",
-                colorbar_label="signed relative error (%)",
-                vmin=-case.signed_relative_error_limit_pct,
-                vmax=case.signed_relative_error_limit_pct,
-            )
             auto_vmin, auto_vmax = _comparison_auto_color_limits(
                 values=comparison.signed_relative_error_pct,
                 comparison_valid=comparison.comparison_valid,
             )
             auto_error_ranges[sheet] = {"min": auto_vmin, "max": auto_vmax}
+            nose_rows = np.isfinite(source_xy[:, 0]) & (source_xy[:, 0] < _NOSE_X_MAX_M)
+            nose_auto_vmin, nose_auto_vmax = _comparison_auto_color_limits(
+                values=comparison.signed_relative_error_pct[nose_rows],
+                comparison_valid=comparison.comparison_valid[nose_rows],
+            )
+            nose_auto_error_ranges[sheet] = {
+                "min": nose_auto_vmin,
+                "max": nose_auto_vmax,
+            }
+            nose_plot_diagnostics[sheet] = _plot_nose_comparison_surface(
+                path=(
+                    temp_dir
+                    / f"Taw_error_vs_fluent_{sheet}_nose_x_lt_0p1m_auto_range.png"
+                ),
+                x_m=source_xy[:, 0],
+                span_m=source_xy[:, 1],
+                values=comparison.signed_relative_error_pct,
+                comparison_valid=comparison.comparison_valid,
+                mapping_support_limit_m=comparison.mapping_support_limit_m,
+                outline_x_m=geometry_inputs.outline_x_m,
+                outline_span_m=geometry_inputs.outline_span_m,
+                title=(
+                    "Taw signed relative error vs Fluent (actual nose range) | "
+                    "nose x < 0.1 m | "
+                    f"geometric {sheet}\n{title_context}"
+                ),
+                colorbar_label="signed relative error (%)",
+                vmin=nose_auto_vmin,
+                vmax=nose_auto_vmax,
+            )
             _plot_comparison_surface(
                 path=temp_dir / f"Taw_error_vs_fluent_{sheet}_auto_range.png",
                 x_m=source_xy[:, 0],
@@ -2698,7 +2909,6 @@ def run_n8_taw_case(
                 colorbar_label="signed relative error (%)",
                 vmin=auto_vmin,
                 vmax=auto_vmax,
-                extend="neither",
             )
 
         artifact_identity = {}
@@ -2800,8 +3010,18 @@ def run_n8_taw_case(
                     "interpolated over within the supported-sample convex hull"
                 ),
                 "error_direction": "prediction - observation",
-                "signed_relative_error_color_limit_pct": case.signed_relative_error_limit_pct,
+                "nose_error_plot_x_max_m": _NOSE_X_MAX_M,
+                "nose_error_plot": {
+                    "common_outline": _OUTLINE_PATH,
+                    "common_grid_shape": [_NOSE_GRID_NSPAN, _NOSE_GRID_NX],
+                    "boundary_extension_method": (
+                        "nearest-supported-error boundary extension"
+                    ),
+                    "max_spacing_factor": _NOSE_EXTRAPOLATION_MAX_SPACING_FACTOR,
+                    "sheets": nose_plot_diagnostics,
+                },
                 "signed_relative_error_auto_range_pct": auto_error_ranges,
+                "nose_signed_relative_error_auto_range_pct": nose_auto_error_ranges,
                 "projection_cache": {
                     "schema": PROJECTION_CACHE_SCHEMA,
                     "algorithm": PROJECTION_ALGORITHM_VERSION,

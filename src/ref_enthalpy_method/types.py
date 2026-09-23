@@ -20,7 +20,6 @@ class GasModel:
     rho: Callable[[float, float], float]  # rho(p, T) -> kg/m^3
     k: Callable[[float], float]  # k(T) -> W/(m K)
     tpg: Any  # TPGThermo instance
-    prandtl: float = 0.72
 
     def prandtl_at_T(self, T: float) -> float:
         """Return the local Prandtl number from the active transport models."""
@@ -28,7 +27,9 @@ class GasModel:
         conductivity = float(self.k(float(T)))
         value = float(self.mu(float(T)) * self.cp_gas(float(T)) / conductivity)
         if conductivity <= 0.0 or value <= 0.0:
-            raise ValueError("gas transport properties must produce positive Prandtl number")
+            raise ValueError(
+                "gas transport properties must produce positive Prandtl number"
+            )
         return value
 
 

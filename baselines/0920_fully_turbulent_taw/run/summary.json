@@ -55,15 +55,60 @@
     "surface_rendering": "flat colors on explicit domain triangles; no reshape or invalid vertex mask defines the product boundary",
     "comparison_rendering": "filled triangular contours from supported Fluent projected samples; sparse unsupported samples remain excluded from statistics and are interpolated over within the supported-sample convex hull",
     "error_direction": "prediction - observation",
-    "signed_relative_error_color_limit_pct": 10.0,
+    "nose_error_plot_x_max_m": 0.1,
+    "nose_error_plot": {
+      "common_outline": "data/geometry/0920/outline_xz_right_0920.csv",
+      "common_grid_shape": [
+        181,
+        321
+      ],
+      "boundary_extension_method": "nearest-supported-error boundary extension",
+      "max_spacing_factor": 3.0,
+      "sheets": {
+        "upper": {
+          "method": "nearest-supported-error boundary extension",
+          "grid_shape": [
+            181,
+            321
+          ],
+          "extrapolated_grid_points": 3326,
+          "spacing_reference_p95_m": 0.0021017581422541095,
+          "max_distance_m": 0.003721045961792201,
+          "distance_limit_m": 0.006305274426762328,
+          "max_spacing_factor": 3.0
+        },
+        "lower": {
+          "method": "nearest-supported-error boundary extension",
+          "grid_shape": [
+            181,
+            321
+          ],
+          "extrapolated_grid_points": 3397,
+          "spacing_reference_p95_m": 0.002104799513246624,
+          "max_distance_m": 0.0038419040775206996,
+          "distance_limit_m": 0.006314398539739872,
+          "max_spacing_factor": 3.0
+        }
+      }
+    },
     "signed_relative_error_auto_range_pct": {
       "upper": {
-        "min": -7.674977811431421,
+        "min": -2.724595079630148,
         "max": 9.12072854153357
       },
       "lower": {
-        "min": -7.618978420558421,
-        "max": 6.865096054484361
+        "min": -2.4735326870252097,
+        "max": 6.316694606465709
+      }
+    },
+    "nose_signed_relative_error_auto_range_pct": {
+      "upper": {
+        "min": -2.724595079630148,
+        "max": 3.468785956637717
+      },
+      "lower": {
+        "min": -2.4735326870252097,
+        "max": 2.083902436989773
       }
     },
     "projection_cache": {
@@ -73,7 +118,7 @@
       "key": "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269",
       "hit": true,
       "path": "baselines/0920_fully_turbulent_taw/projection_cache/122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269.npz",
-      "sha256": "d5a6d68e6e4867d8d3b456fd79440cb204652fa6871848305267cb49c6179a1a",
+      "sha256": "61c3472e1435d6e407736e963ff709e6229a764536a6ae197eadc1eb351eaf33",
       "identity": {
         "projection_input_geometry_sha256": "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269",
         "fluent_canonical_geometry_sha256": "122eb1679442ec614c1e87ba64be1ef30e3e291f163e3d46ad9521707dfc5269",
@@ -98,20 +143,20 @@
   },
   "artifacts": {
     "Taw_surface_fields.npz": {
-      "byte_size": 4755458,
-      "sha256": "9fde32e0159c79ac9b3505a3b9dbdc64da7216baf2b49bb74beaedd9e7718e2d"
+      "byte_size": 4745688,
+      "sha256": "3ace8ab15d8049f86193442a783c29d4facb5dec9aa0bdfd4769d42bb598b2fc"
     },
     "Taw_error_stats.json": {
-      "byte_size": 6847,
-      "sha256": "83a652dc658982a9e2bdf43ee194cbc83c125b44c03c7e4ea2e6cfbb551fb41d"
+      "byte_size": 6854,
+      "sha256": "41e2bb0c9770c75ab37844e7c675b6f94c8753f82ec8b078c17a75c88e05111d"
     },
     "Taw_surface_upper.png": {
-      "byte_size": 86760,
-      "sha256": "b9869bd87abebe353643865db81bb8dc70a3e095b3d4e20ed28512800709ec51"
+      "byte_size": 59388,
+      "sha256": "acd919cdc85dc0db8aa6e6d271e76af8184d9ecebe8a99f88dede4bf12e5c4bd"
     },
     "Taw_surface_lower.png": {
-      "byte_size": 69672,
-      "sha256": "05b0204f52a6eb68314f886ddea8647fabc37675b26758fbb950032889cc8645"
+      "byte_size": 58028,
+      "sha256": "913c8f73747c91dea16d7c9f1be9298ed3d99b64087b291a13928120ea569256"
     },
     "Taw_provider_upper.png": {
       "byte_size": 52233,
@@ -129,21 +174,21 @@
       "byte_size": 42699,
       "sha256": "7d191beb401e85a99805898769eb0e51319a3f6eadc1f3e7c3389eb42f522af0"
     },
-    "Taw_error_vs_fluent_upper.png": {
-      "byte_size": 67520,
-      "sha256": "10372523facd592499434241cdd6b45b2e6f814433daa0346392ddef2c5450bf"
-    },
-    "Taw_error_vs_fluent_lower.png": {
-      "byte_size": 64897,
-      "sha256": "cbd9b3304d1b1ea5517e37c92cc2795234e72136e7284a6864517b75b96e2202"
-    },
     "Taw_error_vs_fluent_upper_auto_range.png": {
-      "byte_size": 67622,
-      "sha256": "d06dc97efb31dd950b25c7f5e236d6cfcbd2ac09c1565229c9ecf4eaae531233"
+      "byte_size": 67813,
+      "sha256": "60431a5ba24f083cc612acbbc457a99f9d9594468969c7c19c2d6a5078fa7346"
     },
     "Taw_error_vs_fluent_lower_auto_range.png": {
-      "byte_size": 66471,
-      "sha256": "6c3c1de02ce0ef67f642a618dce18c0e51498a7336c470d13ddac70630ff540a"
+      "byte_size": 72633,
+      "sha256": "5b8adb5956cad4ff9e6e532878209303e6abdc7caa3baff5df82d8a49bc0374e"
+    },
+    "Taw_error_vs_fluent_upper_nose_x_lt_0p1m_auto_range.png": {
+      "byte_size": 98127,
+      "sha256": "9ad7ceabf0ff39fe3c64646a568a58c7e2daae4cf00ca729ce308f4555c1472a"
+    },
+    "Taw_error_vs_fluent_lower_nose_x_lt_0p1m_auto_range.png": {
+      "byte_size": 102322,
+      "sha256": "43edfc00e243efabc851bef51f2f63345a3cbc41c9bfc5529d80991745c2f2d0"
     }
   }
 }

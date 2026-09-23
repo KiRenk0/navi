@@ -25,10 +25,6 @@ class Faceted3DConfig:
     stl_unit: str
     stl_span_sign: float
     stl_right_half_only: bool
-    edge_use_effective_alpha: bool
-    edge_use_effective_mach: bool
-    cp_newtonian_A: float
-    cp_newtonian_n: float
 
     @classmethod
     def from_faceted3d_spec(cls, value: dict) -> Faceted3DConfig:
@@ -39,10 +35,6 @@ class Faceted3DConfig:
             "sy_up",
             "sx_lo",
             "sy_lo",
-            "edge_state",
-            "cp_model",
-            "cp_newtonian_A",
-            "cp_newtonian_n",
             "chord_min_m",
             "planform",
             "surface",
@@ -52,17 +44,8 @@ class Faceted3DConfig:
                 "faceted3d fields must be exactly "
                 f"{sorted(expected)}; got {sorted(value)}"
             )
-        if value["cp_model"] != "newtonian_like":
-            raise ValueError("formal 0920 cp_model must be exactly 'newtonian_like'")
-
-        edge_state = value["edge_state"]
         planform = value["planform"]
         surface = value["surface"]
-        if not isinstance(edge_state, dict) or set(edge_state) != {
-            "use_effective_alpha",
-            "use_effective_mach",
-        }:
-            raise ValueError("faceted3d.edge_state has unexpected fields")
         if not isinstance(planform, dict) or set(planform) != {
             "outline_csv",
             "outline_x_col",
@@ -92,10 +75,6 @@ class Faceted3DConfig:
             stl_unit=str(surface["unit"]),
             stl_span_sign=float(surface["span_sign"]),
             stl_right_half_only=bool(surface["right_half_only"]),
-            edge_use_effective_alpha=bool(edge_state["use_effective_alpha"]),
-            edge_use_effective_mach=bool(edge_state["use_effective_mach"]),
-            cp_newtonian_A=float(value["cp_newtonian_A"]),
-            cp_newtonian_n=float(value["cp_newtonian_n"]),
         )
         numeric = np.asarray(
             (
@@ -106,8 +85,6 @@ class Faceted3DConfig:
                 result.chord_min_m,
                 result.outline_span_sign,
                 result.stl_span_sign,
-                result.cp_newtonian_A,
-                result.cp_newtonian_n,
             ),
             dtype=float,
         )

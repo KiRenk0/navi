@@ -162,6 +162,30 @@ def test_baseline_manifest_verification_cli_has_one_run_authority() -> None:
 
 
 def test_baseline_artifact_contract() -> None:
+    for sheet in ("upper", "lower"):
+        assert (
+            BASELINE
+            / "run"
+            / f"Taw_error_vs_fluent_{sheet}_nose_x_lt_0p1m_auto_range.png"
+        ).is_file()
+        assert not (BASELINE / "run" / f"Taw_error_vs_fluent_{sheet}.png").exists()
+        assert not (
+            BASELINE / "run" / f"Taw_error_vs_fluent_{sheet}_nose_x_lt_0p1m.png"
+        ).exists()
+    summary = json.loads((BASELINE / "run/summary.json").read_text(encoding="utf-8"))
+    nose_plot = summary["contracts"]["nose_error_plot"]
+    assert nose_plot["common_grid_shape"] == [181, 321]
+    assert nose_plot["boundary_extension_method"] == (
+        "nearest-supported-error boundary extension"
+    )
+    for sheet in ("upper", "lower"):
+        diagnostics = nose_plot["sheets"][sheet]
+        assert diagnostics["extrapolated_grid_points"] > 0
+        assert diagnostics["max_distance_m"] <= diagnostics["distance_limit_m"]
+        nose_range = summary["contracts"]["nose_signed_relative_error_auto_range_pct"][
+            sheet
+        ]
+        assert nose_range["min"] < nose_range["max"]
     fields_path = BASELINE / "run/Taw_surface_fields.npz"
     with np.load(fields_path, allow_pickle=False) as fields:
         assert len(fields.files) == 88
