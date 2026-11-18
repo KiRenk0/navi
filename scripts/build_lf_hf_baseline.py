@@ -126,7 +126,7 @@ def run_case(set_name: str, number: int, row: dict, staging_root: str) -> dict:
     spec = SETS[set_name]
     cid = row["case_id"]
     dest = RAW / spec["out"] / cid
-    if dest.exists():
+    if dest.exists() and any(dest.iterdir()):
         raise FileExistsError(f"refusing to overwrite {dest}")
     stem = spec["export"](number)
     center_csv = stem.with_suffix(".csv")
@@ -189,7 +189,7 @@ def _build_case(spec, cid, flow, row, stage, dest, center_csv, node_csv, cache) 
     values.update(role=np.asarray(spec["role"]), data_version=np.asarray(spec["out"]),
                   candidate_only=np.asarray(False), not_for_training=np.asarray(spec["role"] != "initial_training"),
                   theta=np.asarray([flow["h_label_km"], flow["mach"], flow["alpha_deg"]]))
-    dest.mkdir(parents=True)
+    dest.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(dest / "residual_field.npz", **values)
     shutil.copy2(fields, dest / "Taw_surface_fields.npz")
     shutil.copy2(summary, dest / "summary.json")
