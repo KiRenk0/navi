@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 .pytest_cache*/
+.pytest-tmp/
+pytest_tmp*/
+.uv-cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
@@ -31,3 +34,7 @@ Thumbs.db
 _mapping_cache.npz
 
 runs/
+
+# 本机数据：Fluent 原始导出、分区研究子工程（含 40 工况 LF+HF 基线）
+fluent_export/
+fenqu_zanshi/

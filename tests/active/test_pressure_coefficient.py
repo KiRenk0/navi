@@ -3,11 +3,17 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from ref_enthalpy_method.aero.edge_conditions import compute_edge_conditions
+from ref_enthalpy_method.aero.edge_conditions import (
+    compute_edge_conditions,
+    solve_edge_state,
+    solve_reference_normal_shock,
+)
 from ref_enthalpy_method.aero.pressure_coefficient import (
     modified_newtonian_cp,
     modified_newtonian_cp_max,
 )
+from ref_enthalpy_method.aero.recovery import reference_enthalpy_recovery
+from ref_enthalpy_method.aero.strip_reference import StripLeadingEdgeReference
 from ref_enthalpy_method.aero.windward_cache_faceted3d import (
     build_windward_edge_cache_faceted3d,
 )
@@ -114,60 +120,145 @@ def test_modified_newtonian_cache_keeps_leeward_pressure_zero() -> None:
         mach=5.0,
         alpha_deg=10.0,
         p_inf=21.96,
-        rho_inf=gas.rho(21.96, 247.02),
         T_inf=247.02,
-        xc_grid=np.asarray([0.0]),
         sx_arr=np.asarray([0.0]),
         sy_arr=np.asarray([0.0]),
+        reference_incidence_s=np.asarray([0.0]),
         sheet="upper",
     )
     assert cache.pressure_incidence_arr[0] < 0.0
     assert cache.cp_arr[0] == 0.0
-    assert cache.cp0 == 0.0
+    assert cache.reference_incidence_arr[0] == 0.0
 
 
-def test_edge_state_caps_static_enthalpy_at_total_enthalpy() -> None:
+@pytest.mark.parametrize(
+    ("mach", "T_inf", "p_inf"),
+    ((5.0, 247.02, 21.96), (12.0, 216.65, 5529.31), (12.0, 270.65, 79.78)),
+)
+def test_tpg_reference_shock_satisfies_conservation(
+    mach: float, T_inf: float, p_inf: float
+) -> None:
     gas = _fluent_air()
-    T_inf = 247.02
-    mach = 5.0
-    edge = compute_edge_conditions(
+    shock = solve_reference_normal_shock(
+        gas=gas, normal_mach=mach, p_inf=p_inf, T_inf=T_inf
+    )
+    assert abs(shock.mass_residual) < 1.0e-12
+    assert abs(shock.momentum_residual) < 1.0e-12
+    h0 = gas.tpg.h_from_T(T_inf) + 0.5 * (mach * gas.tpg.a_T(T_inf)) ** 2
+    assert abs(shock.energy_residual) <= max(1.0e-4, 1.0e-10 * h0)
+    assert shock.T2_K > T_inf and shock.p2_Pa > p_inf
+
+
+@pytest.mark.parametrize("s_local", (1.0, 0.6, 0.2))
+@pytest.mark.parametrize(
+    ("mach", "T_inf", "p_inf"), ((5.0, 247.02, 21.96), (12.0, 216.65, 5529.31))
+)
+def test_edge_state_satisfies_energy_and_entropy(
+    mach: float, T_inf: float, p_inf: float, s_local: float
+) -> None:
+    gas = _fluent_air()
+    cp = modified_newtonian_cp(incidence_s=s_local, mach=mach, gamma=1.4)
+    solution = solve_edge_state(
         gas=gas,
         ma_inf=mach,
-        p_inf=21.96,
+        p_inf=p_inf,
         T_inf=T_inf,
-        rho_inf=gas.rho(21.96, T_inf),
-        cp_pressure=50.0,
-        cp0_pressure=0.0,
+        cp_pressure=cp,
+        reference_incidence_s=1.0,
     )
-    h0 = gas.tpg.h_from_T(T_inf) + 0.5 * (mach * gas.tpg.a_T(T_inf)) ** 2
-    assert gas.tpg.h_from_T(edge.T_e) == pytest.approx(h0)
-    assert edge.v_e == pytest.approx(0.0, abs=1.0e-10)
+    assert solution.status == "ok"
+    tol_h = max(1.0e-4, 1.0e-10 * solution.h0_J_kg)
+    assert abs(solution.energy_residual_J_kg) <= tol_h
+    assert abs(solution.entropy_residual_J_kgK) <= 1.0e-6
+    assert solution.h_e_J_kg < solution.h0_J_kg
+    assert solution.edge.v_e > 0.0
 
 
-def test_edge_state_normal_shock_density_ratio_uses_configured_gamma() -> None:
+def test_edge_state_without_admissible_solution_is_reported() -> None:
     gas = _fluent_air()
-    gas = GasModel(
-        gamma=1.3,
-        R=gas.R,
-        cp_gas=gas.cp_gas,
-        h_from_T=gas.h_from_T,
-        T_from_h=gas.T_from_h,
-        mu=gas.mu,
-        rho=gas.rho,
-        k=gas.k,
-        tpg=gas.tpg,
-    )
-    edge = compute_edge_conditions(
+    # Pressure far above the reference total pressure: no edge state exists.
+    solution = solve_edge_state(
         gas=gas,
         ma_inf=5.0,
         p_inf=21.96,
         T_inf=247.02,
-        rho_inf=gas.rho(21.96, 247.02),
-        cp_pressure=0.5,
-        cp0_pressure=0.5,
+        cp_pressure=50.0,
+        reference_incidence_s=0.0,
     )
-    pressure_ratio = 1.0 + 0.5 * gas.gamma * 5.0**2 * 0.5
-    density_ratio = ((gas.gamma + 1.0) * pressure_ratio + (gas.gamma - 1.0)) / (
-        (gas.gamma - 1.0) * pressure_ratio + (gas.gamma + 1.0)
+    assert solution.edge is None
+    assert solution.status == "edge_static_enthalpy_exceeds_total"
+    assert solution.raw_h_e_J_kg > solution.h0_J_kg
+    with pytest.raises(ValueError, match="edge state failed"):
+        compute_edge_conditions(
+            gas=gas,
+            ma_inf=5.0,
+            p_inf=21.96,
+            T_inf=247.02,
+            cp_pressure=50.0,
+            reference_incidence_s=0.0,
+        )
+
+
+def test_windward_cache_result_does_not_depend_on_sample_order() -> None:
+    gas = _fluent_air()
+    sx = np.asarray([-0.6, -0.2, 0.1])
+    sy = np.asarray([0.0, 0.05, -0.1])
+    s_ref = np.full(3, 0.9)
+    kwargs = {
+        "gas": gas, "mach": 8.0, "alpha_deg": 5.0,
+        "p_inf": 100.0, "T_inf": 230.0, "sheet": "lower",
+    }
+    together = build_windward_edge_cache_faceted3d(
+        sx_arr=sx, sy_arr=sy, reference_incidence_s=s_ref, **kwargs
     )
-    assert edge.T_e == pytest.approx(247.02 * pressure_ratio / density_ratio)
+    for index in range(3):
+        single = build_windward_edge_cache_faceted3d(
+            sx_arr=sx[index : index + 1],
+            sy_arr=sy[index : index + 1],
+            reference_incidence_s=s_ref[index : index + 1],
+            **kwargs,
+        )
+        assert single.taw_tpg[0] == together.taw_tpg[index]
+        assert single.reference_incidence_arr[0] == together.reference_incidence_arr[index]
+
+
+def test_strip_reference_ignores_invalid_first_sample() -> None:
+    xc = np.linspace(0.0, 1.0, 21)
+    yb = np.asarray([0.0, 0.5, 1.0])
+    incidence = np.tile(np.linspace(0.9, 0.2, xc.size), (3, 1))
+    valid = np.ones_like(incidence, dtype=bool)
+    valid[:, 0] = False  # first sample invalid on every strip
+    incidence[:, 0] = np.nan
+    reference = StripLeadingEdgeReference.from_structured(
+        x_over_c=xc, y_over_b=yb, incidence_s=incidence, geometry_valid=valid
+    )
+    assert reference.at(x_over_c=0.3, y_over_b=0.25) == pytest.approx(incidence[0, 1])
+    # Moving the first valid sample shifts the window, not the definition.
+    valid[:, 1] = False
+    shifted = StripLeadingEdgeReference.from_structured(
+        x_over_c=xc, y_over_b=yb, incidence_s=incidence, geometry_valid=valid
+    )
+    assert shifted.at(x_over_c=0.3, y_over_b=0.25) == pytest.approx(incidence[0, 2])
+
+
+def test_strip_reference_requires_positive_leading_edge() -> None:
+    xc = np.linspace(0.0, 1.0, 5)
+    incidence = -np.ones((2, 5))
+    with pytest.raises(ValueError, match="positive leading-edge"):
+        StripLeadingEdgeReference.from_structured(
+            x_over_c=xc,
+            y_over_b=np.asarray([0.0, 1.0]),
+            incidence_s=incidence,
+            geometry_valid=np.ones((2, 5), dtype=bool),
+        )
+
+
+@pytest.mark.parametrize(("h_e", "V_e"), ((246000.0, 1580.0), (220000.0, 3500.0), (270000.0, 3900.0)))
+def test_reference_enthalpy_recovery_is_self_consistent(h_e: float, V_e: float) -> None:
+    gas = _fluent_air()
+    state = reference_enthalpy_recovery(gas=gas, h_e=h_e, V_e=V_e)
+    h_star = h_e + 0.72 * (state.h_aw_J_kg - h_e)
+    assert state.T_star_K == pytest.approx(gas.tpg.T_from_h(h_star), rel=1.0e-12)
+    r = gas.prandtl_at_T(state.T_star_K) ** (1.0 / 3.0)
+    assert abs(state.h_aw_J_kg - (h_e + r * 0.5 * V_e**2)) <= 1.0e-5
+    assert h_e < state.h_aw_J_kg < h_e + 0.5 * V_e**2

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -28,7 +29,7 @@ STL = "data/geometry/0920/htv2_0920_aligned_clean_ascii.stl"
 OUTLINE = "data/geometry/0920/outline_xz_right_0920.csv"
 PROJECTION_CACHE = (
     "baselines/0920_fully_turbulent_taw/projection_cache/"
-    "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b.npz"
+    "14bd50b8406285f8dc6f89458e3ce55e1c521317c887b48d80949226939bcd5b.npz"
 )
 CASE_PATHS = tuple(sorted((ROOT / "specs/cases").glob("n8_taw_*.yaml")))
 
@@ -54,7 +55,8 @@ def test_all_active_cases_use_the_single_0920_authority(case_path: Path) -> None
     assert case.vehicle_spec == VEHICLE
     assert case.sampling_spec == SAMPLING
     assert (ROOT / case.observation_csv).is_file()
-    text = case_path.read_text(encoding="utf-8").lower()
+    # Hex content hashes (cache file names) can contain any digit sequence.
+    text = re.sub(r"[0-9a-f]{64}", "", case_path.read_text(encoding="utf-8").lower())
     for forbidden in (
         "transition",
         "laminar",
@@ -115,7 +117,7 @@ def test_source_identity_matches_baseline_manifest() -> None:
     assert manifest["thermal_target"] == "adiabatic_wall_temperature"
     paths = {
         "case_spec": ROOT
-        / "specs/cases/n8_taw_ma5_a10_h60km.yaml",
+        / "specs/cases/n8_taw_c01.yaml",
         "vehicle_spec": ROOT / VEHICLE,
         "stl": ROOT / STL,
         "outline": ROOT / OUTLINE,
@@ -188,7 +190,18 @@ def test_baseline_artifact_contract() -> None:
         assert nose_range["min"] < nose_range["max"]
     fields_path = BASELINE / "run/Taw_surface_fields.npz"
     with np.load(fields_path, allow_pickle=False) as fields:
-        assert len(fields.files) == 88
+        assert len(fields.files) == 99
+        for audit_field in (
+            "reference_incidence_s",
+            "edge_status",
+            "edge_energy_residual_J_kg",
+            "edge_entropy_residual_J_kgK",
+            "property_in_fit_range",
+            "reference_T_star_K",
+            "recovery_factor",
+            "windward_solve_method",
+        ):
+            assert audit_field in fields.files
         forbidden = {"w_tr", "q_lam_w", "q_turb_w", "transition_x", "transition_index"}
         assert forbidden.isdisjoint(fields.files)
         assert all("legacy" not in field.lower() for field in fields.files)
@@ -217,13 +230,15 @@ def test_official_cli_produces_valid_taw_artifacts() -> None:
                 sys.executable,
                 "scripts/run_n8_taw_case.py",
                 "--case",
-                "specs/cases/n8_taw_ma5_a10_h60km.yaml",
+                "specs/cases/n8_taw_c01.yaml",
                 "--mach",
-                "5",
+                "10.983",
                 "--alpha_deg",
-                "10",
-                "--h_m",
-                "60000",
+                "6.06",
+                "--T_inf_K",
+                "216.65",
+                "--p_inf_Pa",
+                "5529.31",
                 "--run_dir",
                 str(run_dir.relative_to(ROOT)),
             ],

@@ -44,7 +44,7 @@ def build_manifest(*, repo_root: Path, baseline_dir: Path) -> dict[str, Any]:
         raise ValueError("run is not the formal fully-turbulent Taw contract")
 
     source_paths = {
-        "case_spec": repo_root / "specs/cases/n8_taw_ma5_a10_h60km.yaml",
+        "case_spec": repo_root / "specs/cases/n8_taw_c01.yaml",
         "vehicle_spec": repo_root / "specs/vehicles/htv2_faceted3d_0920.yaml",
         "stl": repo_root / "data/geometry/0920/htv2_0920_aligned_clean_ascii.stl",
         "outline": repo_root / "data/geometry/0920/outline_xz_right_0920.csv",
@@ -58,7 +58,7 @@ def build_manifest(*, repo_root: Path, baseline_dir: Path) -> dict[str, Any]:
     expected_cache_path = (
         baseline_dir
         / "projection_cache"
-        / "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b.npz"
+        / "14bd50b8406285f8dc6f89458e3ce55e1c521317c887b48d80949226939bcd5b.npz"
     ).resolve()
     if cache_path != expected_cache_path:
         raise ValueError("run summary does not reference the formal baseline projection cache")
@@ -103,13 +103,12 @@ def replay_and_compare(*, repo_root: Path, manifest_path: Path) -> None:
         replay_dir = Path(directory) / "run"
         run_n8_taw_case(
             repo_root=repo_root,
-            case_spec_path="specs/cases/n8_taw_ma5_a10_h60km.yaml",
+            case_spec_path="specs/cases/n8_taw_c01.yaml",
             run_dir=replay_dir.relative_to(repo_root),
-            mach=5.0,
-            alpha_deg=10.0,
-            T_inf_K=None,
-            p_inf_Pa=None,
-            h_m=60_000.0,
+            mach=10.983,
+            alpha_deg=6.06,
+            T_inf_K=216.65,
+            p_inf_Pa=5529.31,
         )
         with np.load(baseline_run / "Taw_surface_fields.npz", allow_pickle=False) as baseline, np.load(
             replay_dir / "Taw_surface_fields.npz", allow_pickle=False

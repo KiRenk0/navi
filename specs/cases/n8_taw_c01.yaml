@@ -1,0 +1,24 @@
+schema: n8-taw-case/v1
+
+case:
+  case_id: C01
+  observation_csv: fluent_export/adiabatic_wall_csv/fenqu1/fenqu1.csv
+  mach: 10.983
+  alpha_deg: 6.06
+  T_inf_K: 216.65
+  p_inf_Pa: 5529.31
+  h_label_km: 20.0
+
+gas:
+  gamma: 1.4
+  R_J_per_kgK: 287.0
+
+geometry:
+  vehicle_spec: specs/vehicles/htv2_faceted3d_0920.yaml
+  fluent_x_offset_m: 0.030
+  fluent_coordinate_order: x,up,span
+  projection_gate_m: 0.005
+  projection_cache: baselines/0920_fully_turbulent_taw/projection_cache/14bd50b8406285f8dc6f89458e3ce55e1c521317c887b48d80949226939bcd5b.npz
+
+sampling:
+  spec: specs/sampling/n8_taw_surface_grid_81x41.yaml

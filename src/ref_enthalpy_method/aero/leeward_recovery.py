@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from ref_enthalpy_method.aero.recovery import reference_enthalpy_recovery
 from ref_enthalpy_method.geometry.local_incidence import (
     SURFACE_CLASS_INVALID,
     SURFACE_CLASS_LEEWARD,
@@ -128,14 +129,12 @@ def build_leeward_freestream_recovery(
     Taw_tpg = float_template.copy()
 
     if np.any(mask):
-        pr = float(gas.prandtl_at_T(T_inf))
-        r_aw = pr ** (1.0 / 3.0)
-        # h_aw = h_e + r_aw * V_e^2 / 2
-        h_aw_arr = h_e[mask] + r_aw * 0.5 * V_e[mask] * V_e[mask]
-        # vectorised T_from_h — one call per element to stay within
-        # the scalar-API contract (T_from_h accepts float, not array)
-        taw_vals = np.array([float(gas.T_from_h(float(hv))) for hv in h_aw_arr], dtype=np.float64)
-        Taw_tpg[mask] = taw_vals
+        # Same Eckert reference-enthalpy recovery as the windward provider;
+        # the edge state is the freestream, so one solve covers every point.
+        recovery = reference_enthalpy_recovery(
+            gas=gas, h_e=float(gas.h_from_T(T_inf)), V_e=V_inf
+        )
+        Taw_tpg[mask] = recovery.T_aw_K
 
     return LeewardFreestreamRecoveryFields(
         mask=mask,

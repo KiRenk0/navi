@@ -16,6 +16,11 @@ import numpy as np
 import yaml
 
 from ref_enthalpy_method.aero.leeward_recovery import build_freestream_recovery
+from ref_enthalpy_method.aero.recovery import RECOVERY_MODEL
+from ref_enthalpy_method.aero.strip_reference import (
+    REFERENCE_SCHEMA,
+    StripLeadingEdgeReference,
+)
 from ref_enthalpy_method.aero.windward_cache_faceted3d import (
     build_windward_edge_cache_faceted3d,
 )
@@ -74,8 +79,6 @@ from ref_enthalpy_method.mapping.fluent_semantics import (
 from ref_enthalpy_method.mapping.fluent_surface import read_fluent_surface_geometry_csv
 from ref_enthalpy_method.mapping.observation_binding import (
     build_observation_binding,
-    require_exact_freestream_pair,
-    validate_observation_binding,
 )
 from ref_enthalpy_method.mapping.wall_temperature_source import (
     read_fluent_wall_temperature_source,
@@ -106,7 +109,7 @@ _NOSE_X_MAX_M = 0.1
 _NOSE_GRID_NX = 321
 _NOSE_GRID_NSPAN = 181
 _NOSE_EXTRAPOLATION_MAX_SPACING_FACTOR = 3.0
-_DISPATCH_SCHEMA = "n8-taw-dispatch/v3"
+_DISPATCH_SCHEMA = "n8-taw-dispatch/v5"
 _TOPOLOGY_SCHEMA = "n8-taw-domain-topology/v1"
 _NORMAL_MODEL_SCHEMA = "stl-angle-weighted-continuous-normal/v1"
 _NORMAL_CREASE_ANGLE_DEG = 20.0
@@ -116,7 +119,7 @@ _VEHICLE_ID = "htv2_faceted3d_0920"
 _STL_PATH = "data/geometry/0920/htv2_0920_aligned_clean_ascii.stl"
 _OUTLINE_PATH = "data/geometry/0920/outline_xz_right_0920.csv"
 _PROJECTION_CACHE_KEY = (
-    "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b"
+    "14bd50b8406285f8dc6f89458e3ce55e1c521317c887b48d80949226939bcd5b"
 )
 _PROJECTION_CACHE_PATH = (
     "baselines/0920_fully_turbulent_taw/projection_cache/"
@@ -538,6 +541,18 @@ def _load_geometry_inputs(repo_root: Path, case: N8TawCaseSpec) -> _GeometryInpu
     )
 
 
+# Per-point edge-state audit fields: product key -> cache attribute.
+_EDGE_FLOAT_FIELDS = {
+    "reference_T_star_K": "T_star_K",
+    "recovery_factor": "recovery_factor",
+    "edge_T_e_K": "T_e_K",
+    "edge_p_e_Pa": "p_e_Pa",
+    "edge_V_e_m_s": "V_e_m_s",
+    "edge_energy_residual_J_kg": "energy_residual_J_kg",
+    "edge_entropy_residual_J_kgK": "entropy_residual_J_kgK",
+}
+
+
 def _gas_model(case: N8TawCaseSpec) -> GasModel:
     tpg = make_fluent_tpg_thermo(R=case.R_J_per_kgK)
     return GasModel(
@@ -724,10 +739,6 @@ def _build_structured_surface_fields(
         crease_angle_deg=_NORMAL_CREASE_ANGLE_DEG,
     )
     sheet_data: dict[str, dict[str, np.ndarray]] = {}
-    slope_refs = {
-        "upper": geometry.f3.slopes()[:2],
-        "lower": geometry.f3.slopes()[2:],
-    }
     sheet_codes = {"upper": GEOMETRIC_SHEET_UPPER, "lower": GEOMETRIC_SHEET_LOWER}
 
     for sheet in _SHEETS:
@@ -848,35 +859,47 @@ def _build_structured_surface_fields(
     V_inf = case.mach * float(gas.tpg.a_T(case.T_inf_K))
     for sheet in _SHEETS:
         data = sheet_data[sheet]
+        reference = StripLeadingEdgeReference.from_structured(
+            x_over_c=xc,
+            y_over_b=yb,
+            incidence_s=data["incidence_s"],
+            geometry_valid=data["geometry_valid"],
+        )
+        reference_field = np.full(shape, np.nan, dtype=np.float64)
+        edge_fields = {key: np.full(shape, np.nan, dtype=np.float64) for key in _EDGE_FLOAT_FIELDS}
+        edge_status = np.full(shape, "", dtype="<U40")
+        in_fit = np.zeros(shape, dtype=np.bool_)
         windward_taw = np.full(shape, np.nan, dtype=np.float64)
-        ref_sx, ref_sy = slope_refs[sheet]
         for j in range(sampling.ny):
             incidence_row = data["incidence_s"][j]
             valid_row = data["geometry_valid"][j]
-            if not np.any(valid_row & (incidence_row > 0.0)):
+            columns = np.flatnonzero(valid_row & (incidence_row > 0.0))
+            if columns.size == 0:
                 continue
-            chord = float(data["chord_m"][j])
-            if not np.isfinite(chord) or chord <= 0.0:
-                continue
-            sx_row = np.where(np.isfinite(data["sx"][j]), data["sx"][j], ref_sx)
-            sy_row = np.where(np.isfinite(data["sy"][j]), data["sy"][j], ref_sy)
+            s_ref = np.asarray(
+                [reference.at(x_over_c=float(xc[i]), y_over_b=float(yb[j])) for i in columns]
+            )
             cache = build_windward_edge_cache_faceted3d(
                 gas=gas,
                 mach=case.mach,
                 alpha_deg=case.alpha_deg,
                 p_inf=case.p_inf_Pa,
-                rho_inf=rho_inf,
                 T_inf=case.T_inf_K,
-                xc_grid=xc,
-                sx_arr=sx_row,
-                sy_arr=sy_row,
+                sx_arr=data["sx"][j, columns],
+                sy_arr=data["sy"][j, columns],
+                reference_incidence_s=s_ref,
                 sheet=sheet,
             )
-            if cache.taw_tpg is None:
-                raise ValueError(
-                    "windward fully-turbulent TPG Taw provider returned no field"
-                )
-            windward_taw[j] = np.asarray(cache.taw_tpg, dtype=np.float64)
+            windward_taw[j, columns] = cache.taw_tpg
+            reference_field[j, columns] = cache.reference_incidence_arr
+            for key, attribute in _EDGE_FLOAT_FIELDS.items():
+                edge_fields[key][j, columns] = getattr(cache, attribute)
+            edge_status[j, columns] = cache.edge_status
+            in_fit[j, columns] = cache.property_in_fit_range
+        data["reference_incidence_s"] = reference_field
+        data["edge_status"] = edge_status
+        data["property_in_fit_range"] = in_fit
+        data.update(edge_fields)
         incidence_flat = data["incidence_s"].reshape(-1)
         geometry_flat = data["geometry_valid"].reshape(-1)
         recovery = build_freestream_recovery(
@@ -942,6 +965,10 @@ def _build_structured_surface_fields(
         "Taw_recovery_candidate_K",
         "windward_blend_weight",
         "failure_reason",
+        "reference_incidence_s",
+        "edge_status",
+        "property_in_fit_range",
+        *_EDGE_FLOAT_FIELDS,
     ):
         combined[key] = np.concatenate(
             [sheet_data[sheet][key].reshape(-1) for sheet in _SHEETS]
@@ -1092,14 +1119,6 @@ def _build_domain_conforming_product(
     structured_index = np.concatenate(
         [topologies[sheet].structured_canonical_index for sheet in _SHEETS]
     )
-    interpolation_indices = np.concatenate(
-        [topologies[sheet].interpolation_structured_indices for sheet in _SHEETS],
-        axis=0,
-    )
-    interpolation_weights = np.concatenate(
-        [topologies[sheet].interpolation_weights for sheet in _SHEETS],
-        axis=0,
-    )
     source_triangle = np.concatenate(
         [topologies[sheet].source_stl_triangle_id for sheet in _SHEETS]
     )
@@ -1147,6 +1166,8 @@ def _build_domain_conforming_product(
         "normal_smoothing_angle_deg",
         "Taw_windward_candidate_K",
         "Taw_recovery_candidate_K",
+        "reference_incidence_s",
+        *_EDGE_FLOAT_FIELDS,
     )
     for key in node_float_fields:
         product[key] = np.full(node_count, np.nan, dtype=np.float64)
@@ -1155,7 +1176,10 @@ def _build_domain_conforming_product(
         (node_count, 3), np.nan, dtype=np.float64
     )
 
-    for key in node_float_fields:
+    product["edge_status"] = np.full(node_count, "", dtype="<U40")
+    product["property_in_fit_range"] = np.zeros(node_count, dtype=np.bool_)
+    product["windward_solve_method"] = np.full(node_count, "", dtype="<U24")
+    for key in (*node_float_fields, "edge_status", "property_in_fit_range"):
         product[key][direct] = np.asarray(structured_fields[key])[structured_index[direct]]
     product["normal_out"][direct] = np.asarray(structured_fields["normal_out"])[
         structured_index[direct]
@@ -1228,38 +1252,62 @@ def _build_domain_conforming_product(
     )
     product["Taw_recovery_candidate_K"][inserted] = recovery.Taw_tpg[inserted]
 
-    parent_geometry = np.asarray(
-        structured_fields["geometry_valid"], dtype=np.bool_
-    )[interpolation_indices]
-    structured_windward = np.asarray(
-        structured_fields["Taw_windward_candidate_K"], dtype=np.float64
+    # Every windward node that is not a structured sample is solved directly
+    # with the same strip reference as the structured points; no temperature
+    # interpolation and no per-node reference.
+    product["windward_solve_method"][direct & (product["incidence_s"] > 0.0)] = (
+        "structured_direct"
     )
-    for node_id in np.flatnonzero(inserted & (product["incidence_s"] > 0.0)):
-        parent_indices = interpolation_indices[node_id]
-        weights = interpolation_weights[node_id]
-        parent_candidate = structured_windward[parent_indices]
-        if np.all(parent_geometry[node_id]) and np.all(np.isfinite(parent_candidate)):
-            product["Taw_windward_candidate_K"][node_id] = float(
-                weights @ parent_candidate
-            )
+    xc_grid = np.linspace(sampling.x_start, sampling.x_end, sampling.nx)
+    yb_grid = np.linspace(sampling.y_start, sampling.y_end, sampling.ny)
+    structured_sheet = np.asarray(structured_fields["geometric_sheet"])
+    strip_references = {
+        sheet: StripLeadingEdgeReference.from_structured(
+            x_over_c=xc_grid,
+            y_over_b=yb_grid,
+            incidence_s=np.asarray(structured_fields["incidence_s"])[
+                structured_sheet == sheet
+            ].reshape(shape),
+            geometry_valid=np.asarray(structured_fields["geometry_valid"])[
+                structured_sheet == sheet
+            ].reshape(shape),
+        )
+        for sheet in _SHEETS
+    }
+    for sheet in _SHEETS:
+        reference = strip_references[sheet]
+        nodes = np.flatnonzero(
+            inserted & (product["incidence_s"] > 0.0) & (sheet_names == sheet)
+        )
+        if nodes.size == 0:
             continue
-        node_xc = float(product["x_over_c"][node_id])
-        node_sheet = str(sheet_names[node_id])
+        s_ref = np.asarray(
+            [
+                reference.at(
+                    x_over_c=float(product["x_over_c"][node]),
+                    y_over_b=float(product["y_over_b"][node]),
+                )
+                for node in nodes
+            ]
+        )
         cache = build_windward_edge_cache_faceted3d(
             gas=gas,
             mach=case.mach,
             alpha_deg=case.alpha_deg,
             p_inf=case.p_inf_Pa,
-            rho_inf=rho_inf,
             T_inf=case.T_inf_K,
-            xc_grid=np.asarray([node_xc]),
-            sx_arr=np.asarray([product["sx"][node_id]]),
-            sy_arr=np.asarray([product["sy"][node_id]]),
-            sheet=node_sheet,
+            sx_arr=product["sx"][nodes],
+            sy_arr=product["sy"][nodes],
+            reference_incidence_s=s_ref,
+            sheet=sheet,
         )
-        if cache.taw_tpg is None or not np.isfinite(cache.taw_tpg[0]):
-            raise ValueError("inserted windward node has no Taw candidate")
-        product["Taw_windward_candidate_K"][node_id] = float(cache.taw_tpg[0])
+        product["Taw_windward_candidate_K"][nodes] = cache.taw_tpg
+        product["reference_incidence_s"][nodes] = cache.reference_incidence_arr
+        for key, attribute in _EDGE_FLOAT_FIELDS.items():
+            product[key][nodes] = getattr(cache, attribute)
+        product["edge_status"][nodes] = cache.edge_status
+        product["property_in_fit_range"][nodes] = cache.property_in_fit_range
+        product["windward_solve_method"][nodes] = "inserted_direct"
 
     geometry_valid = np.ones(node_count, dtype=np.bool_)
     prediction, provider, valid, reason, weight = dispatch_taw_predictions(
@@ -1269,8 +1317,13 @@ def _build_domain_conforming_product(
         recovery_taw_K=product["Taw_recovery_candidate_K"],
         gas=gas,
     )
-    if not np.all(valid):
+    edge_failed = (product["edge_status"] != "") & (product["edge_status"] != "ok")
+    needs_windward = weight > 0.0
+    if not np.all(valid | (edge_failed & needs_windward)):
         raise ValueError("domain-conforming product has an uncovered provider node")
+    reason[edge_failed & needs_windward] = np.char.add(
+        "edge_", product["edge_status"][edge_failed & needs_windward]
+    ).astype(reason.dtype)
     class_codes = classify_incidence(
         normal_out=product["normal_out"], alpha_deg=case.alpha_deg
     )[1]
@@ -2523,11 +2576,11 @@ def run_n8_taw_case(
     h_m: float | None = None,
 ) -> N8RunResult:
     root = Path(repo_root).resolve()
-    observation_case = load_n8_taw_case_spec(case_spec_path, repo_root=root)
-    sampling = load_n8_sampling_spec(observation_case.sampling_spec, repo_root=root)
+    case_spec = load_n8_taw_case_spec(case_spec_path, repo_root=root)
+    sampling = load_n8_sampling_spec(case_spec.sampling_spec, repo_root=root)
     for name, actual, expected in (
-        ("mach", mach, observation_case.mach),
-        ("alpha_deg", alpha_deg, observation_case.alpha_deg),
+        ("mach", mach, case_spec.mach),
+        ("alpha_deg", alpha_deg, case_spec.alpha_deg),
     ):
         _require_override(name, actual, expected)
 
@@ -2535,52 +2588,29 @@ def run_n8_taw_case(
         h_m=h_m,
         T_inf_K=T_inf_K,
         p_inf_Pa=p_inf_Pa,
-        R_J_per_kgK=observation_case.R_J_per_kgK,
+        R_J_per_kgK=case_spec.R_J_per_kgK,
     )
     if freestream.source == "explicit_custom":
-        _require_override("T_inf_K", freestream.T_inf_K, observation_case.T_inf_K)
-        _require_override("p_inf_Pa", freestream.p_inf_Pa, observation_case.p_inf_Pa)
+        _require_override("T_inf_K", freestream.T_inf_K, case_spec.T_inf_K)
+        _require_override("p_inf_Pa", freestream.p_inf_Pa, case_spec.p_inf_Pa)
     elif Decimal(str(freestream.altitude_input_m)) / Decimal(1000) != Decimal(
-        str(observation_case.h_label_km)
+        str(case_spec.h_label_km)
     ):
         raise ValueError(
             "USSA1976 altitude does not match the observation height label"
         )
 
     case = replace(
-        observation_case,
+        case_spec,
         T_inf_K=freestream.T_inf_K,
         p_inf_Pa=freestream.p_inf_Pa,
     )
 
+    # The case spec is the single authority for the flow condition; the Fluent
+    # export is identified by its bytes (SHA-256, header, row count), not by a
+    # parameter-encoded filename.  Any export path is accepted.
     csv_path = _repo_path(root, case.observation_csv, label="case.observation_csv")
-    solver_transform = _COORDINATE_ORDER_TRANSFORMS[case.fluent_coordinate_order]
-    binding = build_observation_binding(
-        root,
-        csv_path=case.observation_csv,
-        solver_transform=solver_transform,
-    )
-    binding_ok, binding_error = validate_observation_binding(
-        binding,
-        repo_root=root,
-        solver_transform=solver_transform,
-    )
-    if not binding_ok:
-        raise ValueError(f"observation binding failed: {binding_error}")
-    if freestream.source == "explicit_custom":
-        require_exact_freestream_pair(
-            binding,
-            T_inf_K=freestream.T_inf_K,
-            p_inf_Pa=freestream.p_inf_Pa,
-        )
-    identity = binding.filename_identity
-    for name, actual, expected in (
-        ("mach", identity.mach, case.mach),
-        ("alpha_deg", identity.alpha_deg, case.alpha_deg),
-        ("h_label_km", identity.nominal_altitude_km, case.h_label_km),
-    ):
-        if Decimal(str(actual)) != Decimal(str(expected)):
-            raise ValueError(f"observation filename {name} does not match case spec")
+    binding = build_observation_binding(root, csv_path=case.observation_csv)
 
     output_relative = Path(run_dir).as_posix()
     final_dir = _repo_path(root, output_relative, label="run_dir")
@@ -2656,18 +2686,14 @@ def run_n8_taw_case(
         projection_cache_path = _repo_path(
             root, case.projection_cache, label="formal projection cache"
         )
-        if not projection_cache_path.is_file():
-            raise FileNotFoundError(
-                f"required projection cache not found: {projection_cache_path}"
-            )
-        projection_cache_hit = True
+        projection_cache_hit = projection_cache_path.is_file()
         projection = project_fluent_surface_with_cache(
             fluent_geometry,
             geometry_inputs.triangles,
             projection_gate_m=case.projection_gate_m,
             use_bvh=True,
             cache_path=projection_cache_path,
-            write_cache=False,
+            write_cache=not projection_cache_hit,
             geometry_identity_kwargs=projection_identity_kwargs,
             cache_identity_scope="canonical_geometry",
         )
@@ -2939,10 +2965,10 @@ def run_n8_taw_case(
                     if freestream.source == "ussa1976"
                     else "explicit custom pressure and temperature"
                 ),
-                "observation_freestream_identity": {
-                    "T_inf_K": observation_case.T_inf_K,
-                    "p_inf_Pa": observation_case.p_inf_Pa,
-                    "h_label_km": observation_case.h_label_km,
+                "case_spec_freestream": {
+                    "T_inf_K": case_spec.T_inf_K,
+                    "p_inf_Pa": case_spec.p_inf_Pa,
+                    "h_label_km": case_spec.h_label_km,
                 },
                 "observation_csv": case.observation_csv,
                 "source_csv_sha256": source_sha256,
@@ -2992,6 +3018,49 @@ def run_n8_taw_case(
                     ),
                 },
                 "provider_coverage": "provider_valid equals geometry_valid",
+                "edge_closure": {
+                    "reference_schema": REFERENCE_SCHEMA,
+                    "reference_shock": (
+                        "TPG normal shock at M_inf*s_ref solved from mass, momentum "
+                        "and total enthalpy; s_ref = max(strip leading-edge max "
+                        "incidence, local incidence)"
+                    ),
+                    "edge_state": (
+                        "reference isentrope at the modified-Newtonian surface "
+                        "pressure; h_e > h0 is reported as a failed edge state, "
+                        "never rewritten into a stagnation point"
+                    ),
+                    "inserted_nodes": (
+                        "solved directly with the strip reference; no Taw "
+                        "interpolation from parents"
+                    ),
+                    "max_abs_energy_residual_J_kg": float(
+                        np.nanmax(np.abs(fields["edge_energy_residual_J_kg"]), initial=0.0)
+                    ),
+                    "max_abs_entropy_residual_J_kgK": float(
+                        np.nanmax(np.abs(fields["edge_entropy_residual_J_kgK"]), initial=0.0)
+                    ),
+                    "failed_edge_states": int(
+                        np.count_nonzero(
+                            (fields["edge_status"] != "")
+                            & (fields["edge_status"] != "ok")
+                        )
+                    ),
+                },
+                "recovery_model": RECOVERY_MODEL,
+                "property_fit_range": {
+                    "range_K": list(gas.tpg.fit_range_K),
+                    "extension": (
+                        "outside the Fluent NASA-9 range Cp is held at the endpoint "
+                        "value; h and s0 are integrated consistently"
+                    ),
+                    "windward_points_outside_range": int(
+                        np.count_nonzero(
+                            (fields["windward_blend_weight"] > 0.0)
+                            & ~fields["property_in_fit_range"]
+                        )
+                    ),
+                },
                 "surface_connectivity": (
                     "explicit graph-skin-clipped triangle_node_ids shared by plotting "
                     "and local mapping support; topology terminates on skin/cap edges"

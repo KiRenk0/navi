@@ -1,25 +1,25 @@
 {
   "schema": "n8-taw-run-summary/v4",
   "status": "PASS",
-  "case_id": "ma5_a10_h60km",
+  "case_id": "C01",
   "inputs": {
-    "mach": 5.0,
-    "alpha_deg": 10.0,
-    "T_inf_K": 247.02088477279673,
-    "p_inf_Pa": 21.958666139698373,
-    "h_label_km": 60.0,
-    "altitude_input_m": 60000.0,
-    "altitude_used_for_freestream": true,
-    "atmosphere_model": "ussa1976",
-    "freestream_source": "ussa1976",
-    "freestream_semantics": "USSA1976 from geometric altitude",
-    "observation_freestream_identity": {
-      "T_inf_K": 247.02,
-      "p_inf_Pa": 21.96,
-      "h_label_km": 60.0
+    "mach": 10.983,
+    "alpha_deg": 6.06,
+    "T_inf_K": 216.65,
+    "p_inf_Pa": 5529.31,
+    "h_label_km": 20.0,
+    "altitude_input_m": null,
+    "altitude_used_for_freestream": false,
+    "atmosphere_model": "none",
+    "freestream_source": "explicit_custom",
+    "freestream_semantics": "explicit custom pressure and temperature",
+    "case_spec_freestream": {
+      "T_inf_K": 216.65,
+      "p_inf_Pa": 5529.31,
+      "h_label_km": 20.0
     },
-    "observation_csv": "fluent_export/adiabatic_wall_csv/21.96pa_247.02k_60km_10alpha_5ma.csv",
-    "source_csv_sha256": "3d58526ce0f4c881bdd0e2c1c21798de3078419184a32eac2bc077b82870639b"
+    "observation_csv": "fluent_export/adiabatic_wall_csv/fenqu1/fenqu1.csv",
+    "source_csv_sha256": "881032cb92ce4ec0270da4b18dfe2e574047a4d6ef548fa9233ea2e0b782e7d3"
   },
   "contracts": {
     "temperature": "Taw only",
@@ -28,7 +28,7 @@
       "geometric upper",
       "geometric lower"
     ],
-    "taw_dispatch_schema": "n8-taw-dispatch/v3",
+    "taw_dispatch_schema": "n8-taw-dispatch/v5",
     "surface_normal": "N8 incidence classification and windward candidate slopes use angle-weighted continuous STL vertex normals",
     "normal_model_schema": "stl-angle-weighted-continuous-normal/v1",
     "normal_crease_angle_deg": 20.0,
@@ -50,6 +50,24 @@
       "structured_exclusion_count": 361
     },
     "provider_coverage": "provider_valid equals geometry_valid",
+    "edge_closure": {
+      "reference_schema": "strip-leading-edge-max-incidence/v1",
+      "reference_shock": "TPG normal shock at M_inf*s_ref solved from mass, momentum and total enthalpy; s_ref = max(strip leading-edge max incidence, local incidence)",
+      "edge_state": "reference isentrope at the modified-Newtonian surface pressure; h_e > h0 is reported as a failed edge state, never rewritten into a stagnation point",
+      "inserted_nodes": "solved directly with the strip reference; no Taw interpolation from parents",
+      "max_abs_energy_residual_J_kg": 1.862645149230957e-09,
+      "max_abs_entropy_residual_J_kgK": 5.82986103836447e-10,
+      "failed_edge_states": 0
+    },
+    "recovery_model": "eckert-reference-enthalpy Pr(T*)^(1/3), adiabatic h_w = h_aw",
+    "property_fit_range": {
+      "range_K": [
+        200.0,
+        6000.0
+      ],
+      "extension": "outside the Fluent NASA-9 range Cp is held at the endpoint value; h and s0 are integrated consistently",
+      "windward_points_outside_range": 0
+    },
     "surface_connectivity": "explicit graph-skin-clipped triangle_node_ids shared by plotting and local mapping support; topology terminates on skin/cap edges",
     "pairing": "Fluent source rows preserved; comparison valid only within each target vertex's local valid-triangle support radius",
     "surface_rendering": "flat colors on explicit domain triangles; no reshape or invalid vertex mask defines the product boundary",
@@ -72,9 +90,9 @@
             321
           ],
           "extrapolated_grid_points": 2721,
-          "spacing_reference_p95_m": 0.0021099946633727235,
+          "spacing_reference_p95_m": 0.002109990949737414,
           "max_distance_m": 0.003545446443282507,
-          "distance_limit_m": 0.006329983990118171,
+          "distance_limit_m": 0.006329972849212242,
           "max_spacing_factor": 3.0
         },
         "lower": {
@@ -84,44 +102,44 @@
             321
           ],
           "extrapolated_grid_points": 2776,
-          "spacing_reference_p95_m": 0.002118076254982381,
+          "spacing_reference_p95_m": 0.002118077426401131,
           "max_distance_m": 0.004138371284677279,
-          "distance_limit_m": 0.006354228764947144,
+          "distance_limit_m": 0.006354232279203393,
           "max_spacing_factor": 3.0
         }
       }
     },
     "signed_relative_error_auto_range_pct": {
       "upper": {
-        "min": -1.6848444816003196,
-        "max": 8.928848269338301
+        "min": -2.2178760553210632,
+        "max": 8.456713193597222
       },
       "lower": {
-        "min": -1.5860898775714685,
-        "max": 4.309153751976655
+        "min": -2.3683313756205613,
+        "max": 5.831067809738853
       }
     },
     "nose_signed_relative_error_auto_range_pct": {
       "upper": {
-        "min": -1.6848444816003196,
-        "max": 2.2670655924854843
+        "min": -2.2178760553210632,
+        "max": 0.3787940491674516
       },
       "lower": {
-        "min": -1.5860898775714685,
-        "max": 0.9884712911674725
+        "min": -2.3683313756205613,
+        "max": -0.43645629343821474
       }
     },
     "projection_cache": {
       "schema": "exact-projection-cache/v1",
       "algorithm": "n3a.5b-exact-bvh/v1",
       "identity_scope": "canonical_geometry",
-      "key": "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b",
+      "key": "14bd50b8406285f8dc6f89458e3ce55e1c521317c887b48d80949226939bcd5b",
       "hit": true,
-      "path": "baselines/0920_fully_turbulent_taw/projection_cache/2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b.npz",
-      "sha256": "d58a3579ecf0920db7bc91c236b002d7ed36e76d5a696451dec808b00b2722bc",
+      "path": "baselines/0920_fully_turbulent_taw/projection_cache/14bd50b8406285f8dc6f89458e3ce55e1c521317c887b48d80949226939bcd5b.npz",
+      "sha256": "96eeb959efaa54d84986293027c456add024e7816e51ce6f64331fbb06715b94",
       "identity": {
-        "projection_input_geometry_sha256": "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b",
-        "fluent_canonical_geometry_sha256": "2e83e2cd9d21bb22b472751b215ce87252031feb4ea27c83984e2cf4bb32506b",
+        "projection_input_geometry_sha256": "14bd50b8406285f8dc6f89458e3ce55e1c521317c887b48d80949226939bcd5b",
+        "fluent_canonical_geometry_sha256": "14bd50b8406285f8dc6f89458e3ce55e1c521317c887b48d80949226939bcd5b",
         "triangle_canonical_sha256": "4be1d8cac4b0dc1c1455edfb593feab919968ce5d1bef77cb4ead46057ea86db"
       }
     }
@@ -143,52 +161,52 @@
   },
   "artifacts": {
     "Taw_surface_fields.npz": {
-      "byte_size": 4666636,
-      "sha256": "32638bf0e4372afa5e9b6cb13fcf12a818935f11c5505a8a8188782f0f5fa286"
+      "byte_size": 5149887,
+      "sha256": "5602af8864ae5bf9df2f51a8e37410f1d30b54d8f2228c1046a7f01bf2496f02"
     },
     "Taw_error_stats.json": {
-      "byte_size": 6866,
-      "sha256": "e0d4230f5ce470ee227b2c2eb0efdc0c9ac1eaf2cccec295efb2f95fb5200e8b"
+      "byte_size": 6806,
+      "sha256": "bade4b487adb879c967e98c54778946acb314226173e213a7b6229284032f2e1"
     },
     "Taw_surface_upper.png": {
-      "byte_size": 59388,
-      "sha256": "acd919cdc85dc0db8aa6e6d271e76af8184d9ecebe8a99f88dede4bf12e5c4bd"
+      "byte_size": 64414,
+      "sha256": "563fc754a8bcf8ec96b6ac3ffe0e70170c9f3347123b9b8c5d2fa4942b784459"
     },
     "Taw_surface_lower.png": {
-      "byte_size": 58028,
-      "sha256": "913c8f73747c91dea16d7c9f1be9298ed3d99b64087b291a13928120ea569256"
+      "byte_size": 58817,
+      "sha256": "f42067000d723a7f87fb2fcb907e6b9c75238b56ebd8118fa6f4fb1707f3b49b"
     },
     "Taw_provider_upper.png": {
-      "byte_size": 52233,
-      "sha256": "2decf1f6f1b90498655613f62747e59f173918cc2b7b5c147ed0eb5b90b18e98"
+      "byte_size": 52192,
+      "sha256": "41b02290b4dbd7a991af602496103ad89a54be2d747b4c84840d01012f2fafb9"
     },
     "Taw_provider_lower.png": {
-      "byte_size": 43550,
-      "sha256": "295142fc955f4ef9c41776729a66690e00ea752858e679069a98a2c4e53d78e0"
+      "byte_size": 44066,
+      "sha256": "85a358dd3e6f39e51bc5eeaa5eab52606dd8deb51ffabb8621a97375e7ed66ff"
     },
     "Taw_validity_upper.png": {
-      "byte_size": 42329,
-      "sha256": "bd22b3a1f4d959de7c1b1e1a9d3e8b8ac3b1937d2b323916df558318159dfecb"
+      "byte_size": 42843,
+      "sha256": "f76077eefbede7c9377e160a0d6d8f6cf25a3a6c0b7a447ca397ca8a46c6043e"
     },
     "Taw_validity_lower.png": {
-      "byte_size": 42699,
-      "sha256": "7d191beb401e85a99805898769eb0e51319a3f6eadc1f3e7c3389eb42f522af0"
+      "byte_size": 43222,
+      "sha256": "5310f96ee0731776311c63717f533a1ec311bdce071a8e7dbcc841ce7f524d14"
     },
     "Taw_error_vs_fluent_upper_auto_range.png": {
-      "byte_size": 69741,
-      "sha256": "615fbc4de1622917af03274ebda8b71bcd25b93a544d708678d36f9acc745d51"
+      "byte_size": 68996,
+      "sha256": "ec7e8f061a0045d27d7d46e4e0e1a576699e20469e1acd6486dfb3fe04c7b463"
     },
     "Taw_error_vs_fluent_lower_auto_range.png": {
-      "byte_size": 70904,
-      "sha256": "04d75dc5d205029b5f8fd0d4a761cc2fef26c590136d7b97e67e68db8b3bb943"
+      "byte_size": 71233,
+      "sha256": "f0ebf8d9532f9b68cf147c3144a11d0ebb7e4676cef20c59627aebc45ad08c0f"
     },
     "Taw_error_vs_fluent_upper_nose_x_lt_0p1m_auto_range.png": {
-      "byte_size": 104662,
-      "sha256": "ae3643e00edf1e547af60269d5e948fa835bc57fe03b62a4be31483b58ffbb41"
+      "byte_size": 109799,
+      "sha256": "237db57d04fd54a594f7fffb329e3fdc79e015c47b9a5e4d602b5717c80aefd3"
     },
     "Taw_error_vs_fluent_lower_nose_x_lt_0p1m_auto_range.png": {
-      "byte_size": 114280,
-      "sha256": "9523830891fb818bde9564f890db00bde459781724ff0ab9680e199725846041"
+      "byte_size": 123875,
+      "sha256": "b568d167a9a8c214dcf2363bf2b779ecfa8351c05ea301c69bece41a005bc14c"
     }
   }
 }

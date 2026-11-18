@@ -60,6 +60,7 @@ def classify_triangle_geometric_sheets(
     *,
     surface_abs_nz_min: float = 0.45,
     propagate_components: bool = True,
+    include_continuous_surfaces: bool = False,
 ) -> np.ndarray:
     """Assign upper/lower identity and propagate it across eligible skin components."""
 
@@ -141,6 +142,18 @@ def classify_triangle_geometric_sheets(
             result[component] = np.int8(next(iter(seeds)))
         elif not seeds:
             result[component] = np.int8(GEOMETRIC_SHEET_OTHER)
+    if include_continuous_surfaces:
+        # HF support must not discard steep continuous skin just because its
+        # up-normal is small. Keep legacy LF labels and ambiguous transitions.
+        full_sampler = SurfaceSlopeSampler(mesh=_mesh_from_triangles(triangle_array),
+                                          surface_abs_nz_min=0.0)
+        for index in np.flatnonzero(result == GEOMETRIC_SHEET_OTHER):
+            upper, lower = full_sampler.sample_upper_lower_with_triangle_id(
+                x=float(centroids[index, 0]), span=float(centroids[index, 1]))
+            is_upper = upper is not None and int(upper[6]) == int(index)
+            is_lower = lower is not None and int(lower[6]) == int(index)
+            if is_upper != is_lower:
+                result[index] = GEOMETRIC_SHEET_UPPER if is_upper else GEOMETRIC_SHEET_LOWER
     return _readonly(result, dtype=np.int8)
 
 
