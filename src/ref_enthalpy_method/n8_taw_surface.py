@@ -1656,6 +1656,11 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+# Fill each face's own edge so sub-pixel slivers and shared edges do not leave
+# anti-aliasing seams or white pixels along the planform outline.
+_TRIPCOLOR_SEAMLESS = {"edgecolors": "face", "linewidth": 0.3, "antialiased": False}
+
+
 def _plot_explicit_surface(
     *,
     path: Path,
@@ -1704,6 +1709,7 @@ def _plot_explicit_surface(
             cmap=cmap,
             vmin=vmin,
             vmax=vmax,
+            **_TRIPCOLOR_SEAMLESS,
         )
         fig.colorbar(artist, ax=ax, label=colorbar_label)
         ax.set_title(title, fontsize=10)
@@ -1775,6 +1781,7 @@ def _plot_categorical_surface(
             cmap=ListedColormap(colors),
             vmin=-0.5,
             vmax=len(colors) - 0.5,
+            **_TRIPCOLOR_SEAMLESS,
         )
         present = np.unique(face_category).astype(np.int64)
         ax.legend(

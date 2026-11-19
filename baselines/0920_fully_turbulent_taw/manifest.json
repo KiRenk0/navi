@@ -14,21 +14,21 @@
     "projection_cache": "96eeb959efaa54d84986293027c456add024e7816e51ce6f64331fbb06715b94"
   },
   "artifact_hashes_sha256": {
-    "summary.json": "7e0a861c9158ed9f41db93ac950225273a6d379237b376e7f23028d9b6d58014",
+    "summary.json": "879d9bd9d3eab52d3c093d21ae3502783ffc2fa85a6045f13965c3e6b70bd49f",
     "Taw_error_stats.json": "bade4b487adb879c967e98c54778946acb314226173e213a7b6229284032f2e1",
     "Taw_error_vs_fluent_lower_auto_range.png": "f0ebf8d9532f9b68cf147c3144a11d0ebb7e4676cef20c59627aebc45ad08c0f",
     "Taw_error_vs_fluent_lower_nose_x_lt_0p1m_auto_range.png": "b568d167a9a8c214dcf2363bf2b779ecfa8351c05ea301c69bece41a005bc14c",
     "Taw_error_vs_fluent_upper_auto_range.png": "ec7e8f061a0045d27d7d46e4e0e1a576699e20469e1acd6486dfb3fe04c7b463",
     "Taw_error_vs_fluent_upper_nose_x_lt_0p1m_auto_range.png": "237db57d04fd54a594f7fffb329e3fdc79e015c47b9a5e4d602b5717c80aefd3",
-    "Taw_provider_lower.png": "85a358dd3e6f39e51bc5eeaa5eab52606dd8deb51ffabb8621a97375e7ed66ff",
-    "Taw_provider_upper.png": "41b02290b4dbd7a991af602496103ad89a54be2d747b4c84840d01012f2fafb9",
+    "Taw_provider_lower.png": "ab74ecfb01a33c49a3fa32bf445cb1bdc3381c5c8a25e89b81bbfb9736272e91",
+    "Taw_provider_upper.png": "ee9527666c92ee9d1dba0fe8ae528de1ab5b818334531a3520cfd4ef3307bb2e",
     "Taw_surface_fields.npz": "5602af8864ae5bf9df2f51a8e37410f1d30b54d8f2228c1046a7f01bf2496f02",
-    "Taw_surface_lower.png": "f42067000d723a7f87fb2fcb907e6b9c75238b56ebd8118fa6f4fb1707f3b49b",
-    "Taw_surface_upper.png": "563fc754a8bcf8ec96b6ac3ffe0e70170c9f3347123b9b8c5d2fa4942b784459",
-    "Taw_validity_lower.png": "5310f96ee0731776311c63717f533a1ec311bdce071a8e7dbcc841ce7f524d14",
-    "Taw_validity_upper.png": "f76077eefbede7c9377e160a0d6d8f6cf25a3a6c0b7a447ca397ca8a46c6043e"
+    "Taw_surface_lower.png": "caca33c950c2889e6e22c149b749634958117faca8b92675f3a71626b442b289",
+    "Taw_surface_upper.png": "f4ba6075a7e62e09c4d5fea904a02a1b6176703805e74789257e1dd4a86e87ee",
+    "Taw_validity_lower.png": "2cb6f7127b1c96e953f3f6388c8588648a26a630f56d9631442772c3e1e33a76",
+    "Taw_validity_upper.png": "9b507a206c1eba7303dee0efc0a3119da0b9da61be9bb4676340b28f8d200479"
   },
-  "summary_sha256": "7e0a861c9158ed9f41db93ac950225273a6d379237b376e7f23028d9b6d58014",
+  "summary_sha256": "879d9bd9d3eab52d3c093d21ae3502783ffc2fa85a6045f13965c3e6b70bd49f",
   "projection_cache_identity": {
     "schema": "exact-projection-cache/v1",
     "algorithm": "n3a.5b-exact-bvh/v1",
